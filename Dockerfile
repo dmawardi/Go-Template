@@ -9,8 +9,6 @@ COPY go.sum .
 
 RUN go mod download
 
-CMD ["ls"]
-
 # RUN go install github.com/dmawardi/Go-Template@latest
 # Copy current directory and copy to Docker working directory
 COPY . .
