@@ -9,31 +9,52 @@ import (
 
 	"github.com/dmawardi/Go-Template/ent"
 	"github.com/dmawardi/Go-Template/ent/migrate"
+	"github.com/dmawardi/Go-Template/internal/auth"
+	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/handlers"
+	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 const portNumber = ":8080"
 
+// Init state
+var app config.AppConfig
+
+var store *sessions.CookieStore
+
 func main() {
 	// Build context
 	ctx := context.Background()
+	// Set context in app config
+	app.Ctx = ctx
 	// Load env variables
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal("Unable to load environment variables.")
 	}
 
+	// Create sessions storage for authentication
+	secretKey := os.Getenv("SESSIONS_SECRET_KEY")
+	// Create new Session storage
+	store = sessions.NewCookieStore([]byte(secretKey))
+	// Set session in state to store
+	app.Session = store
+	// Set state in other packages
+	handlers.SetStateInHandlers(&app)
+	auth.SetStateInAuth(&app)
+
 	// Create client using DbConnect
 	client := DbConnect()
+	app.DbClient = client
 	// close the client once not operational
 	defer client.Close()
 
-	_, err = handlers.CreateUser(ctx, client)
-	if err != nil {
-		fmt.Println("Unable to create user.")
-	}
+	// _, err = handlers.CreateUser(ctx, client)
+	// if err != nil {
+	// 	fmt.Println("Unable to create user.")
+	// }
 
 	fmt.Printf("Starting application on port: %s\n", portNumber)
 

@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -18,6 +20,15 @@ func (User) Fields() []ent.Field {
 			Positive(),
 		field.String("name").
 			Default("unknown"),
+		field.String("email").Unique(),
+		field.String("username"),
+		field.String("password").Sensitive(),
+
+		field.Time("created_at").
+			Default(time.Now).Immutable(),
+		field.Time("updated_at").
+			Default(time.Now).
+			UpdateDefault(time.Now),
 	}
 }
 

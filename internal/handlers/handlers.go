@@ -12,8 +12,83 @@ import (
 	"github.com/dmawardi/Go-Template/ent/car"
 	"github.com/dmawardi/Go-Template/ent/user"
 
+	"github.com/dmawardi/Go-Template/internal/auth"
+	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
+
+// Init state variable
+var app *config.AppConfig
+
+// Function called in main.go to connect app state to current file
+func SetStateInHandlers(a *config.AppConfig) {
+	app = a
+}
+
+// Login
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method Not Supported", http.StatusMethodNotAllowed)
+		return
+	}
+	// ParseForm parses the raw query from the URL and updates r.Form
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Please pass the data as URL form encoded", http.StatusBadRequest)
+		return
+	}
+
+	// Get username and password from the parsed form
+	formUsername := r.Form.Get("username")
+	formPassword := r.Form.Get("password")
+	fmt.Println("Request to login from: ", formUsername)
+
+	// Check if user exists in db
+	foundUser, err := app.DbClient.User.
+		Query().
+		Where(user.Username(formUsername)).
+		// `Only` fails if no user found,
+		// or more than 1 user returned.
+		Only(app.Ctx)
+
+	if err == nil {
+		fmt.Println("User logging in: ", foundUser)
+
+		if foundUser.Password == formPassword {
+			// Set login status to true
+			err = auth.SetLoginStatus(w, r, true)
+			if err != nil {
+				fmt.Println("Failed to set user login status in  session")
+			}
+			// else if user password doesn't match
+		} else {
+			http.Error(w, "Invalid Credentials", http.StatusUnauthorized)
+			return
+		}
+		w.Write([]byte("Login successful!"))
+	}
+
+}
+
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	// Set login status to false
+	err := auth.SetLoginStatus(w, r, false)
+	if err != nil {
+		fmt.Println("Failed to set user logout status in  session")
+	}
+	w.Write([]byte("Logout Successful"))
+}
+
+// Login URL check
+func HealthCheck(w http.ResponseWriter, r *http.Request) {
+	if auth.IsAuthenticated(r) {
+		w.Write([]byte("Welcome!"))
+		return
+	} else {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+}
 
 // Users
 func CreateUser(ctx context.Context, client *ent.Client) (*ent.User, error) {
@@ -21,6 +96,9 @@ func CreateUser(ctx context.Context, client *ent.Client) (*ent.User, error) {
 		Create().
 		SetAge(30).
 		SetName("a8m").
+		SetUsername("gonad").
+		SetEmail("dopey@gmail.com").
+		SetPassword("goose").
 		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating user: %w", err)

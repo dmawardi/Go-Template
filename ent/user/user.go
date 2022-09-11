@@ -2,6 +2,10 @@
 
 package user
 
+import (
+	"time"
+)
+
 const (
 	// Label holds the string label denoting the user type in the database.
 	Label = "user"
@@ -11,6 +15,16 @@ const (
 	FieldAge = "age"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldEmail holds the string denoting the email field in the database.
+	FieldEmail = "email"
+	// FieldUsername holds the string denoting the username field in the database.
+	FieldUsername = "username"
+	// FieldPassword holds the string denoting the password field in the database.
+	FieldPassword = "password"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
 	// EdgeCars holds the string denoting the cars edge name in mutations.
 	EdgeCars = "cars"
 	// EdgeGroups holds the string denoting the groups edge name in mutations.
@@ -36,6 +50,11 @@ var Columns = []string{
 	FieldID,
 	FieldAge,
 	FieldName,
+	FieldEmail,
+	FieldUsername,
+	FieldPassword,
+	FieldCreatedAt,
+	FieldUpdatedAt,
 }
 
 var (
@@ -59,4 +78,10 @@ var (
 	AgeValidator func(int) error
 	// DefaultName holds the default value on creation for the "name" field.
 	DefaultName string
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
 )
