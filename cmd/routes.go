@@ -21,6 +21,10 @@ func routes() http.Handler {
 	// Login
 	mux.Post("/api/login", handlers.LoginHandler)
 	mux.Get("/api/logout", handlers.LogoutHandler)
+
+	// User
+	// mux.Post("/api/user", handlers.CreateUser)
+
 	mux.Get("/api/me", handlers.HealthCheck)
 
 	// Build fileserver using static directory

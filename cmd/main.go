@@ -12,6 +12,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/handlers"
+	"github.com/dmawardi/Go-Template/internal/services"
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -41,9 +42,16 @@ func main() {
 	store = sessions.NewCookieStore([]byte(secretKey))
 	// Set session in state to store
 	app.Session = store
+
+	// Initialize RBAC Authorization
+	// e, _ := casbin.NewEnforcer("../internal/auth/model.conf", "path/to/policy.csv")
+	// Set in state
+	// app.RBEnforcer = e
+
 	// Set state in other packages
 	handlers.SetStateInHandlers(&app)
 	auth.SetStateInAuth(&app)
+	services.BuildServiceRepo(&app)
 
 	// Create client using DbConnect
 	client := DbConnect()

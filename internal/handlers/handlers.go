@@ -31,30 +31,29 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method Not Supported", http.StatusMethodNotAllowed)
 		return
 	}
-	// ParseForm parses the raw query from the URL and updates r.Form
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Please pass the data as URL form encoded", http.StatusBadRequest)
-		return
-	}
 
-	// Get username and password from the parsed form
-	formUsername := r.Form.Get("username")
-	formPassword := r.Form.Get("password")
-	fmt.Println("Request to login from: ", formUsername)
+	var login models.Login
+	// Decode request body as JSON and store in login
+	err := json.NewDecoder(r.Body).Decode(&login)
+	if err != nil {
+		fmt.Println("Decoding error: ", err)
+	}
+	fmt.Printf("JSON Received: %+v\n", login)
 
 	// Check if user exists in db
 	foundUser, err := app.DbClient.User.
 		Query().
-		Where(user.Username(formUsername)).
+		Where(user.Username(login.Username)).
 		// `Only` fails if no user found,
 		// or more than 1 user returned.
 		Only(app.Ctx)
 
+	// If no errors
 	if err == nil {
 		fmt.Println("User logging in: ", foundUser)
 
-		if foundUser.Password == formPassword {
+		// If input password matches with stored password
+		if foundUser.Password == login.Password {
 			// Set login status to true
 			err = auth.SetLoginStatus(w, r, true)
 			if err != nil {
@@ -67,7 +66,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Write([]byte("Login successful!"))
 	}
-
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
@@ -91,21 +89,15 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 }
 
 // Users
-func CreateUser(ctx context.Context, client *ent.Client) (*ent.User, error) {
-	u, err := client.User.
-		Create().
-		SetAge(30).
-		SetName("a8m").
-		SetUsername("gonad").
-		SetEmail("dopey@gmail.com").
-		SetPassword("goose").
-		Save(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed creating user: %w", err)
-	}
-	log.Println("user was created: ", u)
-	return u, nil
-}
+// func CreateNewUser(w http.ResponseWriter, r *http.Request) {
+// 	var user models.Login
+// 	// Decode request body as JSON and store in login
+// 	err := json.NewDecoder(r.Body).Decode(&login)
+// 	if err != nil {
+// 		fmt.Println("Decoding error: ", err)
+// 	}
+// 	fmt.Printf("JSON Received: %+v\n", login)
+// }
 
 func QueryUserName(ctx context.Context, client *ent.Client) (*ent.User, error) {
 	u, err := client.User.
@@ -163,7 +155,6 @@ func CreateCars(ctx context.Context, client *ent.Client) (*ent.User, error) {
 	// Create a new user, and add it the 2 cars.
 	a8m, err := client.User.
 		Create().
-		SetAge(30).
 		SetName("a8m").
 		AddCars(tesla, ford).
 		Save(ctx)
@@ -227,7 +218,6 @@ func CreateGraph(ctx context.Context, client *ent.Client) error {
 	// First, create the users.
 	a8m, err := client.User.
 		Create().
-		SetAge(30).
 		SetName("Ariel").
 		Save(ctx)
 	if err != nil {
@@ -235,7 +225,6 @@ func CreateGraph(ctx context.Context, client *ent.Client) error {
 	}
 	neta, err := client.User.
 		Create().
-		SetAge(28).
 		SetName("Neta").
 		Save(ctx)
 	if err != nil {

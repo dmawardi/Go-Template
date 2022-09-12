@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 
+	"github.com/casbin/casbin/v2"
 	"github.com/dmawardi/Go-Template/ent"
 	"github.com/gorilla/sessions"
 )
@@ -14,4 +15,5 @@ type AppConfig struct {
 	Ctx          context.Context
 	DbClient     *ent.Client
 	Session      *sessions.CookieStore
+	RBEnforcer   *casbin.Enforcer
 }
