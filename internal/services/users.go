@@ -4,18 +4,18 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/dmawardi/Go-Template/ent"
+	"github.com/dmawardi/Go-Template/internal/models"
 )
 
-func (repo *Repository) CreateUser(ctx context.Context, client *ent.Client, r *http.Request) (*ent.User, error) {
+func (repo *Repository) CreateUser(ctx context.Context, client *ent.Client, user *models.CreateUser) (*ent.User, error) {
 	u, err := client.User.
 		Create().
-		SetName("a8m").
-		SetUsername("gonad").
-		SetEmail("dopey@gmail.com").
-		SetPassword("goose").
+		SetName(user.Name).
+		SetUsername(user.Username).
+		SetEmail(user.Email).
+		SetPassword(user.Password).
 		Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating user: %w", err)

@@ -14,7 +14,9 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/config"
+	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
+	"github.com/dmawardi/Go-Template/internal/services"
 )
 
 // Init state variable
@@ -89,15 +91,25 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 }
 
 // Users
-// func CreateNewUser(w http.ResponseWriter, r *http.Request) {
-// 	var user models.Login
-// 	// Decode request body as JSON and store in login
-// 	err := json.NewDecoder(r.Body).Decode(&login)
-// 	if err != nil {
-// 		fmt.Println("Decoding error: ", err)
-// 	}
-// 	fmt.Printf("JSON Received: %+v\n", login)
-// }
+func CreateNewUser(w http.ResponseWriter, r *http.Request) {
+	var user models.CreateUser
+	// Decode request body as JSON and store in login
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		fmt.Println("Decoding error: ", err)
+	}
+	fmt.Printf("JSON Received: %+v\n", user)
+
+	// Create user
+	createdUser, createErr := services.Repo.CreateUser(app.Ctx, app.DbClient, &user)
+	if createErr != nil {
+		http.Error(w, "Failed user creation", http.StatusBadRequest)
+		return
+	}
+	// Write user to output
+	err = helpers.WriteAsJSON(w, createdUser)
+	fmt.Println(err)
+}
 
 func QueryUserName(ctx context.Context, client *ent.Client) (*ent.User, error) {
 	u, err := client.User.

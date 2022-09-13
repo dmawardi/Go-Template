@@ -23,7 +23,7 @@ func routes() http.Handler {
 	mux.Get("/api/logout", handlers.LogoutHandler)
 
 	// User
-	// mux.Post("/api/user", handlers.CreateUser)
+	mux.Post("/api/user", handlers.CreateNewUser)
 
 	mux.Get("/api/me", handlers.HealthCheck)
 

@@ -6,7 +6,7 @@ import (
 )
 
 // Takes struct data and returns as JSON to Response writer
-func WriteAsJSON(w http.ResponseWriter, data struct{}) error {
+func WriteAsJSON(w http.ResponseWriter, data interface{}) error {
 	// Edit content type
 	w.Header().Set("Content-Type", "application/json")
 
