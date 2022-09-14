@@ -116,25 +116,28 @@ func CreateNewUser(w http.ResponseWriter, r *http.Request) {
 	}
 	// Write user to output
 	err = helpers.WriteAsJSON(w, createdUser)
-	fmt.Println(err)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 // Handler to update a user (using URL parameter id)
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// grab id parameter
-	fmt.Print("chi parameters", chi.URLParam(r, "id"))
 	var user models.UpdateUser
 	// Decode request body as JSON and store in login
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		fmt.Println("Decoding error: ", err)
 	}
+
 	// Grab URL parameter
 	stringParameter := chi.URLParam(r, "id")
 	// Convert to int
 	idParameter, _ := strconv.Atoi(stringParameter)
 	// Set within request body data object
 	user.Id = idParameter
+
 	fmt.Printf("JSON Received: %+v\n", user)
 
 	// Update user
@@ -146,6 +149,25 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// Write user to output
 	err = helpers.WriteAsJSON(w, updatedUser)
 	fmt.Println(err)
+}
+
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
+	// Grab URL parameter
+	stringParameter := chi.URLParam(r, "id")
+	// Convert to int
+	idParameter, _ := strconv.Atoi(stringParameter)
+
+	// Attampt to delete user using id
+	err := services.DeleteUser(app.Ctx, app.DbClient, idParameter)
+
+	// If error detected
+	if err != nil {
+		http.Error(w, "Failed user deletion", http.StatusBadRequest)
+		return
+	}
+	// Else write success
+	w.Write([]byte("Deletion successful!"))
+	return
 }
 
 func QueryUser(ctx context.Context, client *ent.Client) (*ent.User, error) {

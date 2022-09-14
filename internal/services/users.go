@@ -70,6 +70,21 @@ func FindUserByEmail(ctx context.Context, client *ent.Client, email string) (*en
 	return foundUser, nil
 }
 
+func DeleteUser(ctx context.Context, client *ent.Client, id int) error {
+	// Check if user exists in db
+	err := app.DbClient.User.
+		DeleteOneID(id).
+		Exec(ctx)
+
+	// If error detected
+	if err != nil {
+		fmt.Println("error in deleting user: ", err)
+		return err
+	}
+	// else
+	return nil
+}
+
 func UpdateUser(ctx context.Context, client *ent.Client, user *models.UpdateUser) (*ent.User, error) {
 	var err error
 	updateQuery := client.User.
