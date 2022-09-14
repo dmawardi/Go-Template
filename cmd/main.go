@@ -51,7 +51,7 @@ func main() {
 	// Set state in other packages
 	handlers.SetStateInHandlers(&app)
 	auth.SetStateInAuth(&app)
-	services.BuildServiceRepo(&app)
+	services.BuildServiceState(&app)
 
 	// Create client using DbConnect
 	client := DbConnect()

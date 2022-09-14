@@ -11,6 +11,7 @@ import (
 	"github.com/dmawardi/Go-Template/ent"
 	"github.com/dmawardi/Go-Template/ent/car"
 	"github.com/dmawardi/Go-Template/ent/user"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/config"
@@ -43,19 +44,17 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("JSON Received: %+v\n", login)
 
 	// Check if user exists in db
-	foundUser, err := app.DbClient.User.
-		Query().
-		Where(user.Username(login.Username)).
-		// `Only` fails if no user found,
-		// or more than 1 user returned.
-		Only(app.Ctx)
-
-	// If no errors
+	foundUser, err := services.FindUserByEmail(app.Ctx, app.DbClient, login.Email)
+	fmt.Println("founduser: ", foundUser)
+	// If user found
 	if err == nil {
 		fmt.Println("User logging in: ", foundUser)
 
-		// If input password matches with stored password
-		if foundUser.Password == login.Password {
+		// Compare stored (hashed) password with input password
+		err = bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(login.Password))
+
+		// If match found (no errors)
+		if err == nil {
 			// Set login status to true
 			err = auth.SetLoginStatus(w, r, true)
 			if err != nil {
@@ -101,7 +100,7 @@ func CreateNewUser(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("JSON Received: %+v\n", user)
 
 	// Create user
-	createdUser, createErr := services.Repo.CreateUser(app.Ctx, app.DbClient, &user)
+	createdUser, createErr := services.CreateUser(app.Ctx, app.DbClient, &user)
 	if createErr != nil {
 		http.Error(w, "Failed user creation", http.StatusBadRequest)
 		return
@@ -109,20 +108,6 @@ func CreateNewUser(w http.ResponseWriter, r *http.Request) {
 	// Write user to output
 	err = helpers.WriteAsJSON(w, createdUser)
 	fmt.Println(err)
-}
-
-func QueryUserName(ctx context.Context, client *ent.Client) (*ent.User, error) {
-	u, err := client.User.
-		Query().
-		Where(user.Name("a8m")).
-		// `Only` fails if no user found,
-		// or more than 1 user returned.
-		Only(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed querying user: %w", err)
-	}
-	log.Println("created user returned: ", u)
-	return u, nil
 }
 
 func QueryUser(ctx context.Context, client *ent.Client) (*ent.User, error) {

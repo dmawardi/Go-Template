@@ -3,16 +3,14 @@ package services
 import "github.com/dmawardi/Go-Template/internal/config"
 
 // Repository used by handler package
-var Repo *Repository
+var app *config.AppConfig
 
-// Repository type
-type Repository struct {
-	App *config.AppConfig
-}
+// // Repository type
+// type Repository struct {
+// 	App *config.AppConfig
+// }
 
 // Create new service repository
-func BuildServiceRepo(a *config.AppConfig) *Repository {
-	return &Repository{
-		App: a,
-	}
+func BuildServiceState(a *config.AppConfig) {
+	app = a
 }
