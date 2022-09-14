@@ -30,11 +30,28 @@ func CreateUser(ctx context.Context, client *ent.Client, user *models.CreateUser
 	return u, nil
 }
 
-func FindUserByEmail(ctx context.Context, client *ent.Client, email string) (*ent.User, error) {
-	fmt.Println("Finding user by username...")
+func FindUserById(ctx context.Context, client *ent.Client, userId int) (*ent.User, error) {
 	// Check if user exists in db
-	// fmt.Println("repo ctx:", repo.App.Ctx)
+	foundUser, err := app.DbClient.User.
+		Query().
+		Where(user.ID(userId)).
+		// `Only` fails if no user found,
+		// or more than 1 user returned.
+		Only(app.Ctx)
 
+	fmt.Println("Found user:", foundUser)
+
+	// If error detected
+	if err != nil {
+		fmt.Println("error in finding user: ", err)
+		return nil, err
+	}
+	// else
+	return foundUser, nil
+}
+
+func FindUserByEmail(ctx context.Context, client *ent.Client, email string) (*ent.User, error) {
+	// Check if user exists in db
 	foundUser, err := app.DbClient.User.
 		Query().
 		Where(user.Email(email)).
@@ -51,4 +68,32 @@ func FindUserByEmail(ctx context.Context, client *ent.Client, email string) (*en
 	}
 	// else
 	return foundUser, nil
+}
+
+func UpdateUser(ctx context.Context, client *ent.Client, user *models.UpdateUser) (*ent.User, error) {
+	var err error
+	updateQuery := client.User.
+		UpdateOneID(user.Id).
+		SetName(user.Name).
+		SetUsername(user.Username).
+		SetEmail(user.Email)
+
+	if user.Password != "" {
+
+		// Build hashed password
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
+		if err != nil {
+			return nil, err
+		}
+		// Set in query
+		updateQuery.SetPassword(string(hashedPassword))
+	}
+
+	// Save update
+	createdUser, err := updateQuery.Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed creating user: %w", err)
+	}
+	log.Println("user was created: ", createdUser)
+	return createdUser, nil
 }

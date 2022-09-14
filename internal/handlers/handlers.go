@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/dmawardi/Go-Template/ent"
 	"github.com/dmawardi/Go-Template/ent/car"
 	"github.com/dmawardi/Go-Template/ent/user"
+	"github.com/go-chi/chi"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/dmawardi/Go-Template/internal/auth"
@@ -89,7 +91,14 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Detail to display a user's profile details
+func UserDetails(w http.ResponseWriter, r *http.Request) {
+
+}
+
 // Users
+
+// Handler to create a new user
 func CreateNewUser(w http.ResponseWriter, r *http.Request) {
 	var user models.CreateUser
 	// Decode request body as JSON and store in login
@@ -107,6 +116,35 @@ func CreateNewUser(w http.ResponseWriter, r *http.Request) {
 	}
 	// Write user to output
 	err = helpers.WriteAsJSON(w, createdUser)
+	fmt.Println(err)
+}
+
+// Handler to update a user (using URL parameter id)
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
+	// grab id parameter
+	fmt.Print("chi parameters", chi.URLParam(r, "id"))
+	var user models.UpdateUser
+	// Decode request body as JSON and store in login
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		fmt.Println("Decoding error: ", err)
+	}
+	// Grab URL parameter
+	stringParameter := chi.URLParam(r, "id")
+	// Convert to int
+	idParameter, _ := strconv.Atoi(stringParameter)
+	// Set within request body data object
+	user.Id = idParameter
+	fmt.Printf("JSON Received: %+v\n", user)
+
+	// Update user
+	updatedUser, createErr := services.UpdateUser(app.Ctx, app.DbClient, &user)
+	if createErr != nil {
+		http.Error(w, "Failed user creation", http.StatusBadRequest)
+		return
+	}
+	// Write user to output
+	err = helpers.WriteAsJSON(w, updatedUser)
 	fmt.Println(err)
 }
 

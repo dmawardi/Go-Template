@@ -24,6 +24,7 @@ func routes() http.Handler {
 
 	// User
 	mux.Post("/api/user", handlers.CreateNewUser)
+	mux.Patch("/api/user/{id}", handlers.UpdateUser)
 
 	mux.Get("/api/me", handlers.HealthCheck)
 
