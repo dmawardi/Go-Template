@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/casbin/casbin/v2"
 	"github.com/dmawardi/Go-Template/ent"
 	"github.com/dmawardi/Go-Template/ent/migrate"
 	"github.com/dmawardi/Go-Template/internal/auth"
@@ -44,9 +45,9 @@ func main() {
 	app.Session = store
 
 	// Initialize RBAC Authorization
-	// e, _ := casbin.NewEnforcer("../internal/auth/model.conf", "path/to/policy.csv")
+	e, _ := casbin.NewEnforcer("../internal/auth/rbac_model.conf", "../internal/auth/rbac_policy.csv")
 	// Set in state
-	// app.RBEnforcer = e
+	app.RBEnforcer = e
 
 	// Set state in other packages
 	handlers.SetStateInHandlers(&app)
@@ -58,11 +59,6 @@ func main() {
 	app.DbClient = client
 	// close the client once not operational
 	defer client.Close()
-
-	// _, err = handlers.CreateUser(ctx, client)
-	// if err != nil {
-	// 	fmt.Println("Unable to create user.")
-	// }
 
 	fmt.Printf("Starting application on port: %s\n", portNumber)
 

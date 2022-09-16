@@ -8,26 +8,35 @@ import (
 	"github.com/go-chi/chi/middleware"
 )
 
+type Resource struct{}
+
 func routes() http.Handler {
 	// Create new router
 	mux := chi.NewRouter()
-
 	// Use built in Chi middleware
 	mux.Use(middleware.Recoverer)
 	mux.Use(middleware.Logger)
 
-	// Routes
-	mux.Get("/", handlers.GetJobs)
-	// Login
-	mux.Post("/api/login", handlers.LoginHandler)
-	mux.Get("/api/logout", handlers.LogoutHandler)
+	mux.Group(func(mux chi.Router) {
+		// Public Routes
+		mux.Get("/", handlers.GetJobs)
+		// Login
+		mux.Post("/api/login", handlers.LoginHandler)
 
-	// User
-	mux.Post("/api/user", handlers.CreateNewUser)
-	mux.Patch("/api/user/{id}", handlers.UpdateUser)
-	mux.Delete("/api/user/{id}", handlers.DeleteUser)
+		// Private routes
+		mux.Group(func(mux chi.Router) {
+			mux.Use(AuthenticateJWT)
 
-	mux.Get("/api/me", handlers.HealthCheck)
+			// User
+			mux.Post("/api/user", handlers.CreateNewUser)
+			mux.Patch("/api/user/{id}", handlers.UpdateUser)
+			mux.Delete("/api/user/{id}", handlers.DeleteUser)
+
+			mux.Get("/api/me", handlers.HealthCheck)
+
+		})
+
+	})
 
 	// Build fileserver using static directory
 	fileServer := http.FileServer(http.Dir("./static"))

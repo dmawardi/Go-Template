@@ -46,6 +46,7 @@ var (
 		{Name: "name", Type: field.TypeString, Default: "unknown"},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "username", Type: field.TypeString},
+		{Name: "role", Type: field.TypeString, Default: "user"},
 		{Name: "password", Type: field.TypeString},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},

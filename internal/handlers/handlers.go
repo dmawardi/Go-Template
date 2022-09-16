@@ -11,7 +11,6 @@ import (
 
 	"github.com/dmawardi/Go-Template/ent"
 	"github.com/dmawardi/Go-Template/ent/car"
-	"github.com/dmawardi/Go-Template/ent/user"
 	"github.com/go-chi/chi"
 	"golang.org/x/crypto/bcrypt"
 
@@ -28,6 +27,10 @@ var app *config.AppConfig
 // Function called in main.go to connect app state to current file
 func SetStateInHandlers(a *config.AppConfig) {
 	app = a
+}
+
+type LoginResponse struct {
+	Token string `json:"token"`
 }
 
 // Login
@@ -58,37 +61,28 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		// If match found (no errors)
 		if err == nil {
 			// Set login status to true
-			err = auth.SetLoginStatus(w, r, true)
+			tokenString, err := auth.GenerateJWT(foundUser.Username, foundUser.Email, foundUser.Role)
+			// helpers.WriteAsJSON(w, )
 			if err != nil {
-				fmt.Println("Failed to set user login status in  session")
+				fmt.Println("Failed to create JWT")
 			}
+			// Build login response
+			var loginResponse = LoginResponse{Token: tokenString}
+			// Send to user in body
+			helpers.WriteAsJSON(w, loginResponse)
+			return
 			// else if user password doesn't match
 		} else {
 			http.Error(w, "Invalid Credentials", http.StatusUnauthorized)
 			return
 		}
-		w.Write([]byte("Login successful!"))
+		// w.Write([]byte("Login successful!"))
 	}
-}
-
-func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	// Set login status to false
-	err := auth.SetLoginStatus(w, r, false)
-	if err != nil {
-		fmt.Println("Failed to set user logout status in  session")
-	}
-	w.Write([]byte("Logout Successful"))
 }
 
 // Login URL check
 func HealthCheck(w http.ResponseWriter, r *http.Request) {
-	if auth.IsAuthenticated(r) {
-		w.Write([]byte("Welcome!"))
-		return
-	} else {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
+	w.Write([]byte("Welcome!"))
 }
 
 // Detail to display a user's profile details
@@ -170,19 +164,19 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func QueryUser(ctx context.Context, client *ent.Client) (*ent.User, error) {
-	u, err := client.User.
-		Query().
-		Where(user.Name("a8m")).
-		// `Only` fails if no user found,
-		// or more than 1 user returned.
-		Only(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed querying user: %w", err)
-	}
-	log.Println("user returned: ", u)
-	return u, nil
-}
+// func QueryUser(ctx context.Context, client *ent.Client) (*ent.User, error) {
+// 	u, err := client.User.
+// 		Query().
+// 		Where(user.Name("a8m")).
+// 		// `Only` fails if no user found,
+// 		// or more than 1 user returned.
+// 		Only(ctx)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed querying user: %w", err)
+// 	}
+// 	log.Println("user returned: ", u)
+// 	return u, nil
+// }
 
 // Cars
 func CreateCars(ctx context.Context, client *ent.Client) (*ent.User, error) {

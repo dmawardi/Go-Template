@@ -20,6 +20,7 @@ func (User) Fields() []ent.Field {
 			Default("unknown"),
 		field.String("email").Unique(),
 		field.String("username"),
+		field.String("Role").Default("user"),
 		field.String("password").Sensitive(),
 		field.Time("created_at").
 			Default(time.Now).Immutable(),
