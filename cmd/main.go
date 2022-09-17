@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/casbin/casbin/v2"
+	entadapter "github.com/casbin/ent-adapter"
 	"github.com/dmawardi/Go-Template/ent"
 	"github.com/dmawardi/Go-Template/ent/migrate"
 	"github.com/dmawardi/Go-Template/internal/auth"
@@ -24,9 +25,16 @@ const portNumber = ":8080"
 // Init state
 var app config.AppConfig
 
+// Grab environment variables for connection
+var DB_USER string = os.Getenv("DB_USER")
+var DB_PASS string = os.Getenv("DB_PASS")
+var DB_HOST string = os.Getenv("DB_HOST")
+var DB_PORT string = os.Getenv("DB_PORT")
+
 var store *sessions.CookieStore
 
 func main() {
+
 	// Build context
 	ctx := context.Background()
 	// Set context in app config
@@ -44,11 +52,6 @@ func main() {
 	// Set session in state to store
 	app.Session = store
 
-	// Initialize RBAC Authorization
-	e, _ := casbin.NewEnforcer("../internal/auth/rbac_model.conf", "../internal/auth/rbac_policy.csv")
-	// Set in state
-	app.RBEnforcer = e
-
 	// Set state in other packages
 	handlers.SetStateInHandlers(&app)
 	auth.SetStateInAuth(&app)
@@ -59,6 +62,14 @@ func main() {
 	app.DbClient = client
 	// close the client once not operational
 	defer client.Close()
+
+	// Setup enforcer
+	e, err := EnforcerSetup()
+	if err != nil {
+		log.Fatal("Couldn't setup RBAC Authorization Enforcer")
+	}
+	// Set in state
+	app.RBEnforcer = e
 
 	fmt.Printf("Starting application on port: %s\n", portNumber)
 
@@ -79,14 +90,15 @@ func main() {
 // DbConnect connects to database using ent
 func DbConnect() *ent.Client {
 	// Grab environment variables for connection
-	DB_USER := os.Getenv("DB_USER")
-	DB_PASS := os.Getenv("DB_PASS")
-	DB_HOST := os.Getenv("DB_HOST")
-	DB_PORT := os.Getenv("DB_PORT")
+	var DB_USER string = os.Getenv("DB_USER")
+	var DB_PASS string = os.Getenv("DB_PASS")
+	var DB_HOST string = os.Getenv("DB_HOST")
+	var DB_PORT string = os.Getenv("DB_PORT")
 
 	// Create Postgres connection client
 	client, err := ent.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", DB_HOST, DB_PORT, DB_USER, "TestGo", DB_PASS))
 
+	fmt.Println("DB PORT in db connect", DB_PORT)
 	// Handle error
 	if err != nil {
 		log.Fatalf("failed opening connection to postgres: %v", err)
@@ -102,4 +114,44 @@ func DbConnect() *ent.Client {
 	}
 
 	return client
+}
+
+// Setup RBAC enforcer based on local model. Connects to DB and builds base policy
+func EnforcerSetup() (*casbin.Enforcer, error) {
+	// Grab environment variables for connection
+	var DB_USER string = os.Getenv("DB_USER")
+	var DB_PASS string = os.Getenv("DB_PASS")
+	var DB_HOST string = os.Getenv("DB_HOST")
+	var DB_PORT string = os.Getenv("DB_PORT")
+	// Create new adapter
+	// .NewAdapterWithClient(&app.DbClient)
+	// entadapter
+
+	enforcerAdapter, err := entadapter.NewAdapter("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", DB_HOST, DB_PORT, DB_USER, "TestGo", DB_PASS))
+	// If error
+	if err != nil {
+		log.Fatal("Couldn't connect Enforcer to DB: ", err, "\nDB PORT", DB_PORT)
+		return nil, err
+	}
+	// Initialize RBAC Authorization
+	enforcer, err := casbin.NewEnforcer("./internal/auth/rbac_model.conf", enforcerAdapter)
+	// If error
+	if err != nil {
+		log.Fatal("Couldn't build RBAC enforcer: ", err)
+		return nil, err
+	}
+
+	// Create policies if not already detected within system
+	if hasPolicy := enforcer.HasPolicy("admin", "report", "read"); !hasPolicy {
+		enforcer.AddPolicy("admin", "report", "read")
+	}
+	if hasPolicy := enforcer.HasPolicy("admin", "report", "write"); !hasPolicy {
+		enforcer.AddPolicy("admin", "report", "write")
+	}
+	if hasPolicy := enforcer.HasPolicy("user", "report", "read"); !hasPolicy {
+		enforcer.AddPolicy("user", "report", "read")
+	}
+
+	// else
+	return enforcer, nil
 }

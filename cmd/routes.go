@@ -8,8 +8,6 @@ import (
 	"github.com/go-chi/chi/middleware"
 )
 
-type Resource struct{}
-
 func routes() http.Handler {
 	// Create new router
 	mux := chi.NewRouter()
