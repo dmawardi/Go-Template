@@ -59,7 +59,7 @@ func GenerateJWT(username, email, roleName string) (string, error) {
 }
 
 // Validates and parses signed token
-func ValidateAndParseToken(signedToken string) (tokenData interface{}, err error) {
+func ValidateAndParseToken(signedToken string) (tokenData *AuthToken, err error) {
 	// Parse token and claims
 	token, err := jwt.ParseWithClaims(
 		signedToken,
@@ -70,7 +70,7 @@ func ValidateAndParseToken(signedToken string) (tokenData interface{}, err error
 	)
 	if err != nil {
 		err = errors.New("couldn't parse token")
-		return nil, err
+		return &AuthToken{}, err
 	}
 
 	// Extract claims from parsed tocken
@@ -78,12 +78,12 @@ func ValidateAndParseToken(signedToken string) (tokenData interface{}, err error
 	// If failed
 	if !ok {
 		err = errors.New("couldn't parse claims")
-		return nil, err
+		return &AuthToken{}, err
 	}
 	// If successful but expired
 	if claims.ExpiresAt < time.Now().Local().Unix() {
 		err = errors.New("token expired")
-		return nil, err
+		return &AuthToken{}, err
 	}
 	// else return claims
 	return claims, nil
@@ -100,11 +100,13 @@ type Authorizer interface {
 func ActionFromMethod(httpMethod string) string {
 	switch httpMethod {
 	case "GET":
-		return "gather"
+		return "read"
 	case "POST":
-		return "consume"
+		return "create"
+	case "PATCH":
+		return "write"
 	case "DELETE":
-		return "destroy"
+		return "delete"
 	default:
 		return ""
 	}

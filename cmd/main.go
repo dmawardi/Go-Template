@@ -142,14 +142,14 @@ func EnforcerSetup() (*casbin.Enforcer, error) {
 	}
 
 	// Create policies if not already detected within system
-	if hasPolicy := enforcer.HasPolicy("admin", "report", "read"); !hasPolicy {
-		enforcer.AddPolicy("admin", "report", "read")
+	if hasPolicy := enforcer.HasPolicy("admin", "/api/me", "read"); !hasPolicy {
+		enforcer.AddPolicy("admin", "/api/me", "read")
 	}
-	if hasPolicy := enforcer.HasPolicy("admin", "report", "write"); !hasPolicy {
-		enforcer.AddPolicy("admin", "report", "write")
+	if hasPolicy := enforcer.HasPolicy("admin", "/api/me", "write"); !hasPolicy {
+		enforcer.AddPolicy("admin", "/api/me", "write")
 	}
-	if hasPolicy := enforcer.HasPolicy("user", "report", "read"); !hasPolicy {
-		enforcer.AddPolicy("user", "report", "read")
+	if hasPolicy := enforcer.HasPolicy("user", "/api/me", "read"); !hasPolicy {
+		enforcer.AddPolicy("user", "/api/me", "read")
 	}
 
 	// else
