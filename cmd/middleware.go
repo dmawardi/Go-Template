@@ -31,7 +31,6 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 		}
 
 		// Extract current URL being accessed
-		fmt.Println("URL being accessed", r.URL.Path)
 		object := r.URL.Path
 		// Grab Http Method
 		httpMethod := r.Method
@@ -40,6 +39,7 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 		// Enforce RBAC policy and determine if user is authorized to perform action
 		allowed := Authorize(tokenData.Email, object, action)
 
+		// If not allowed
 		if !allowed {
 			http.Error(w, "Not authorized to perform that action", http.StatusForbidden)
 			return
@@ -67,9 +67,7 @@ func Authorize(subjectEmail, object, action string) bool {
 		return false
 	}
 
-	fmt.Printf("\nEnforcing: %s accessing %s to %s\n", foundUser.Role, object, action)
-
-	// Casbin enforces policy for user's role
+	// Enforce policy for user's role
 	ok, err := app.RBEnforcer.Enforce(foundUser.Role, object, action)
 	if err != nil {
 		log.Fatal("Failed to enforce RBAC policy in Authorization middleware")
@@ -78,24 +76,4 @@ func Authorize(subjectEmail, object, action string) bool {
 
 	// Return result of enforcement
 	return ok
-
 }
-
-// func Middleware(a auth.Authorizer, mux chi.Router) func(http.Handler) http.Handler {
-// 	return func(next http.Handler) http.Handler {
-// 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 			username, _, ok := r.BasicAuth()
-// 			// This is where the password would normally be verified
-
-// 			// asset := mux.Vars(r)["asset"]
-// 			action := auth.ActionFromMethod(r.Method)
-// 			if !ok || !a.HasPermission(username, action, asset) {
-// 				log.Printf("User '%s' is not allowed to '%s' resource '%s'", username, action, asset)
-// 				w.WriteHeader(http.StatusForbidden)
-// 				return
-// 			}
-
-// 			next.ServeHTTP(w, r)
-// 		})
-// 	}
-// }

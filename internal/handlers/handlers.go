@@ -40,13 +40,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Init
 	var login models.Login
 	// Decode request body as JSON and store in login
 	err := json.NewDecoder(r.Body).Decode(&login)
 	if err != nil {
 		fmt.Println("Decoding error: ", err)
 	}
-	fmt.Printf("JSON Received: %+v\n", login)
 
 	// Check if user exists in db
 	foundUser, err := services.FindUserByEmail(app.Ctx, app.DbClient, login.Email)
@@ -76,7 +76,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid Credentials", http.StatusUnauthorized)
 			return
 		}
-		// w.Write([]byte("Login successful!"))
 	}
 }
 

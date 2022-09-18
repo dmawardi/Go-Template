@@ -31,6 +31,7 @@ func routes() http.Handler {
 			mux.Delete("/api/user/{id}", handlers.DeleteUser)
 
 			mux.Get("/api/me", handlers.HealthCheck)
+			mux.Post("/api/me", handlers.HealthCheck)
 
 		})
 

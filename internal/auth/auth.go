@@ -89,12 +89,6 @@ func ValidateAndParseToken(signedToken string) (tokenData *AuthToken, err error)
 	return claims, nil
 }
 
-// Authorizer takes user, action and asset and returns
-// whether access should be provided based on auth policy
-type Authorizer interface {
-	HasPermission(userID, action, asset string) bool
-}
-
 // Takes the http method and returns a string based on it
 // for authorization assessment
 func ActionFromMethod(httpMethod string) string {
@@ -104,35 +98,10 @@ func ActionFromMethod(httpMethod string) string {
 	case "POST":
 		return "create"
 	case "PATCH":
-		return "write"
+		return "update"
 	case "DELETE":
 		return "delete"
 	default:
 		return ""
 	}
 }
-
-// func (a *Authorizer) HasPermission(userID, action, asset string) bool {
-// 	// Check for user
-// 	user, err := app.DbClient.User.Get(app.Ctx, 8)
-// 	if err != nil {
-// 		// Unknown userID
-// 		log.Print("Can't find user to check permissions. ID:", userID)
-// 		return false
-// 	}
-
-// 	hasPermission, err := app.RBEnforcer.Enforce(user.Role, asset, action)
-// 	if err != nil {
-// 		log.Printf("User '%s' does not have permission to access '%s'", user.Username, asset)
-// 	}
-
-// 	return hasPermission
-
-// 	// if hasPermission {
-// 	// 	return true
-// 	// }
-// 	// // for _, role := range user.Roles {
-// 	// // }
-
-// 	// return false
-// }

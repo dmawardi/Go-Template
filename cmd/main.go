@@ -68,7 +68,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Couldn't setup RBAC Authorization Enforcer")
 	}
-	// Set in state
+	// Set enforcer in state
 	app.RBEnforcer = e
 
 	fmt.Printf("Starting application on port: %s\n", portNumber)
@@ -123,16 +123,15 @@ func EnforcerSetup() (*casbin.Enforcer, error) {
 	var DB_PASS string = os.Getenv("DB_PASS")
 	var DB_HOST string = os.Getenv("DB_HOST")
 	var DB_PORT string = os.Getenv("DB_PORT")
-	// Create new adapter
-	// .NewAdapterWithClient(&app.DbClient)
-	// entadapter
 
+	// Create new adapter
 	enforcerAdapter, err := entadapter.NewAdapter("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", DB_HOST, DB_PORT, DB_USER, "TestGo", DB_PASS))
 	// If error
 	if err != nil {
 		log.Fatal("Couldn't connect Enforcer to DB: ", err, "\nDB PORT", DB_PORT)
 		return nil, err
 	}
+
 	// Initialize RBAC Authorization
 	enforcer, err := casbin.NewEnforcer("./internal/auth/rbac_model.conf", enforcerAdapter)
 	// If error
@@ -145,8 +144,11 @@ func EnforcerSetup() (*casbin.Enforcer, error) {
 	if hasPolicy := enforcer.HasPolicy("admin", "/api/me", "read"); !hasPolicy {
 		enforcer.AddPolicy("admin", "/api/me", "read")
 	}
-	if hasPolicy := enforcer.HasPolicy("admin", "/api/me", "write"); !hasPolicy {
-		enforcer.AddPolicy("admin", "/api/me", "write")
+	if hasPolicy := enforcer.HasPolicy("admin", "/api/me", "create"); !hasPolicy {
+		enforcer.AddPolicy("admin", "/api/me", "create")
+	}
+	if hasPolicy := enforcer.HasPolicy("admin", "/api/me", "update"); !hasPolicy {
+		enforcer.AddPolicy("admin", "/api/me", "update")
 	}
 	if hasPolicy := enforcer.HasPolicy("user", "/api/me", "read"); !hasPolicy {
 		enforcer.AddPolicy("user", "/api/me", "read")
