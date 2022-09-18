@@ -15,7 +15,6 @@ import (
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/handlers"
 	"github.com/dmawardi/Go-Template/internal/services"
-	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -24,14 +23,6 @@ const portNumber = ":8080"
 
 // Init state
 var app config.AppConfig
-
-// Grab environment variables for connection
-var DB_USER string = os.Getenv("DB_USER")
-var DB_PASS string = os.Getenv("DB_PASS")
-var DB_HOST string = os.Getenv("DB_HOST")
-var DB_PORT string = os.Getenv("DB_PORT")
-
-var store *sessions.CookieStore
 
 func main() {
 
@@ -44,13 +35,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Unable to load environment variables.")
 	}
-
-	// Create sessions storage for authentication
-	secretKey := os.Getenv("SESSIONS_SECRET_KEY")
-	// Create new Session storage
-	store = sessions.NewCookieStore([]byte(secretKey))
-	// Set session in state to store
-	app.Session = store
 
 	// Set state in other packages
 	handlers.SetStateInHandlers(&app)
@@ -140,19 +124,8 @@ func EnforcerSetup() (*casbin.Enforcer, error) {
 		return nil, err
 	}
 
-	// Create policies if not already detected within system
-	if hasPolicy := enforcer.HasPolicy("admin", "/api/me", "read"); !hasPolicy {
-		enforcer.AddPolicy("admin", "/api/me", "read")
-	}
-	if hasPolicy := enforcer.HasPolicy("admin", "/api/me", "create"); !hasPolicy {
-		enforcer.AddPolicy("admin", "/api/me", "create")
-	}
-	if hasPolicy := enforcer.HasPolicy("admin", "/api/me", "update"); !hasPolicy {
-		enforcer.AddPolicy("admin", "/api/me", "update")
-	}
-	if hasPolicy := enforcer.HasPolicy("user", "/api/me", "read"); !hasPolicy {
-		enforcer.AddPolicy("user", "/api/me", "read")
-	}
+	// Create default policies if not already detected within system
+	auth.SetupCasbinPolicy(enforcer, auth.DefaultPolicyList)
 
 	// else
 	return enforcer, nil

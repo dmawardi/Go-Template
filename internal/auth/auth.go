@@ -2,9 +2,11 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
+	"github.com/casbin/casbin/v2"
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -92,6 +94,7 @@ func ValidateAndParseToken(signedToken string) (tokenData *AuthToken, err error)
 // Takes the http method and returns a string based on it
 // for authorization assessment
 func ActionFromMethod(httpMethod string) string {
+	fmt.Println("Method of request:", httpMethod)
 	switch httpMethod {
 	case "GET":
 		return "read"
@@ -104,4 +107,16 @@ func ActionFromMethod(httpMethod string) string {
 	default:
 		return ""
 	}
+}
+
+// Set up policy settings in DB for casbin rules
+func SetupCasbinPolicy(enforcer *casbin.Enforcer, sliceOfPolicies []policySet) {
+	for _, policy := range sliceOfPolicies {
+		// if enforcer does not already have policy
+		if hasPolicy := enforcer.HasPolicy(policy.subject, policy.object, policy.action); !hasPolicy {
+			// create policy
+			enforcer.AddPolicy(policy.subject, policy.object, policy.action)
+		}
+	}
+
 }

@@ -32,6 +32,7 @@ func routes() http.Handler {
 
 			mux.Get("/api/me", handlers.HealthCheck)
 			mux.Post("/api/me", handlers.HealthCheck)
+			mux.Patch("/api/me", handlers.HealthCheck)
 
 		})
 
