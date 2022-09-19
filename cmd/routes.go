@@ -38,6 +38,9 @@ func routes() http.Handler {
 
 	})
 
+	// Serve API Swagger docs
+	docFileServer := http.FileServer(http.Dir("./swaggerui"))
+	mux.Handle("/docs/*", http.StripPrefix("/docs/", docFileServer))
 	// Build fileserver using static directory
 	fileServer := http.FileServer(http.Dir("./static"))
 	// Handle all calls to /static/* by stripping prefix and sending to file server
