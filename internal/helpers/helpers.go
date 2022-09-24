@@ -2,8 +2,11 @@ package helpers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/asaskevich/govalidator"
 )
 
 // Takes struct data and returns as JSON to Response writer
@@ -23,12 +26,17 @@ func WriteAsJSON(w http.ResponseWriter, data interface{}) error {
 // Extract base path from request
 func ExtractBasePath(r *http.Request) string {
 	// Extract current URL being accessed
-	object := r.URL.Path
+	extractedPath := r.URL.Path
+	fmt.Println("extractedPath: ", extractedPath)
 	// Split path
-	fullPathArray := strings.Split(object, "/")
-	// Remove final element from slice
-	amendedPathArray := fullPathArray[:len(fullPathArray)-1]
+	fullPathArray := strings.Split(extractedPath, "/")
+
+	// If the final item in the slice is determined to be numeric
+	if govalidator.IsNumeric(fullPathArray[len(fullPathArray)-1]) {
+		// Remove final element from slice
+		fullPathArray = fullPathArray[:len(fullPathArray)-1]
+	}
 	// Join strings in slice for clean URL
-	pathWithoutParameters := strings.Join(amendedPathArray, "/")
+	pathWithoutParameters := strings.Join(fullPathArray, "/")
 	return pathWithoutParameters
 }

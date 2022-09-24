@@ -3,7 +3,9 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/casbin/casbin/v2"
@@ -33,14 +35,15 @@ type AuthToken struct {
 }
 
 // Generates a JSON web token based on user's details
-func GenerateJWT(userID, email, roleName string) (string, error) {
+func GenerateJWT(userID int, email, roleName string) (string, error) {
 	// Build expiration time
 	expirationTime := time.Now().Add(12 * time.Hour)
 
 	// Build claims to be stored in token
 	claims := &AuthToken{
-		Email:  email,
-		UserID: userID,
+		Email: email,
+		// Convert ID to string
+		UserID: fmt.Sprint(userID),
 		Role:   roleName,
 		StandardClaims: jwt.StandardClaims{
 			// Set expiry
@@ -61,10 +64,19 @@ func GenerateJWT(userID, email, roleName string) (string, error) {
 }
 
 // Validates and parses signed token
-func ValidateAndParseToken(signedToken string) (tokenData *AuthToken, err error) {
-	// Parse token and claims
+func ValidateAndParseToken(w http.ResponseWriter, r *http.Request) (tokenData *AuthToken, err error) {
+	// Grab request header
+	header := r.Header
+	// Extract token string from Authorization header by removing prefix "Bearer "
+	_, tokenString, _ := strings.Cut(header.Get("Authorization"), " ")
+
+	if tokenString == "" {
+		err := errors.New("Authentication Token not detected")
+		return nil, err
+	}
+	// Parse token string and claims. Filter through auth token
 	token, err := jwt.ParseWithClaims(
-		signedToken,
+		tokenString,
 		&AuthToken{},
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte(JWTKey), nil

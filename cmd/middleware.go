@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/helpers"
@@ -14,17 +13,9 @@ import (
 // Middleware to check whether user is authenticated
 func AuthenticateJWT(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Grab request header
-		header := r.Header
-		// Extract token string from Authorization header by removing prefix "Bearer "
-		_, tokenString, _ := strings.Cut(header.Get("Authorization"), " ")
 
-		if tokenString == "" {
-			http.Error(w, "Authentication Token not detected", http.StatusForbidden)
-			return
-		}
 		// Validate the token
-		tokenData, err := auth.ValidateAndParseToken(tokenString)
+		tokenData, err := auth.ValidateAndParseToken(w, r)
 		// If error detected
 		if err != nil {
 			http.Error(w, "Error parsing authentication token", http.StatusForbidden)
@@ -55,7 +46,7 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 
 // Middleware to check whether user is authorized
 func Authorize(subjectEmail, object, action string) bool {
-	fmt.Printf("\n%s is accessing %s to %s", subjectEmail, object, action)
+	fmt.Printf("\n%s is accessing %s to %s\n", subjectEmail, object, action)
 
 	// Extract user ID from JWT and check if user exists in database.
 	foundUser, err := services.FindUserByEmail(app.Ctx, app.DbClient, subjectEmail)

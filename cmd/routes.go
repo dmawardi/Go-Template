@@ -31,10 +31,11 @@ func routes() http.Handler {
 		mux.Group(func(mux chi.Router) {
 			mux.Use(AuthenticateJWT)
 
+			mux.Get("/api/user/{id}", handlers.FindUser)
 			mux.Put("/api/user/{id}", handlers.UpdateUser)
 			mux.Delete("/api/user/{id}", handlers.DeleteUser)
 
-			mux.Get("/api/me", handlers.HealthCheck)
+			mux.Get("/api/me", handlers.GetMyUserDetails)
 			mux.Post("/api/me", handlers.HealthCheck)
 			mux.Put("/api/me", handlers.HealthCheck)
 

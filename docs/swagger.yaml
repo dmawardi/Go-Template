@@ -11,6 +11,26 @@ definitions:
       username:
         type: string
     type: object
+  models.CreatedUser:
+    properties:
+      created_at:
+        type: string
+      edges: {}
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
   models.Login:
     properties:
       email:
@@ -67,6 +87,27 @@ info:
   title: Go Template
   version: "1.0"
 paths:
+  /me:
+    get:
+      consumes:
+      - application/json
+      description: Return my user details
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CreatedUser'
+        "400":
+          description: Can't find user details
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Get my user profile details
+      tags:
+      - User
   /user:
     post:
       consumes:
@@ -92,7 +133,7 @@ paths:
             type: string
       summary: Create User
       tags:
-      - user
+      - User
   /user/{id}:
     delete:
       consumes:
@@ -119,7 +160,33 @@ paths:
       - BearerToken: []
       summary: Delete User
       tags:
-      - user
+      - Admin
+    get:
+      consumes:
+      - application/json
+      description: Find a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CreatedUser'
+        "400":
+          description: Can't find user
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Find User
+      tags:
+      - User
     put:
       consumes:
       - application/json
@@ -155,7 +222,7 @@ paths:
       - BearerToken: []
       summary: Update User
       tags:
-      - user
+      - User
   /user/login:
     post:
       consumes:

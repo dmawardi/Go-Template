@@ -12,6 +12,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
+// Creates a user in the database
 func CreateUser(ctx context.Context, client *ent.Client, user *models.CreateUser) (*ent.User, error) {
 	// Build hashed password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
@@ -30,6 +31,7 @@ func CreateUser(ctx context.Context, client *ent.Client, user *models.CreateUser
 	return u, nil
 }
 
+// Find user in database by ID
 func FindUserById(ctx context.Context, client *ent.Client, userId int) (*ent.User, error) {
 	// Check if user exists in db
 	foundUser, err := app.DbClient.User.
@@ -50,6 +52,7 @@ func FindUserById(ctx context.Context, client *ent.Client, userId int) (*ent.Use
 	return foundUser, nil
 }
 
+// Find user in database by email
 func FindUserByEmail(ctx context.Context, client *ent.Client, email string) (*ent.User, error) {
 	// Check if user exists in db
 	foundUser, err := app.DbClient.User.
@@ -70,6 +73,7 @@ func FindUserByEmail(ctx context.Context, client *ent.Client, email string) (*en
 	return foundUser, nil
 }
 
+// Delete user in database
 func DeleteUser(ctx context.Context, client *ent.Client, id int) error {
 	// Check if user exists in db
 	err := app.DbClient.User.
@@ -85,6 +89,7 @@ func DeleteUser(ctx context.Context, client *ent.Client, id int) error {
 	return nil
 }
 
+// Updates user in database
 func UpdateUser(ctx context.Context, client *ent.Client, user *models.UpdateUser) (*ent.User, error) {
 	var err error
 	updateQuery := client.User.
@@ -92,9 +97,9 @@ func UpdateUser(ctx context.Context, client *ent.Client, user *models.UpdateUser
 
 	fmt.Printf("user: %v", user)
 
-	// Check if empty as optional
+	// Check if contains value, add to query if so
 	if user.Name != "" {
-		updateQuery.SetUsername(user.Name)
+		updateQuery.SetName(user.Name)
 	}
 	if user.Username != "" {
 		updateQuery.SetUsername(user.Username)
@@ -102,6 +107,7 @@ func UpdateUser(ctx context.Context, client *ent.Client, user *models.UpdateUser
 	if user.Email != "" {
 		updateQuery.SetEmail(user.Email)
 	}
+
 	// If password empty, use bcrypt to encrypt
 	if user.Password != "" {
 		// Build hashed password
@@ -116,7 +122,6 @@ func UpdateUser(ctx context.Context, client *ent.Client, user *models.UpdateUser
 	// Save update
 	createdUser, err := updateQuery.Save(ctx)
 	if err != nil {
-
 		return nil, fmt.Errorf("failed creating user: %w", err)
 	}
 	log.Println("user was created: ", createdUser)

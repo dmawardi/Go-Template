@@ -68,7 +68,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		// If match found (no errors)
 		if err == nil {
 			// Set login status to true
-			tokenString, err := auth.GenerateJWT(foundUser.Username, foundUser.Email, foundUser.Role)
+			tokenString, err := auth.GenerateJWT(foundUser.ID, foundUser.Email, foundUser.Role)
 			// helpers.WriteAsJSON(w, )
 			if err != nil {
 				fmt.Println("Failed to create JWT")
@@ -91,12 +91,50 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Welcome!"))
 }
 
-// Detail to display a user's profile details
-func UserDetails(w http.ResponseWriter, r *http.Request) {
-
-}
-
 // Users
+
+// Detail to display a user's profile details
+// @Summary      Get my user profile details
+// @Description  Return my user details
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} models.CreatedUser
+// @Failure      400 {string} string "Can't find user details"
+// @Router       /me [get]
+// @Security BearerToken
+func GetMyUserDetails(w http.ResponseWriter, r *http.Request) {
+	// Grab ID from cookie
+	// Validate the token
+	tokenData, err := auth.ValidateAndParseToken(w, r)
+	// If error detected
+	if err != nil {
+		http.Error(w, "Error parsing authentication token", http.StatusForbidden)
+		return
+	}
+	// Convert to int
+	idParameter, err := strconv.Atoi(tokenData.UserID)
+	// If error detected
+	if err != nil {
+		http.Error(w, "Error parsing authentication token", http.StatusForbidden)
+		fmt.Println("error parsing token to string: ", err)
+		return
+	}
+
+	// Find user by id from cookie
+	foundUser, err := services.FindUserById(app.Ctx, app.DbClient, idParameter)
+	if err != nil {
+		http.Error(w, "Can't find user details", http.StatusBadRequest)
+		fmt.Println("error in finding user: ", err)
+		return
+	}
+	err = helpers.WriteAsJSON(w, foundUser)
+	if err != nil {
+		http.Error(w, "Can't find user details", http.StatusBadRequest)
+		fmt.Println("error in finding user: ", err)
+		return
+	}
+}
 
 // Create a new user
 // @Summary      Create User
@@ -130,6 +168,38 @@ func CreateNewUser(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("User creation successful!"))
 	if err != nil {
 		fmt.Println(err)
+	}
+}
+
+// Find a created user
+// @Summary      Find User
+// @Description  Find a user by ID
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "User ID"
+// @Success      200 {object} models.CreatedUser
+// @Failure      400 {string} string "Can't find user"
+// @Router       /user/{id} [get]
+// @Security BearerToken
+func FindUser(w http.ResponseWriter, r *http.Request) {
+	// Grab URL parameter
+	stringParameter := chi.URLParam(r, "id")
+	// Convert to int
+	idParameter, _ := strconv.Atoi(stringParameter)
+	fmt.Println("id parameter from request: ", idParameter)
+
+	foundUser, err := services.FindUserById(app.Ctx, app.DbClient, idParameter)
+	if err != nil {
+		http.Error(w, "Can't find user", http.StatusBadRequest)
+		fmt.Println("error in finding user: ", err)
+		return
+	}
+	err = helpers.WriteAsJSON(w, foundUser)
+	if err != nil {
+		http.Error(w, "Can't find user", http.StatusBadRequest)
+		fmt.Println("error in finding user: ", err)
+		return
 	}
 }
 
@@ -178,7 +248,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 // Delete user (using URL parameter id)
 // @Summary      Delete User
 // @Description  Deletes an existing user
-// @Tags         User
+// @Tags         Admin
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "User ID"
