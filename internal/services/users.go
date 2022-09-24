@@ -88,13 +88,22 @@ func DeleteUser(ctx context.Context, client *ent.Client, id int) error {
 func UpdateUser(ctx context.Context, client *ent.Client, user *models.UpdateUser) (*ent.User, error) {
 	var err error
 	updateQuery := client.User.
-		UpdateOneID(user.Id).
-		SetName(user.Name).
-		SetUsername(user.Username).
-		SetEmail(user.Email)
+		UpdateOneID(user.Id)
 
+	fmt.Printf("user: %v", user)
+
+	// Check if empty as optional
+	if user.Name != "" {
+		updateQuery.SetUsername(user.Name)
+	}
+	if user.Username != "" {
+		updateQuery.SetUsername(user.Username)
+	}
+	if user.Email != "" {
+		updateQuery.SetEmail(user.Email)
+	}
+	// If password empty, use bcrypt to encrypt
 	if user.Password != "" {
-
 		// Build hashed password
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
 		if err != nil {
@@ -107,6 +116,7 @@ func UpdateUser(ctx context.Context, client *ent.Client, user *models.UpdateUser
 	// Save update
 	createdUser, err := updateQuery.Save(ctx)
 	if err != nil {
+
 		return nil, fmt.Errorf("failed creating user: %w", err)
 	}
 	log.Println("user was created: ", createdUser)

@@ -48,13 +48,13 @@ func (uc *UserCreate) SetUsername(s string) *UserCreate {
 	return uc
 }
 
-// SetRole sets the "Role" field.
+// SetRole sets the "role" field.
 func (uc *UserCreate) SetRole(s string) *UserCreate {
 	uc.mutation.SetRole(s)
 	return uc
 }
 
-// SetNillableRole sets the "Role" field if the given value is not nil.
+// SetNillableRole sets the "role" field if the given value is not nil.
 func (uc *UserCreate) SetNillableRole(s *string) *UserCreate {
 	if s != nil {
 		uc.SetRole(*s)
@@ -229,11 +229,16 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Email(); !ok {
 		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "User.email"`)}
 	}
+	if v, ok := uc.mutation.Email(); ok {
+		if err := user.EmailValidator(v); err != nil {
+			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
+		}
+	}
 	if _, ok := uc.mutation.Username(); !ok {
 		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "User.username"`)}
 	}
 	if _, ok := uc.mutation.Role(); !ok {
-		return &ValidationError{Name: "Role", err: errors.New(`ent: missing required field "User.Role"`)}
+		return &ValidationError{Name: "role", err: errors.New(`ent: missing required field "User.role"`)}
 	}
 	if _, ok := uc.mutation.Password(); !ok {
 		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "User.password"`)}

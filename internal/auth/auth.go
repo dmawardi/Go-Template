@@ -26,22 +26,22 @@ func SetStateInAuth(a *config.AppConfig) {
 // Authorization
 
 type AuthToken struct {
-	Username string `json:"userID"`
-	Email    string `json:"email"`
-	Role     string `json:"role"`
+	UserID string `json:"userID"`
+	Email  string `json:"email"`
+	Role   string `json:"role"`
 	jwt.StandardClaims
 }
 
 // Generates a JSON web token based on user's details
-func GenerateJWT(username, email, roleName string) (string, error) {
+func GenerateJWT(userID, email, roleName string) (string, error) {
 	// Build expiration time
 	expirationTime := time.Now().Add(12 * time.Hour)
 
 	// Build claims to be stored in token
 	claims := &AuthToken{
-		Email:    email,
-		Username: username,
-		Role:     roleName,
+		Email:  email,
+		UserID: userID,
+		Role:   roleName,
 		StandardClaims: jwt.StandardClaims{
 			// Set expiry
 			ExpiresAt: expirationTime.Unix(),
@@ -100,7 +100,7 @@ func ActionFromMethod(httpMethod string) string {
 		return "read"
 	case "POST":
 		return "create"
-	case "PATCH":
+	case "PUT":
 		return "update"
 	case "DELETE":
 		return "delete"

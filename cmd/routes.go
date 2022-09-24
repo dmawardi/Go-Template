@@ -6,6 +6,8 @@ import (
 	"github.com/dmawardi/Go-Template/internal/handlers"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
+	_ "github.com/swaggo/http-swagger/example/go-chi/docs"
 )
 
 func routes() http.Handler {
@@ -16,31 +18,37 @@ func routes() http.Handler {
 	mux.Use(middleware.Logger)
 
 	mux.Group(func(mux chi.Router) {
-		// Public Routes
+		// @tag.name Public Routes
+		// @tag.description Unprotected routes
 		mux.Get("/", handlers.GetJobs)
 		// Login
-		mux.Post("/api/login", handlers.LoginHandler)
+		mux.Post("/api/user/login", handlers.LoginHandler)
+
+		// Create new user
+		mux.Post("/api/user", handlers.CreateNewUser)
 
 		// Private routes
 		mux.Group(func(mux chi.Router) {
 			mux.Use(AuthenticateJWT)
 
-			// User
-			mux.Post("/api/user", handlers.CreateNewUser)
-			mux.Patch("/api/user/{id}", handlers.UpdateUser)
+			mux.Put("/api/user/{id}", handlers.UpdateUser)
 			mux.Delete("/api/user/{id}", handlers.DeleteUser)
 
 			mux.Get("/api/me", handlers.HealthCheck)
 			mux.Post("/api/me", handlers.HealthCheck)
-			mux.Patch("/api/me", handlers.HealthCheck)
+			mux.Put("/api/me", handlers.HealthCheck)
 
 		})
 
 	})
 
 	// Serve API Swagger docs
-	docFileServer := http.FileServer(http.Dir("./swaggerui"))
+	docFileServer := http.FileServer(http.Dir("./docs"))
 	mux.Handle("/docs/*", http.StripPrefix("/docs/", docFileServer))
+	mux.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/docs/swagger.json"), //The url pointing to API definition
+	))
+
 	// Build fileserver using static directory
 	fileServer := http.FileServer(http.Dir("./static"))
 	// Handle all calls to /static/* by stripping prefix and sending to file server

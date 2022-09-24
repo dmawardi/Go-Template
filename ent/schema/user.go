@@ -1,11 +1,13 @@
 package schema
 
 import (
+	"errors"
 	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/asaskevich/govalidator"
 )
 
 // User holds the schema definition for the User entity.
@@ -18,9 +20,18 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
 			Default("unknown"),
-		field.String("email").Unique(),
+		field.String("email").Unique().Validate(func(s string) error {
+			if s == "" {
+				return errors.New("can't create with empty email")
+			}
+			if !govalidator.IsEmail(s) {
+				return errors.New("email not valid")
+			}
+
+			return nil
+		}),
 		field.String("username"),
-		field.String("Role").Default("user"),
+		field.String("role").Default("user"),
 		field.String("password").Sensitive(),
 		field.Time("created_at").
 			Default(time.Now).Immutable(),

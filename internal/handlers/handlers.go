@@ -29,14 +29,21 @@ func SetStateInHandlers(a *config.AppConfig) {
 	app = a
 }
 
-type LoginResponse struct {
-	Token string `json:"token"`
-}
-
 // Login
+// Handler to login with existing user
+// @Summary      Login
+// @Description  Log in to user account
+// @Tags         Login
+// @Accept       json
+// @Produce      json
+// @Param        user body models.Login true "Login JSON"
+// @Success      200 {object} models.LoginResponse
+// @Failure      401 {string} string "Invalid Credentials"
+// @Failure      405 {string} string "Method not supported"
+// @Router       /user/login [post]
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method Not Supported", http.StatusMethodNotAllowed)
+		http.Error(w, "Method not supported", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -67,7 +74,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				fmt.Println("Failed to create JWT")
 			}
 			// Build login response
-			var loginResponse = LoginResponse{Token: tokenString}
+			var loginResponse = models.LoginResponse{Token: tokenString}
 			// Send to user in body
 			helpers.WriteAsJSON(w, loginResponse)
 			return
@@ -91,30 +98,54 @@ func UserDetails(w http.ResponseWriter, r *http.Request) {
 
 // Users
 
-// Handler to create a new user
+// Create a new user
+// @Summary      Create User
+// @Description  Creates a new user
+// @Tags         User
+// @Accept       json
+// @Produce      plain
+// @Param        user body models.CreateUser true "NewUserJson"
+// @Success      201 {string} string "User creation successful!"
+// @Failure      400 {string} string "User creation failed."
+// @Router       /user [post]
 func CreateNewUser(w http.ResponseWriter, r *http.Request) {
+	// Init
 	var user models.CreateUser
 	// Decode request body as JSON and store in login
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		fmt.Println("Decoding error: ", err)
 	}
-	fmt.Printf("JSON Received: %+v\n", user)
+	fmt.Printf("Create User Received: %+v\n", user)
 
 	// Create user
 	createdUser, createErr := services.CreateUser(app.Ctx, app.DbClient, &user)
 	if createErr != nil {
-		http.Error(w, "Failed user creation", http.StatusBadRequest)
+		http.Error(w, "User creation failed.", http.StatusBadRequest)
 		return
 	}
-	// Write user to output
-	err = helpers.WriteAsJSON(w, createdUser)
+	fmt.Println("created user: ", createdUser)
+	// Set status to created
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte("User creation successful!"))
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-// Handler to update a user (using URL parameter id)
+// Update a user (using URL parameter id)
+// @Summary      Update User
+// @Description  Updates an existing user
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Param        user body models.UpdateUser true "Update User Json"
+// @Param        id   path      int  true  "User ID"
+// @Success      200 {object} models.UpdatedUser
+// @Failure      400 {string} string "Failed user update"
+// @Failure      403 {string} string "Authentication Token not detected"
+// @Router       /user/{id} [put]
+// @Security BearerToken
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// grab id parameter
 	var user models.UpdateUser
@@ -136,7 +167,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// Update user
 	updatedUser, createErr := services.UpdateUser(app.Ctx, app.DbClient, &user)
 	if createErr != nil {
-		http.Error(w, "Failed user creation", http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Failed user update: %s", createErr), http.StatusBadRequest)
 		return
 	}
 	// Write user to output
@@ -144,6 +175,17 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(err)
 }
 
+// Delete user (using URL parameter id)
+// @Summary      Delete User
+// @Description  Deletes an existing user
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "User ID"
+// @Success      200 {string} string "Deletion successful!"
+// @Failure      400 {string} string "Failed user deletion"
+// @Router       /user/{id} [delete]
+// @Security BearerToken
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	// Grab URL parameter
 	stringParameter := chi.URLParam(r, "id")

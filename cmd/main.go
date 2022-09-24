@@ -10,6 +10,9 @@ import (
 	"github.com/casbin/casbin/v2"
 	entadapter "github.com/casbin/ent-adapter"
 	"github.com/dmawardi/Go-Template/ent"
+
+	_ "github.com/swaggo/http-swagger/example/go-chi/docs"
+
 	"github.com/dmawardi/Go-Template/ent/migrate"
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/config"
@@ -24,6 +27,25 @@ const portNumber = ":8080"
 // Init state
 var app config.AppConfig
 
+// API Details
+// @title           Go Template
+// @version         1.0
+// @description     This is a template API server.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.swagger.io/support
+// @contact.email  support@swagger.io
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host      localhost:8080
+// @BasePath  /api/
+
+// @securityDefinitions.apikey BearerToken
+// @in header
+// @name Authorization
 func main() {
 
 	// Build context
@@ -82,7 +104,6 @@ func DbConnect() *ent.Client {
 	// Create Postgres connection client
 	client, err := ent.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", DB_HOST, DB_PORT, DB_USER, "TestGo", DB_PASS))
 
-	fmt.Println("DB PORT in db connect", DB_PORT)
 	// Handle error
 	if err != nil {
 		log.Fatalf("failed opening connection to postgres: %v", err)

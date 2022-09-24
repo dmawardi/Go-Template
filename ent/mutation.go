@@ -878,7 +878,7 @@ type UserMutation struct {
 	name          *string
 	email         *string
 	username      *string
-	_Role         *string
+	role          *string
 	password      *string
 	created_at    *time.Time
 	updated_at    *time.Time
@@ -1100,21 +1100,21 @@ func (m *UserMutation) ResetUsername() {
 	m.username = nil
 }
 
-// SetRole sets the "Role" field.
+// SetRole sets the "role" field.
 func (m *UserMutation) SetRole(s string) {
-	m._Role = &s
+	m.role = &s
 }
 
-// Role returns the value of the "Role" field in the mutation.
+// Role returns the value of the "role" field in the mutation.
 func (m *UserMutation) Role() (r string, exists bool) {
-	v := m._Role
+	v := m.role
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldRole returns the old "Role" field's value of the User entity.
+// OldRole returns the old "role" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *UserMutation) OldRole(ctx context.Context) (v string, err error) {
@@ -1131,9 +1131,9 @@ func (m *UserMutation) OldRole(ctx context.Context) (v string, err error) {
 	return oldValue.Role, nil
 }
 
-// ResetRole resets all changes to the "Role" field.
+// ResetRole resets all changes to the "role" field.
 func (m *UserMutation) ResetRole() {
-	m._Role = nil
+	m.role = nil
 }
 
 // SetPassword sets the "password" field.
@@ -1381,7 +1381,7 @@ func (m *UserMutation) Fields() []string {
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
 	}
-	if m._Role != nil {
+	if m.role != nil {
 		fields = append(fields, user.FieldRole)
 	}
 	if m.password != nil {

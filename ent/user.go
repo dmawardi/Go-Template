@@ -22,8 +22,8 @@ type User struct {
 	Email string `json:"email,omitempty"`
 	// Username holds the value of the "username" field.
 	Username string `json:"username,omitempty"`
-	// Role holds the value of the "Role" field.
-	Role string `json:"Role,omitempty"`
+	// Role holds the value of the "role" field.
+	Role string `json:"role,omitempty"`
 	// Password holds the value of the "password" field.
 	Password string `json:"-"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -116,7 +116,7 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			}
 		case user.FieldRole:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field Role", values[i])
+				return fmt.Errorf("unexpected type %T for field role", values[i])
 			} else if value.Valid {
 				u.Role = value.String
 			}
@@ -185,7 +185,7 @@ func (u *User) String() string {
 	builder.WriteString("username=")
 	builder.WriteString(u.Username)
 	builder.WriteString(", ")
-	builder.WriteString("Role=")
+	builder.WriteString("role=")
 	builder.WriteString(u.Role)
 	builder.WriteString(", ")
 	builder.WriteString("password=<sensitive>")

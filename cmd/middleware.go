@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dmawardi/Go-Template/internal/auth"
+	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/services"
 )
 
@@ -31,7 +32,9 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 		}
 
 		// Extract current URL being accessed
-		object := r.URL.Path
+		object := helpers.ExtractBasePath(r)
+
+		fmt.Println("current path: ", object)
 		// Grab Http Method
 		httpMethod := r.Method
 		// Determine associated action based on HTTP method
