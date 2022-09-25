@@ -44,8 +44,6 @@ func routes() http.Handler {
 	})
 
 	// Serve API Swagger docs
-	docFileServer := http.FileServer(http.Dir("./docs"))
-	mux.Handle("/docs/*", http.StripPrefix("/docs/", docFileServer))
 	mux.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:8080/docs/swagger.json"), //The url pointing to API definition
 	))
