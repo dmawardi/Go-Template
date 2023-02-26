@@ -74,7 +74,19 @@ swag init -d ./cmd --pd
 
 This will update API documentation generated in the ./docs folder. It is served on path /swagger
 
-## To update Database models
+## To use Database ORM
+
+To install Ent CLI
+
+```
+go get -d entgo.io/ent/cmd/ent
+```
+
+To create new schema in ./ent/schema
+
+```
+go run -mod=mod entgo.io/ent/cmd/ent new schema_name
+```
 
 This will update Ent models and functions for ORM. Restarting the server will enact the changes on the DB.
 
