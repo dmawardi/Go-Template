@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/casbin/casbin/v2"
-	"github.com/dmawardi/Go-Template/ent"
 	"github.com/gorilla/sessions"
+	"gorm.io/gorm"
 )
 
 type AppConfig struct {
@@ -13,7 +13,7 @@ type AppConfig struct {
 	// UseCache      bool
 	InProduction bool
 	Ctx          context.Context
-	DbClient     *ent.Client
+	DbClient     *gorm.DB
 	Session      *sessions.CookieStore
 	RBEnforcer   *casbin.Enforcer
 }

@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -27,7 +26,6 @@ func WriteAsJSON(w http.ResponseWriter, data interface{}) error {
 func ExtractBasePath(r *http.Request) string {
 	// Extract current URL being accessed
 	extractedPath := r.URL.Path
-	fmt.Println("extractedPath: ", extractedPath)
 	// Split path
 	fullPathArray := strings.Split(extractedPath, "/")
 

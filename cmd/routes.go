@@ -17,27 +17,33 @@ func routes() http.Handler {
 	mux.Use(middleware.Recoverer)
 	mux.Use(middleware.Logger)
 
+	// Public routes
 	mux.Group(func(mux chi.Router) {
 		// @tag.name Public Routes
 		// @tag.description Unprotected routes
 		mux.Get("/", handlers.GetJobs)
 		// Login
-		mux.Post("/api/user/login", handlers.LoginHandler)
+		mux.Post("/api/users/login", handlers.LoginHandler)
 
 		// Create new user
-		mux.Post("/api/user", handlers.CreateNewUser)
+		mux.Post("/api/users", handlers.CreateNewUser)
 
 		// Private routes
 		mux.Group(func(mux chi.Router) {
 			mux.Use(AuthenticateJWT)
 
-			mux.Get("/api/user/{id}", handlers.FindUser)
-			mux.Put("/api/user/{id}", handlers.UpdateUser)
-			mux.Delete("/api/user/{id}", handlers.DeleteUser)
+			// @tag.name Private routes
+			// @tag.description Protected routes
+			// users
+			mux.Get("/api/users", handlers.FindAllUsers)
+			mux.Get("/api/users/{id}", handlers.FindUser)
+			mux.Put("/api/users/{id}", handlers.UpdateUser)
+			mux.Delete("/api/users/{id}", handlers.DeleteUser)
 
+			// My profile
 			mux.Get("/api/me", handlers.GetMyUserDetails)
 			mux.Post("/api/me", handlers.HealthCheck)
-			mux.Put("/api/me", handlers.HealthCheck)
+			mux.Put("/api/me", handlers.UpdateMyProfile)
 
 		})
 

@@ -25,7 +25,6 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 		// Extract current URL being accessed
 		object := helpers.ExtractBasePath(r)
 
-		fmt.Println("current path: ", object)
 		// Grab Http Method
 		httpMethod := r.Method
 		// Determine associated action based on HTTP method
@@ -46,12 +45,12 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 
 // Middleware to check whether user is authorized
 func Authorize(subjectEmail, object, action string) bool {
-	fmt.Printf("\n%s is accessing %s to %s\n", subjectEmail, object, action)
 
 	// Extract user ID from JWT and check if user exists in database.
-	foundUser, err := services.FindUserByEmail(app.Ctx, app.DbClient, subjectEmail)
+	foundUser, err := services.FindUserByEmail(subjectEmail)
 	if err != nil {
 		fmt.Println("No user has been found in db with that id")
+		return false
 	}
 
 	// Load Authorization policy from Database
@@ -67,6 +66,7 @@ func Authorize(subjectEmail, object, action string) bool {
 		log.Fatal("Failed to enforce RBAC policy in Authorization middleware")
 		return false
 	}
+	fmt.Printf("%s is accessing %s to %s. Allowed? %v\n", subjectEmail, object, action, ok)
 
 	// Return result of enforcement
 	return ok

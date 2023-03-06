@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -124,6 +125,7 @@ func ActionFromMethod(httpMethod string) string {
 // Set up policy settings in DB for casbin rules
 func SetupCasbinPolicy(enforcer *casbin.Enforcer, sliceOfPolicies []policySet) {
 	for _, policy := range sliceOfPolicies {
+
 		// if enforcer does not already have policy
 		if hasPolicy := enforcer.HasPolicy(policy.subject, policy.object, policy.action); !hasPolicy {
 			// create policy
@@ -131,4 +133,21 @@ func SetupCasbinPolicy(enforcer *casbin.Enforcer, sliceOfPolicies []policySet) {
 		}
 	}
 
+}
+
+// Extracts user id from authentication token
+func ExtractIdFromToken(w http.ResponseWriter, r *http.Request) (*int, error) {
+	// Validate and parse the token
+	tokenData, err := ValidateAndParseToken(w, r)
+	// If error detected
+	if err != nil {
+		return nil, err
+	}
+	// Convert to int
+	userId, err := strconv.Atoi(tokenData.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userId, nil
 }

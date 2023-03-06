@@ -8,14 +8,14 @@ import (
 	"os"
 
 	"github.com/casbin/casbin/v2"
-	entadapter "github.com/casbin/ent-adapter"
-	"github.com/dmawardi/Go-Template/ent"
+	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"gorm.io/gorm"
 
 	_ "github.com/swaggo/http-swagger/example/go-chi/docs"
 
-	"github.com/dmawardi/Go-Template/ent/migrate"
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/config"
+	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/handlers"
 	"github.com/dmawardi/Go-Template/internal/services"
 	"github.com/joho/godotenv"
@@ -64,13 +64,16 @@ func main() {
 	services.BuildServiceState(&app)
 
 	// Create client using DbConnect
-	client := DbConnect()
+	client := db.DbConnect()
+	// userToCreate := db.User{Name: "Goba", Username: "Walow", Password: "certainly", Email: "gustav@mail.com"}
+	// createdUser, err := services.CreateUser(&userToCreate)
+
+	// fmt.Printf("Created user: %v", *createdUser)
+
 	app.DbClient = client
-	// close the client once not operational
-	defer client.Close()
 
 	// Setup enforcer
-	e, err := EnforcerSetup()
+	e, err := EnforcerSetup(client)
 	if err != nil {
 		log.Fatal("Couldn't setup RBAC Authorization Enforcer")
 	}
@@ -93,52 +96,22 @@ func main() {
 	}
 }
 
-// DbConnect connects to database using ent
-func DbConnect() *ent.Client {
+// Setup RBAC enforcer based using gorm client. Connects to DB and builds base policy
+func EnforcerSetup(db *gorm.DB) (*casbin.Enforcer, error) {
 	// Grab environment variables for connection
-	var DB_USER string = os.Getenv("DB_USER")
-	var DB_PASS string = os.Getenv("DB_PASS")
-	var DB_HOST string = os.Getenv("DB_HOST")
 	var DB_PORT string = os.Getenv("DB_PORT")
 
-	// Create Postgres connection client
-	client, err := ent.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", DB_HOST, DB_PORT, DB_USER, "TestGo", DB_PASS))
-
-	// Handle error
-	if err != nil {
-		log.Fatalf("failed opening connection to postgres: %v", err)
-	}
-	// If no error detected
-	fmt.Println("Successfully connected to DB")
-	// close client at end of function
-	// defer client.Close()
-	// Run the auto migration tool.
-	if err := client.Schema.Create(context.Background(), migrate.WithDropIndex(true),
-		migrate.WithDropColumn(true)); err != nil {
-		log.Fatalf("failed creating schema resources: %v", err)
-	}
-
-	return client
-}
-
-// Setup RBAC enforcer based on local model. Connects to DB and builds base policy
-func EnforcerSetup() (*casbin.Enforcer, error) {
-	// Grab environment variables for connection
-	var DB_USER string = os.Getenv("DB_USER")
-	var DB_PASS string = os.Getenv("DB_PASS")
-	var DB_HOST string = os.Getenv("DB_HOST")
-	var DB_PORT string = os.Getenv("DB_PORT")
-
-	// Create new adapter
-	enforcerAdapter, err := entadapter.NewAdapter("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", DB_HOST, DB_PORT, DB_USER, "TestGo", DB_PASS))
+	// Build adapter
+	adapter, err := gormadapter.NewAdapterByDB(db)
 	// If error
 	if err != nil {
-		log.Fatal("Couldn't connect Enforcer to DB: ", err, "\nDB PORT", DB_PORT)
+		log.Fatal("Couldn't build adapter for enforcer: ", err, "\nDB PORT", DB_PORT)
 		return nil, err
 	}
 
 	// Initialize RBAC Authorization
-	enforcer, err := casbin.NewEnforcer("./internal/auth/rbac_model.conf", enforcerAdapter)
+	enforcer, err := casbin.NewEnforcer("./internal/auth/rbac_model.conf", adapter)
+
 	// If error
 	if err != nil {
 		log.Fatal("Couldn't build RBAC enforcer: ", err)

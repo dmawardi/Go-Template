@@ -12,7 +12,7 @@ This repository will serve as a base web application in Go.
 
 ### Database (Object Relational Management)
 
-- Uses [Ent](https://entgo.io/ent) for ORM (Postgres)
+- Uses [Gorm](https://gorm.io) for ORM (Postgres)
 
 ### Security / Authentication / Authorization
 
@@ -38,6 +38,17 @@ docker build -t container-name .
 <!-- runs docker image and matches port -->
 docker run --publish 8080:8080 container-name
 ```
+
+---
+
+## How to use
+
+Follow these steps to add a feature to the API.
+
+1. Build schema and auto migrate in ./internal/db using ORM instructions below.
+2. Build service in ./internal/services that accesses the database
+3. Build the handler that accepts the data, performs data validation, then sends to service to interact with database
+4. Update routes in ./cmd/routes.go to use the handler that has been created in step 3.
 
 ---
 
@@ -76,25 +87,11 @@ This will update API documentation generated in the ./docs folder. It is served 
 
 ## To use Database ORM
 
-To install Ent CLI
+To edit schemas: Go to ./internal/db/schemas.go
 
-```
-go get -d entgo.io/ent/cmd/ent
-```
+The schemas are Structs based off of gorm.Model.
 
-To create new schema in ./ent/schema
-
-```
-go run -mod=mod entgo.io/ent/cmd/ent new schema_name
-```
-
-This will update Ent models and functions for ORM. Restarting the server will enact the changes on the DB.
-
-```
-go generate ./ent
-```
-
----
+After creating the schema in schemas.go, go to db.go and add to automigrate.
 
 ## Role based access control (RBAC) settings
 
