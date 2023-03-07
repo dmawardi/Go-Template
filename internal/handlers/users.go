@@ -13,38 +13,6 @@ import (
 )
 
 // API/USERS
-// Create a new user
-// @Summary      Create User
-// @Description  Creates a new user
-// @Tags         User
-// @Accept       json
-// @Produce      plain
-// @Param        user body models.CreateUser true "NewUserJson"
-// @Success      201 {string} string "User creation successful!"
-// @Failure      400 {string} string "User creation failed."
-// @Router       /users [post]
-func CreateNewUser(w http.ResponseWriter, r *http.Request) {
-	// Init
-	var user models.CreateUser
-	// Decode request body as JSON and store in login
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		fmt.Println("Decoding error: ", err)
-	}
-
-	// Create user
-	_, createErr := services.CreateUser(&user)
-	if createErr != nil {
-		http.Error(w, "User creation failed.", http.StatusBadRequest)
-		return
-	}
-
-	// Set status to created
-	w.WriteHeader(http.StatusCreated)
-	// Send user success message in body
-	w.Write([]byte("User creation successful!"))
-}
-
 // Find a list of users
 // @Summary      Find a list of users
 // @Description  Accepts limit, offset, and order params and returns list of users
@@ -122,6 +90,50 @@ func FindUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Create a new user
+// @Summary      Create User
+// @Description  Creates a new user
+// @Tags         User
+// @Accept       json
+// @Produce      plain
+// @Param        user body models.CreateUser true "NewUserJson"
+// @Success      201 {string} string "User creation successful!"
+// @Failure      400 {string} string "User creation failed."
+// @Router       /users [post]
+func CreateNewUser(w http.ResponseWriter, r *http.Request) {
+	// Init
+	var user models.CreateUser
+	// Decode request body as JSON and store in login
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		fmt.Println("Decoding error: ", err)
+	}
+
+	// Validate the incoming DTO
+	pass, valErrors := helpers.GoValidateStruct(&user)
+	// If failure detected
+	if !pass {
+		// Write bad request header
+		w.WriteHeader(http.StatusBadRequest)
+		// Write validation errors to JSON
+		helpers.WriteAsJSON(w, valErrors)
+		return
+	}
+	// else, validation passes and allow through
+
+	// Create user
+	_, createErr := services.CreateUser(&user)
+	if createErr != nil {
+		http.Error(w, "User creation failed.", http.StatusBadRequest)
+		return
+	}
+
+	// Set status to created
+	w.WriteHeader(http.StatusCreated)
+	// Send user success message in body
+	w.Write([]byte("User creation successful!"))
+}
+
 // Update a user (using URL parameter id)
 // @Summary      Update User
 // @Description  Updates an existing user
@@ -144,6 +156,18 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Decoding error: ", err)
 	}
 
+	// Validate the incoming DTO
+	pass, valErrors := helpers.GoValidateStruct(&user)
+	// If failure detected
+	if !pass {
+		// Write bad request header
+		w.WriteHeader(http.StatusBadRequest)
+		// Write validation errors to JSON
+		helpers.WriteAsJSON(w, valErrors)
+		return
+	}
+	// else, validation passes and allow through
+
 	// Grab URL parameter
 	stringParameter := chi.URLParam(r, "id")
 	// Convert to int
@@ -159,7 +183,9 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	// Write user to output
 	err = helpers.WriteAsJSON(w, updatedUser)
-	fmt.Println(err)
+	if err != nil {
+		fmt.Printf("Error encountered when writing to JSON. Err: %s", err)
+	}
 }
 
 // Delete user (using URL parameter id)

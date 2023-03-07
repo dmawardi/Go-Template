@@ -8,7 +8,6 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/asaskevich/govalidator"
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/helpers"
@@ -50,6 +49,18 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Decoding error: ", err)
 	}
+
+	// Validate the incoming DTO
+	pass, valErrors := helpers.GoValidateStruct(&login)
+	// If failure detected
+	if !pass {
+		// Write bad request header
+		w.WriteHeader(http.StatusBadRequest)
+		// Write validation errors to JSON
+		helpers.WriteAsJSON(w, valErrors)
+		return
+	}
+	// else, validation passes and allow through
 
 	// Check if user exists in db
 	foundUser, err := services.FindUserByEmail(login.Email)
@@ -111,19 +122,13 @@ func UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("JSON Received: %+v\n", user)
 
 	// Validate the incoming DTO
-	_, err = govalidator.ValidateStruct(user)
-
-	if err != nil {
-		// Indicate bad request status
+	pass, valErrors := helpers.GoValidateStruct(&user)
+	// If failure detected
+	if !pass {
+		// Write bad request header
 		w.WriteHeader(http.StatusBadRequest)
-
-		// Prepare slice of errors
-		errs := err.(govalidator.Errors).Errors()
-
-		// Grabs the error slice and creates a front-end ready validation error
-		validationResponse := helpers.CreateStructFromValidationErrorString(errs)
-		// write to JSON
-		helpers.WriteAsJSON(w, validationResponse)
+		// Write validation errors to JSON
+		helpers.WriteAsJSON(w, valErrors)
 		return
 	}
 	// else, validation passes and allow through

@@ -67,3 +67,23 @@ func CreateStructFromValidationErrorString(errs []error) *models.ValidationError
 	fmt.Printf("validation errors: %v", validation.Validation_errors)
 	return validation
 }
+
+// Uses a DTO struct's key value "valid" config to assess whether it's valid
+// then returns a struct ready for JSON marshal
+func GoValidateStruct(objectToValidate interface{}) (bool, *models.ValidationError) {
+	// Validate the incoming DTO
+	_, err := govalidator.ValidateStruct(objectToValidate)
+
+	// if no error found
+	if err != nil {
+		// Prepare slice of errors
+		errs := err.(govalidator.Errors).Errors()
+
+		// Grabs the error slice and creates a front-end ready validation error
+		validationResponse := CreateStructFromValidationErrorString(errs)
+		// return failure on validation and validation response
+		return false, validationResponse
+	}
+	// Return pass on validation and empty validation response
+	return true, &models.ValidationError{}
+}
