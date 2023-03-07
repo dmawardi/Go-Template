@@ -49,6 +49,7 @@ Follow these steps to add a feature to the API.
 2. Build service in ./internal/services that accesses the database
 3. Build the handler that accepts the data, performs data validation, then sends to service to interact with database
 4. Update routes in ./cmd/routes.go to use the handler that has been created in step 3.
+5. Add validation to handler using govalidator. This functions by adding `valid:""` key-value pairs to struct DTO definitions that are being passed into the ValidateStruct function.
 
 ---
 

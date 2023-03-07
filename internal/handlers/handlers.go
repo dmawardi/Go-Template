@@ -8,6 +8,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/helpers"
@@ -95,6 +96,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 // @Success      200 {object} models.PartialUser
 // @Failure      400 {string} string "Failed user update"
 // @Failure      403 {string} string "Authentication Token not detected"
+// @Failure      400 {string} string "Bad request"
 // @Router       /user/{id} [put]
 // @Security BearerToken
 func UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
@@ -104,8 +106,27 @@ func UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		fmt.Println("Decoding error: ", err)
+		http.Error(w, "Bad request", http.StatusBadRequest)
 	}
 	fmt.Printf("JSON Received: %+v\n", user)
+
+	// Validate the incoming DTO
+	_, err = govalidator.ValidateStruct(user)
+
+	if err != nil {
+		// Indicate bad request status
+		w.WriteHeader(http.StatusBadRequest)
+
+		// Prepare slice of errors
+		errs := err.(govalidator.Errors).Errors()
+
+		// Grabs the error slice and creates a front-end ready validation error
+		validationResponse := helpers.CreateStructFromValidationErrorString(errs)
+		// write to JSON
+		helpers.WriteAsJSON(w, validationResponse)
+		return
+	}
+	// else, validation passes and allow through
 
 	// Extract the user's id from their authentication token
 	userId, err := auth.ExtractIdFromToken(w, r)

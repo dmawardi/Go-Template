@@ -10,3 +10,7 @@ type Login struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+type ValidationError struct {
+	Validation_errors map[string][]string `json:"validation_errors"`
+}

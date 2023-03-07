@@ -13,10 +13,10 @@ type LoginResponse struct {
 // Users
 // Create User structure for Data transfer.
 type CreateUser struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
+	Username string `json:"username" valid:"length(6|25),required"`
+	Password string `json:"password" valid:"length(6|30),required"`
+	Name     string `json:"name" valid:"length(6|80),required"`
+	Email    string `json:"email" valid:"email,required"`
 }
 
 // Created user (for admin use)
@@ -43,10 +43,10 @@ type PartialUser struct {
 // Update User structure for Data transfer.
 type UpdateUser struct {
 	ID       int    `json:"id,omitempty"`
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
-	Name     string `json:"name,omitempty"`
-	Email    string `json:"email,omitempty"`
+	Username string `json:"username,omitempty" valid:"length(6|25)"`
+	Password string `json:"password,omitempty" valid:"length(6|30)"`
+	Name     string `json:"name,omitempty" valid:"length(6|80)"`
+	Email    string `json:"email,omitempty" valid:"email,length(6:40)"`
 }
 type UpdatedUser struct {
 	ID        uint           `json:"id"`

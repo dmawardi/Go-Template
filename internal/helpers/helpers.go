@@ -2,10 +2,12 @@ package helpers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
+	"github.com/dmawardi/Go-Template/internal/models"
 )
 
 // Takes struct data and returns as JSON to Response writer
@@ -37,4 +39,31 @@ func ExtractBasePath(r *http.Request) string {
 	// Join strings in slice for clean URL
 	pathWithoutParameters := strings.Join(fullPathArray, "/")
 	return pathWithoutParameters
+}
+
+// Takes in a list of errors from Go Validator and formats into JSON ready struct
+func CreateStructFromValidationErrorString(errs []error) *models.ValidationError {
+	// Prepare validation model for appending errors
+	validation := &models.ValidationError{
+		Validation_errors: make(map[string][]string),
+	}
+	// Loop through slice of errors
+	for _, e := range errs {
+		// Grab error strong
+		errorString := e.Error()
+		fmt.Printf("The error string for this line is: %s", errorString)
+		// Split by colon
+		errorArray := strings.Split(errorString, ": ")
+
+		// Prepare err message array for map preparation
+		var errMessageArray []string
+		// Append the error to the array
+		errMessageArray = append(errMessageArray, errorArray[1])
+
+		// Assign to validation struct
+		validation.Validation_errors[errorArray[0]] = errMessageArray
+	}
+
+	fmt.Printf("validation errors: %v", validation.Validation_errors)
+	return validation
 }
