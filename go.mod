@@ -23,6 +23,7 @@ require (
 	github.com/casbin/ent-adapter v0.2.2 // indirect
 	github.com/casbin/gorm-adapter/v3 v3.14.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/glebarez/go-sqlite v1.19.1 // indirect
 	github.com/glebarez/sqlite v1.5.0 // indirect
@@ -58,9 +59,12 @@ require (
 	github.com/microsoft/go-mssqldb v0.17.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/stretchr/testify v1.8.2 // indirect
 	github.com/swaggo/files v0.0.0-20220728132757-551d4a08d97a // indirect
 	github.com/swaggo/http-swagger v1.3.3 // indirect
 	github.com/swaggo/http-swagger/example/go-chi v0.0.0-20220809182543-c8d62bfd8fdb // indirect

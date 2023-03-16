@@ -46,7 +46,7 @@ type UpdateUser struct {
 	Username string `json:"username,omitempty" valid:"length(6|25)"`
 	Password string `json:"password,omitempty" valid:"length(6|30)"`
 	Name     string `json:"name,omitempty" valid:"length(6|80)"`
-	Email    string `json:"email,omitempty" valid:"email,length(6:40)"`
+	Email    string `json:"email,omitempty" valid:"email"`
 }
 type UpdatedUser struct {
 	ID        uint           `json:"id"`

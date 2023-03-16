@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -51,7 +50,7 @@ func CreateStructFromValidationErrorString(errs []error) *models.ValidationError
 	for _, e := range errs {
 		// Grab error strong
 		errorString := e.Error()
-		fmt.Printf("The error string for this line is: %s", errorString)
+		// fmt.Printf("The error string for this line is: %s", errorString)
 		// Split by colon
 		errorArray := strings.Split(errorString, ": ")
 
@@ -64,7 +63,7 @@ func CreateStructFromValidationErrorString(errs []error) *models.ValidationError
 		validation.Validation_errors[errorArray[0]] = errMessageArray
 	}
 
-	fmt.Printf("validation errors: %v", validation.Validation_errors)
+	// fmt.Printf("validation errors: %v", validation.Validation_errors)
 	return validation
 }
 

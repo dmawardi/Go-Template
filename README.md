@@ -55,10 +55,10 @@ Follow these steps to add a feature to the API.
 
 ## Testing
 
-To run tests use below command.
+To run all tests use below command.
 
 ```
-go test
+go test ./...
 ```
 
 This will run all files that match the testing file naming convention (\*\_test.go).
