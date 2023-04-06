@@ -1,4 +1,4 @@
-package services
+package service
 
 import (
 	"github.com/dmawardi/Go-Template/internal/config"
@@ -15,4 +15,8 @@ var app *config.AppConfig
 // Create new service repository
 func BuildServiceState(a *config.AppConfig) {
 	app = a
+}
+
+type Services struct {
+	User *UserService
 }

@@ -43,13 +43,15 @@ docker run --publish 8080:8080 container-name
 
 ## How to use
 
-Follow these steps to add a feature to the API.
+Follow these steps to add a feature to the API. This template uses the clean architecture pattern
 
 1. Build schema and auto migrate in ./internal/db using ORM instructions below.
-2. Build service in ./internal/services that accesses the database
-3. Build the handler that accepts the data, performs data validation, then sends to service to interact with database
-4. Update routes in ./cmd/routes.go to use the handler that has been created in step 3.
-5. Add validation to handler using govalidator. This functions by adding `valid:""` key-value pairs to struct DTO definitions that are being passed into the ValidateStruct function.
+2. Build repository in ./internal/repository which is the interaction between the DB and our application. This should use a struct with receiver functions.
+3. Build service in ./internal/service that uses the repository and applies business logic.
+4. Build the controller (handler) in ./internal/controller that accepts the request, performs data validation, then sends to the service to interact with database.
+5. Add the new controller to the API struct in the ./cmd/routes.go file. This allows it to be used within the routes.
+6. Update routes in ./cmd/routes.go to use the handler that has been created in step 5.
+7. Add validation to handler using govalidator. This functions by adding `valid:""` key-value pairs to struct DTO definitions that are being passed into the ValidateStruct function (used in controller).
 
 ---
 

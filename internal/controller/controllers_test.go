@@ -1,4 +1,4 @@
-package handlers_test
+package controller_test
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dmawardi/Go-Template/internal/handlers"
+	"github.com/dmawardi/Go-Template/internal/controller"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/go-chi/chi"
 	"gorm.io/driver/postgres"
@@ -36,7 +36,8 @@ func TestGetMyUserDetails(t *testing.T) {
 	// Create a new router
 	r := chi.NewRouter()
 	// Add the handler to the router
-	r.Get("/api/me", handlers.GetMyUserDetails)
+
+	r.Get("/api/me", controller.GetMyUserDetails)
 
 	for _, tt := range testTable {
 		// Call the handler and use recorder

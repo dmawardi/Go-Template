@@ -107,7 +107,6 @@ func ValidateAndParseToken(w http.ResponseWriter, r *http.Request) (tokenData *A
 // Takes the http method and returns a string based on it
 // for authorization assessment
 func ActionFromMethod(httpMethod string) string {
-	fmt.Println("Method of request:", httpMethod)
 	switch httpMethod {
 	case "GET":
 		return "read"

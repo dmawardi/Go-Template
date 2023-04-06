@@ -15,9 +15,10 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/config"
+	"github.com/dmawardi/Go-Template/internal/controller"
 	"github.com/dmawardi/Go-Template/internal/db"
-	"github.com/dmawardi/Go-Template/internal/handlers"
-	"github.com/dmawardi/Go-Template/internal/services"
+	"github.com/dmawardi/Go-Template/internal/repository"
+	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -59,18 +60,20 @@ func main() {
 	}
 
 	// Set state in other packages
-	handlers.SetStateInHandlers(&app)
+	controller.SetStateInHandlers(&app)
 	auth.SetStateInAuth(&app)
-	services.BuildServiceState(&app)
+	service.BuildServiceState(&app)
 
 	// Create client using DbConnect
 	client := db.DbConnect()
+	// Set in state
+	app.DbClient = client
+
 	// userToCreate := db.User{Name: "Goba", Username: "Walow", Password: "certainly", Email: "gustav@mail.com"}
 	// createdUser, err := services.CreateUser(&userToCreate)
 
-	// fmt.Printf("Created user: %v", *createdUser)
-
-	app.DbClient = client
+	// Create api
+	api := ApiSetup(client)
 
 	// Setup enforcer
 	e, err := EnforcerSetup(client)
@@ -85,7 +88,7 @@ func main() {
 	// Server settings
 	srv := &http.Server{
 		Addr:    portNumber,
-		Handler: routes(),
+		Handler: api.routes(),
 	}
 
 	// Listen and serve using server settings above
@@ -123,4 +126,15 @@ func EnforcerSetup(db *gorm.DB) (*casbin.Enforcer, error) {
 
 	// else
 	return enforcer, nil
+}
+
+func ApiSetup(client *gorm.DB) Api {
+	// user
+	userRepo := repository.NewUserRepository(client)
+	userService := service.NewUserService(userRepo)
+	userController := controller.NewUserController(userService)
+
+	// Build API using controllers
+	api := NewApi(userController)
+	return api
 }

@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/dmawardi/Go-Template/internal/auth"
+	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
-	"github.com/dmawardi/Go-Template/internal/services"
 )
 
 // Middleware to check whether user is authenticated
@@ -47,7 +47,7 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 func Authorize(subjectEmail, object, action string) bool {
 
 	// Extract user ID from JWT and check if user exists in database.
-	foundUser, err := services.FindUserByEmail(subjectEmail)
+	foundUser, err := FindByEmail(subjectEmail)
 	if err != nil {
 		fmt.Println("No user has been found in db with that id")
 		return false
@@ -70,4 +70,20 @@ func Authorize(subjectEmail, object, action string) bool {
 
 	// Return result of enforcement
 	return ok
+}
+
+// Find user in database by email (for authentication)
+func FindByEmail(email string) (*db.User, error) {
+	// Create an empty ref object of type user
+	user := db.User{}
+	// Check if user exists in db
+	result := app.DbClient.Where("email = ?", email).First(&user)
+
+	// If error detected
+	if result.Error != nil {
+		fmt.Println("error in finding user: ", result.Error)
+		return nil, result.Error
+	}
+	// else
+	return &user, nil
 }
