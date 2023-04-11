@@ -4,17 +4,17 @@ import (
 	"fmt"
 
 	"github.com/dmawardi/Go-Template/internal/db"
-	"github.com/dmawardi/Go-Template/internal/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type UserRepository interface {
+	// Find a list of all users in the Database
 	FindAll(int, int, string) (*[]db.User, error)
 	FindById(int) (*db.User, error)
 	FindByEmail(string) (*db.User, error)
-	Create(user *models.CreateUser) (*db.User, error)
-	Update(int, *models.UpdateUser) (*db.User, error)
+	Create(user *db.User) (*db.User, error)
+	Update(int, *db.User) (*db.User, error)
 	Delete(int) error
 }
 
@@ -27,24 +27,14 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 }
 
 // Creates a user in the database
-func (r *userRepository) Create(user *models.CreateUser) (*db.User, error) {
-	// Build hashed password from user password input
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
-	// Create a new user of type db User
-	userToCreate := db.User{
-		Username: user.Username,
-		Password: string(hashedPassword),
-		Name:     user.Name,
-		Email:    user.Email,
-	}
-
+func (r *userRepository) Create(user *db.User) (*db.User, error) {
 	// Create above user in database
-	result := r.DB.Create(&userToCreate)
+	result := r.DB.Create(&user)
 	if result.Error != nil {
-		return nil, fmt.Errorf("failed creating user: %w", err)
+		return nil, fmt.Errorf("failed creating user: %w", result.Error)
 	}
 
-	return &userToCreate, nil
+	return user, nil
 }
 
 // Find a list of users in the database
@@ -56,7 +46,6 @@ func (r *userRepository) FindAll(limit int, offset int, order string) (*[]db.Use
 		return nil, err
 	}
 
-	fmt.Printf("Found user list: %v users\n", len(users))
 	return &users, nil
 }
 
@@ -110,7 +99,7 @@ func (r *userRepository) Delete(id int) error {
 }
 
 // Updates user in database
-func (r *userRepository) Update(id int, user *models.UpdateUser) (*db.User, error) {
+func (r *userRepository) Update(id int, user *db.User) (*db.User, error) {
 	// Init
 	var err error
 	// Find user by id
