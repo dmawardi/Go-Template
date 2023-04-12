@@ -51,7 +51,6 @@ func (r *userRepository) FindAll(limit int, offset int, order string) (*[]db.Use
 
 // Find user in database by ID
 func (r *userRepository) FindById(userId int) (*db.User, error) {
-	fmt.Printf("Finding user with id: %v\n", userId)
 	// Create an empty ref object of type user
 	user := db.User{}
 	// Check if user exists in db
@@ -59,7 +58,6 @@ func (r *userRepository) FindById(userId int) (*db.User, error) {
 
 	// If error detected
 	if result.Error != nil {
-		fmt.Println("error in finding user: ", result.Error)
 		return nil, result.Error
 	}
 	// else
@@ -73,9 +71,9 @@ func (r *userRepository) FindByEmail(email string) (*db.User, error) {
 	// Check if user exists in db
 	result := r.DB.Where("email = ?", email).First(&user)
 
+	fmt.Printf("user found using find by email: %v", user)
 	// If error detected
 	if result.Error != nil {
-		fmt.Println("error in finding user: ", result.Error)
 		return nil, result.Error
 	}
 	// else

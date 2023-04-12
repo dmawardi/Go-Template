@@ -67,7 +67,6 @@ func (s *userService) FindById(userId int) (*db.User, error) {
 	user, err := s.repo.FindById(userId)
 	// If error detected
 	if err != nil {
-		fmt.Println("error in finding user: ", err)
 		return nil, err
 	}
 	// else
@@ -79,7 +78,7 @@ func (s *userService) FindByEmail(email string) (*db.User, error) {
 	user, err := s.repo.FindByEmail(email)
 	// If error detected
 	if err != nil {
-		fmt.Println("error in finding user: ", err)
+		fmt.Printf("error found in Find by email: %v", err)
 		return nil, err
 	}
 	// else

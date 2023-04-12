@@ -1,11 +1,10 @@
-package main
+package auth
 
 import (
 	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 )
@@ -15,7 +14,7 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// Validate the token
-		tokenData, err := auth.ValidateAndParseToken(w, r)
+		tokenData, err := ValidateAndParseToken(w, r)
 		// If error detected
 		if err != nil {
 			http.Error(w, "Error parsing authentication token", http.StatusForbidden)
@@ -28,7 +27,7 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 		// Grab Http Method
 		httpMethod := r.Method
 		// Determine associated action based on HTTP method
-		action := auth.ActionFromMethod(httpMethod)
+		action := ActionFromMethod(httpMethod)
 		// Enforce RBAC policy and determine if user is authorized to perform action
 		allowed := Authorize(tokenData.Email, object, action)
 
@@ -81,7 +80,7 @@ func FindByEmail(email string) (*db.User, error) {
 
 	// If error detected
 	if result.Error != nil {
-		fmt.Println("error in finding user: ", result.Error)
+		fmt.Println("error in finding user in authentication: ", result.Error)
 		return nil, result.Error
 	}
 	// else

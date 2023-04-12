@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -10,8 +11,10 @@ import (
 	"time"
 
 	"github.com/casbin/casbin/v2"
+	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/golang-jwt/jwt/v4"
+	"gorm.io/gorm"
 )
 
 var app *config.AppConfig
@@ -33,6 +36,35 @@ type AuthToken struct {
 	Email  string `json:"email"`
 	Role   string `json:"role"`
 	jwt.StandardClaims
+}
+
+// Setup RBAC enforcer based using gorm client. Connects to DB and builds base policy
+func EnforcerSetup(db *gorm.DB) (*casbin.Enforcer, error) {
+	// Grab environment variables for connection
+	var DB_PORT string = os.Getenv("DB_PORT")
+
+	// Build adapter
+	adapter, err := gormadapter.NewAdapterByDB(db)
+	// If error
+	if err != nil {
+		log.Fatal("Couldn't build adapter for enforcer: ", err, "\nDB PORT", DB_PORT)
+		return nil, err
+	}
+
+	// Initialize RBAC Authorization
+	enforcer, err := casbin.NewEnforcer("./internal/auth/rbac_model.conf", adapter)
+
+	// If error
+	if err != nil {
+		log.Fatal("Couldn't build RBAC enforcer: ", err)
+		return nil, err
+	}
+
+	// Create default policies if not already detected within system
+	SetupCasbinPolicy(enforcer, DefaultPolicyList)
+
+	// else
+	return enforcer, nil
 }
 
 // Generates a JSON web token based on user's details
@@ -131,7 +163,6 @@ func SetupCasbinPolicy(enforcer *casbin.Enforcer, sliceOfPolicies []policySet) {
 			enforcer.AddPolicy(policy.subject, policy.object, policy.action)
 		}
 	}
-
 }
 
 // Extracts user id from authentication token

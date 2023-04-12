@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/controller"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -42,7 +43,7 @@ func (a api) routes() http.Handler {
 
 		// Private routes
 		mux.Group(func(mux chi.Router) {
-			mux.Use(AuthenticateJWT)
+			mux.Use(auth.AuthenticateJWT)
 
 			// @tag.name Private routes
 			// @tag.description Protected routes

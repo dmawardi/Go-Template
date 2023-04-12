@@ -70,7 +70,6 @@ func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 	foundUsers, err := c.service.FindAll(limit, offset, orderBy)
 	if err != nil {
 		http.Error(w, "Can't find users", http.StatusBadRequest)
-		fmt.Println("error in finding users: ", err)
 		return
 	}
 	err = helpers.WriteAsJSON(w, foundUsers)
@@ -96,19 +95,23 @@ func (c userController) Find(w http.ResponseWriter, r *http.Request) {
 	// Grab URL parameter
 	stringParameter := chi.URLParam(r, "id")
 	// Convert to int
-	idParameter, _ := strconv.Atoi(stringParameter)
-	fmt.Println("id parameter from request: ", idParameter)
+	idParameter, err := strconv.Atoi(stringParameter)
+	fmt.Println("id parameter from request: ", stringParameter)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
 
 	foundUser, err := c.service.FindById(idParameter)
 	if err != nil {
-		http.Error(w, "Can't find user", http.StatusBadRequest)
-		fmt.Println("error in finding user: ", err)
+		http.Error(w, fmt.Sprintf("Can't find user with ID: %v\n", idParameter), http.StatusBadRequest)
+		// fmt.Printf("error in finding user with ID: %v. Error: %v", idParameter, err)
 		return
 	}
 	err = helpers.WriteAsJSON(w, foundUser)
 	if err != nil {
-		http.Error(w, "Can't find user", http.StatusBadRequest)
-		fmt.Println("error in finding user: ", err)
+		http.Error(w, fmt.Sprintf("Can't find user with ID: %v\n", idParameter), http.StatusBadRequest)
+		// fmt.Println("error in finding user: ", err)
 		return
 	}
 }
@@ -196,8 +199,6 @@ func (c userController) Update(w http.ResponseWriter, r *http.Request) {
 	// Convert to int
 	idParameter, _ := strconv.Atoi(stringParameter)
 
-	fmt.Printf("JSON Received: %+v\n", user)
-
 	// Update user
 	updatedUser, createErr := c.service.Update(idParameter, &user)
 	if createErr != nil {
@@ -266,7 +267,6 @@ func (c userController) UpdateMyProfile(w http.ResponseWriter, r *http.Request) 
 		fmt.Println("Decoding error: ", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 	}
-	fmt.Printf("JSON Received: %+v\n", user)
 
 	// Validate the incoming DTO
 	pass, valErrors := helpers.GoValidateStruct(&user)
@@ -333,7 +333,7 @@ func (c userController) GetMyUserDetails(w http.ResponseWriter, r *http.Request)
 	foundUser, err := c.service.FindById(idParameter)
 	if err != nil {
 		http.Error(w, "Can't find user details", http.StatusBadRequest)
-		fmt.Println("error in finding user: ", err)
+		// fmt.Println("error in finding user: ", err)
 		return
 	}
 
@@ -341,7 +341,6 @@ func (c userController) GetMyUserDetails(w http.ResponseWriter, r *http.Request)
 	err = helpers.WriteAsJSON(w, foundUser)
 	if err != nil {
 		http.Error(w, "Can't find user details", http.StatusBadRequest)
-		fmt.Println("error in finding user: ", err)
 		return
 	}
 }
@@ -384,7 +383,7 @@ func (c userController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// else, validation passes and allow through
-
+	fmt.Printf("login body: %v", login)
 	// Check if user exists in db
 	foundUser, err := c.service.FindByEmail(login.Email)
 	if err != nil {

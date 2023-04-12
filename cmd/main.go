@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
-	"github.com/casbin/casbin/v2"
-	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"gorm.io/gorm"
 
 	_ "github.com/swaggo/http-swagger/example/go-chi/docs"
@@ -76,7 +73,7 @@ func main() {
 	api := ApiSetup(client)
 
 	// Setup enforcer
-	e, err := EnforcerSetup(client)
+	e, err := auth.EnforcerSetup(client)
 	if err != nil {
 		log.Fatal("Couldn't setup RBAC Authorization Enforcer")
 	}
@@ -97,35 +94,6 @@ func main() {
 
 		log.Fatal(err)
 	}
-}
-
-// Setup RBAC enforcer based using gorm client. Connects to DB and builds base policy
-func EnforcerSetup(db *gorm.DB) (*casbin.Enforcer, error) {
-	// Grab environment variables for connection
-	var DB_PORT string = os.Getenv("DB_PORT")
-
-	// Build adapter
-	adapter, err := gormadapter.NewAdapterByDB(db)
-	// If error
-	if err != nil {
-		log.Fatal("Couldn't build adapter for enforcer: ", err, "\nDB PORT", DB_PORT)
-		return nil, err
-	}
-
-	// Initialize RBAC Authorization
-	enforcer, err := casbin.NewEnforcer("./internal/auth/rbac_model.conf", adapter)
-
-	// If error
-	if err != nil {
-		log.Fatal("Couldn't build RBAC enforcer: ", err)
-		return nil, err
-	}
-
-	// Create default policies if not already detected within system
-	auth.SetupCasbinPolicy(enforcer, auth.DefaultPolicyList)
-
-	// else
-	return enforcer, nil
 }
 
 func ApiSetup(client *gorm.DB) Api {
