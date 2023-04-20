@@ -105,13 +105,11 @@ func (c userController) Find(w http.ResponseWriter, r *http.Request) {
 	foundUser, err := c.service.FindById(idParameter)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Can't find user with ID: %v\n", idParameter), http.StatusBadRequest)
-		// fmt.Printf("error in finding user with ID: %v. Error: %v", idParameter, err)
 		return
 	}
 	err = helpers.WriteAsJSON(w, foundUser)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Can't find user with ID: %v\n", idParameter), http.StatusBadRequest)
-		// fmt.Println("error in finding user: ", err)
 		return
 	}
 }
@@ -316,7 +314,7 @@ func (c userController) GetMyUserDetails(w http.ResponseWriter, r *http.Request)
 	tokenData, err := auth.ValidateAndParseToken(w, r)
 	// If error detected
 	if err != nil {
-		http.Error(w, "Error parsing authentication token", http.StatusForbidden)
+		http.Error(w, "Error parsing authentication token:1", http.StatusForbidden)
 		return
 	}
 
@@ -324,8 +322,7 @@ func (c userController) GetMyUserDetails(w http.ResponseWriter, r *http.Request)
 	idParameter, err := strconv.Atoi(tokenData.UserID)
 	// If error detected
 	if err != nil {
-		fmt.Println("error parsing token to string: ", err)
-		http.Error(w, "Error parsing authentication token", http.StatusForbidden)
+		http.Error(w, "Error parsing authentication token:2", http.StatusForbidden)
 		return
 	}
 
@@ -333,7 +330,6 @@ func (c userController) GetMyUserDetails(w http.ResponseWriter, r *http.Request)
 	foundUser, err := c.service.FindById(idParameter)
 	if err != nil {
 		http.Error(w, "Can't find user details", http.StatusBadRequest)
-		// fmt.Println("error in finding user: ", err)
 		return
 	}
 
@@ -383,7 +379,6 @@ func (c userController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// else, validation passes and allow through
-	fmt.Printf("login body: %v", login)
 	// Check if user exists in db
 	foundUser, err := c.service.FindByEmail(login.Email)
 	if err != nil {
@@ -396,7 +391,7 @@ func (c userController) Login(w http.ResponseWriter, r *http.Request) {
 	// Compare stored (hashed) password with input password
 	err = bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(login.Password))
 	if err != nil {
-		http.Error(w, "Incorrect username/password", http.StatusForbidden)
+		http.Error(w, "Incorrect username/password", http.StatusUnauthorized)
 		return
 	}
 

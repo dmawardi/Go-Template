@@ -51,8 +51,11 @@ func EnforcerSetup(db *gorm.DB) (*casbin.Enforcer, error) {
 		return nil, err
 	}
 
+	// Build path to policy model
+	rbacModelPath := buildPathToPolicyModel()
+
 	// Initialize RBAC Authorization
-	enforcer, err := casbin.NewEnforcer("./internal/auth/rbac_model.conf", adapter)
+	enforcer, err := casbin.NewEnforcer(rbacModelPath, adapter)
 
 	// If error
 	if err != nil {
@@ -180,4 +183,20 @@ func ExtractIdFromToken(w http.ResponseWriter, r *http.Request) (*int, error) {
 	}
 
 	return &userId, nil
+}
+
+// Returns a string that is agnostic for test and production usage
+func buildPathToPolicyModel() string {
+	// generate path
+	dirPath, err := os.Getwd()
+	if err != nil {
+		log.Fatal("Could not get working directory")
+	}
+
+	// Split path to remove excess path when running tests
+	splitPath := strings.Split(dirPath, "internal")
+
+	// Grab initial part of path and join with path from project root directory
+	rbacModelPath := splitPath[0] + "/internal/auth/rbac_model.conf"
+	return rbacModelPath
 }

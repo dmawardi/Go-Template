@@ -7,7 +7,7 @@ type Job struct {
 
 // Login
 type Login struct {
-	Email    string `json:"email" valid:"required"`
+	Email    string `json:"email" valid:"email,required"`
 	Password string `json:"password" valid:"required"`
 }
 

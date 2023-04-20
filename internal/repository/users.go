@@ -71,7 +71,6 @@ func (r *userRepository) FindByEmail(email string) (*db.User, error) {
 	// Check if user exists in db
 	result := r.DB.Where("email = ?", email).First(&user)
 
-	fmt.Printf("user found using find by email: %v", user)
 	// If error detected
 	if result.Error != nil {
 		return nil, result.Error
@@ -106,7 +105,6 @@ func (r *userRepository) Update(id int, user *db.User) (*db.User, error) {
 		fmt.Println("User to update not found: ", err)
 		return nil, err
 	}
-	// fmt.Printf("user to update has been found: %v", foundUser)
 
 	// If password from update object is not empty, use bcrypt to encrypt
 	if user.Password != "" {
@@ -137,7 +135,6 @@ func (r *userRepository) Update(id int, user *db.User) (*db.User, error) {
 
 // Takes limit, offset, and order parameters, builds a query and executes returning a list of users
 func QueryAllUsersBasedOnParams(limit int, offset int, order string, dbClient *gorm.DB) ([]db.User, error) {
-	// fmt.Printf("Params in Build query:\nlimit: %v\noffset: %v\norder: %v\n", limit, offset, order)
 	// Build model to query database
 	users := []db.User{}
 	// Build base query for users table

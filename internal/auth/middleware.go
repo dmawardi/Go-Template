@@ -15,6 +15,7 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 
 		// Validate the token
 		tokenData, err := ValidateAndParseToken(w, r)
+		fmt.Println("tokendata received: ", tokenData)
 		// If error detected
 		if err != nil {
 			http.Error(w, "Error parsing authentication token", http.StatusForbidden)
