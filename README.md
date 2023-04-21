@@ -10,6 +10,20 @@ This repository will serve as a base web application in Go.
 - Uses [Swaggo](https://github.com/swaggo/swag) to generate API documentation
 - Uses [Go-Validator](https://github.com/asaskevich/govalidator) for validating incoming data
 
+### Environment
+
+You will be required to setup a .env file in the root of the project folder. This will need to contain the database details, and the encryption (HMAC) / JSON web token session secrets.
+
+```
+DB_USER=postgres
+DB_PASS=
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=
+SESSIONS_SECRET_KEY=
+HMAC_SECRET=
+```
+
 ### Database (Object Relational Management)
 
 - Uses [Gorm](https://gorm.io) for ORM (Postgres)
