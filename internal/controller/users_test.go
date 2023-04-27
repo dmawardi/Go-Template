@@ -314,6 +314,28 @@ func TestUserController_Update(t *testing.T) {
 		}
 	}
 
+	// Check for failure if no ID parameter detected
+	//
+	// Make new request with user update in body
+	req, err := http.NewRequest("PUT", "/api/users/x", buildReqBody(&db.User{
+		Username: "Scrappy Kid",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Create a response recorder
+	rr := httptest.NewRecorder()
+	// Add user auth token to header
+	req.Header.Set("Authorization", fmt.Sprintf("bearer %v", testConnection.adminToken))
+
+	// Send update request to mock server
+	testConnection.router.ServeHTTP(rr, req)
+	// Check response is forbidden for
+	if status := rr.Code; status != 403 {
+		t.Errorf("User update test: got %v want %v.",
+			status, 403)
+	}
+
 	// Delete the created user
 	testConnection.dbClient.Delete(createdUser)
 }
