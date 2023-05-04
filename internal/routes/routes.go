@@ -1,4 +1,4 @@
-package main
+package routes
 
 import (
 	"net/http"
@@ -12,7 +12,7 @@ import (
 )
 
 type Api interface {
-	routes() http.Handler
+	Routes() http.Handler
 }
 
 type api struct {
@@ -23,7 +23,7 @@ func NewApi(user controller.UserController) Api {
 	return &api{user}
 }
 
-func (a api) routes() http.Handler {
+func (a api) Routes() http.Handler {
 	// Create new router
 	mux := chi.NewRouter()
 	// Use built in Chi middleware
@@ -57,7 +57,6 @@ func (a api) routes() http.Handler {
 			mux.Get("/api/me", a.user.GetMyUserDetails)
 			mux.Post("/api/me", controller.HealthCheck)
 			mux.Put("/api/me", a.user.UpdateMyProfile)
-
 		})
 
 	})

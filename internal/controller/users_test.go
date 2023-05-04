@@ -7,21 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/dmawardi/Go-Template/internal/auth"
-	"github.com/dmawardi/Go-Template/internal/controller"
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
-	"github.com/go-chi/chi"
 )
-
-func init() {
-	// Setup a new/reset connection
-	testConnection.setupDBAuthAppModels()
-
-	// Setup the router for testing
-	testConnection.router = buildUserRouter(testConnection.users.cont)
-}
 
 func TestUserController_Find(t *testing.T) {
 	// Build test user
@@ -39,7 +28,6 @@ func TestUserController_Find(t *testing.T) {
 	}
 	// Create a request with an "id" URL parameter
 	requestUrl := fmt.Sprintf("/api/users/%v", createdUser.ID)
-	// t.Fatalf("for url: %v\n. Created user iD: %v\n", requestUrl, createdUser.ID)
 	req, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -78,7 +66,10 @@ func TestUserController_Find(t *testing.T) {
 	}
 
 	// Delete the created user
-	testConnection.dbClient.Delete(createdUser)
+	delResult := testConnection.dbClient.Delete(createdUser)
+	if delResult.Error != nil {
+		t.Fatalf("Error clearing created user")
+	}
 }
 
 func TestUserController_FindAll(t *testing.T) {
@@ -475,7 +466,8 @@ func TestUserController_UpdateMyProfile(t *testing.T) {
 		}, testConnection.accounts.user.token, http.StatusBadRequest, false, *testConnection.accounts.user.details},
 		// User update Email with duplicate email
 		{map[string]string{
-			"Email": "juba@ymail.com",
+			"Username": "Swahili",
+			"Email":    testConnection.accounts.admin.details.Email,
 		}, testConnection.accounts.user.token, http.StatusBadRequest, false, *testConnection.accounts.user.details},
 		// User updates without token should fail
 		{map[string]string{
@@ -605,7 +597,7 @@ func TestUserController_Login(t *testing.T) {
 
 		// Check response is failed for normal user to update another
 		if status := rr.Code; status != v.expectedResponseStatus {
-			t.Errorf("User login test (%v:%v): got %v want %v. Resp: %v", v.title, v.data.Password,
+			t.Errorf("User login test (%v)\nDetails: %v/%v. got %v want %v. Resp: %v", v.title, v.data.Email, v.data.Password,
 				status, v.expectedResponseStatus, rr.Body)
 		}
 
@@ -659,37 +651,4 @@ func checkUserDetails(rr *httptest.ResponseRecorder, createdUser *db.User, t *te
 	if body.Name != createdUser.Name {
 		t.Errorf("found createdUser has incorrect name: expected %s, got %s", createdUser.Name, body.Name)
 	}
-}
-
-// SETUP FUNCTIONS
-//
-// Build api router for testing
-func buildUserRouter(c controller.UserController) *chi.Mux {
-	// Create a new chi router
-	r := chi.NewRouter()
-
-	r.Group(func(r chi.Router) {
-
-		// Login
-		r.Post("/api/users/login", c.Login)
-
-		// Create new user
-		r.Post("/api/users", c.Create)
-
-		r.Group(func(r chi.Router) {
-			r.Use(auth.AuthenticateJWT)
-
-			// users
-			r.Get("/api/users", c.FindAll)
-			r.Get("/api/users/{id}", c.Find)
-			r.Put("/api/users/{id}", c.Update)
-			r.Delete("/api/users/{id}", c.Delete)
-
-			// My profile
-			r.Get("/api/me", c.GetMyUserDetails)
-			r.Put("/api/me", c.UpdateMyProfile)
-
-		})
-	})
-	return r
 }

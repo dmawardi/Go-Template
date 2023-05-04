@@ -81,6 +81,18 @@ go test ./...
 
 This will run all files that match the testing file naming convention (\*\_test.go).
 
+### E2E Tests
+
+The e2e tests are in the /internal/controller folder. Any additionall feature added will require you to update the setup functions in the controllers_test.go file.
+
+#### Functions to update:
+
+- setupDBAuthAppModels (To setup controller, service, and repo for new models)
+- setupDatabase (To auto migrate)
+- furnishDb (For any fixtures you need preloaded for tests)
+
+Then proceed to create a new file for the tests of the new feature.
+
 #### Additional flags
 
 - "-V" prints more detailed results

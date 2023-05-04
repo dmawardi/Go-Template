@@ -5,15 +5,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
+	"testing"
 
 	"github.com/dmawardi/Go-Template/internal/auth"
+	"github.com/dmawardi/Go-Template/internal/routes"
+
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/controller"
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/glebarez/sqlite"
-	"github.com/go-chi/chi"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -25,7 +29,7 @@ var app config.AppConfig
 type TestDbRepo struct {
 	dbClient *gorm.DB
 	users    userDB
-	router   *chi.Mux
+	router   http.Handler
 	// For authentication mocking
 	accounts userAccounts
 }
@@ -47,30 +51,62 @@ type dummyAccount struct {
 	token   string
 }
 
+// Initial setup before running e2e tests in controllers_test package
+func TestMain(m *testing.M) {
+	// Setup a new/reset connection
+	testConnection.setupDBAuthAppModels()
+
+	// Setup accounts for mocking authentication
+	testConnection.setupDummyAccounts(&db.User{
+		Username: "Jabar",
+		Email:    "Jabal@ymail.com",
+		Password: "password",
+		Name:     "Bamba",
+	}, &db.User{
+		Username: "Jabar",
+		Email:    "Juba@ymail.com",
+		Password: "password",
+		Name:     "Bamba",
+	})
+
+	// Furnish the database with assets for testing
+	testConnection.furnishDB()
+
+	// build API for serving requests
+	testConnection.router = testConnection.buildAPI()
+
+	// Run the rest of the tests
+	exitCode := m.Run()
+	// exit with the same exit code as the tests
+	os.Exit(exitCode)
+
+}
+
+// Builds new API using routes package
+func (t TestDbRepo) buildAPI() http.Handler {
+	api := routes.NewApi(
+		t.users.cont,
+	)
+	// Extract handlers from api
+	handler := api.Routes()
+
+	return handler
+}
+
 // Setup functions
 //
 // Setup dummy admin and user account and apply to test connection
-func (t *TestDbRepo) setupDummyAccounts() {
+func (t *TestDbRepo) setupDummyAccounts(adminUser *db.User, basicUser *db.User) {
 	// Build admin user
 	adminUser, adminToken := t.generateUserWithRoleAndToken(
-		&db.User{
-			Username: "Jabar",
-			Email:    "juba@ymail.com",
-			Password: "password",
-			Name:     "Bamba",
-		}, "admin")
+		adminUser, "admin")
 	// Store credentials
 	t.accounts.admin.details = adminUser
 	t.accounts.admin.token = adminToken
 
 	// Build normal user
 	normalUser, userToken := t.generateUserWithRoleAndToken(
-		&db.User{
-			Username: "Jabar",
-			Email:    "Jabal@ymail.com",
-			Password: "password",
-			Name:     "Bamba",
-		}, "user")
+		basicUser, "user")
 	// Store credentials
 	t.accounts.user.details = normalUser
 	t.accounts.user.token = userToken
@@ -86,12 +122,13 @@ func (t *TestDbRepo) setupDBAuthAppModels() {
 	t.users.serv = service.NewUserService(t.users.repo)
 	t.users.cont = controller.NewUserController(t.users.serv)
 
-	// Create router
-	// Setup accounts for mocking authentication
-	t.setupDummyAccounts()
-
 	// Setup the enforcer for usage as middleware
 	setupTestEnforcer(t.dbClient)
+}
+
+// Fill this with any data required for tests
+func (t *TestDbRepo) furnishDB() {
+
 }
 
 // Setup database connection
