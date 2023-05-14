@@ -63,11 +63,10 @@ Follow these steps to add a feature to the API. This template uses the clean arc
 2. Build repository in ./internal/repository which is the interaction between the DB and the application. This should use a struct with receiver functions.
 3. Build service in ./internal/service that uses the repository and applies business logic.
 4. Build the controller (handler) in ./internal/controller that accepts the request, performs data validation, then sends to the service to interact with database.
-5. Add the new controller to the API struct in the ./cmd/routes.go file. This allows it to be used within the routes.
-6. Add validation to handler using govalidator. This functions by adding `valid:""` key-value pairs to struct DTO definitions (/internal/models) that are being passed into the ValidateStruct function (used in controller).
+5. Add the new controller to the API struct in the ./internal/routes/routes.go file. This allows it to be used within the routes.
+6. Add validation to handler using govalidator. This functions by adding `valid:""` key-value pairs to struct DTO definitions (/internal/models) that are being passed into the ValidateStruct function (used in controllers).
 7. Update routes in ./cmd/routes.go to use the handler that has been created in step 5.
-
-Note: Make sure that the created routes that are protected have been placed within the authentication default policy (./internal/auth/defaultPolicy.go) to allow users access.
+8. Update the ApiSetup function in the ./cmd/main.go file to build the new repository, service, and controller.
 
 ---
 
@@ -80,18 +79,6 @@ go test ./...
 ```
 
 This will run all files that match the testing file naming convention (\*\_test.go).
-
-### E2E Tests
-
-The e2e tests are in the /internal/controller folder. Any additionall feature added will require you to update the setup functions in the controllers_test.go file.
-
-#### Functions to update:
-
-- setupDBAuthAppModels (To setup controller, service, and repo for new models)
-- setupDatabase (To auto migrate)
-- furnishDb (For any fixtures you need preloaded for tests)
-
-Then proceed to create a new file for the tests of the new feature.
 
 #### Additional flags
 
