@@ -61,12 +61,14 @@ Follow these steps to add a feature to the API. This template uses the clean arc
 
 1. Build schema and auto migrate in ./internal/db using ORM instructions below.
 2. Build repository in ./internal/repository which is the interaction between the DB and the application. This should use a struct with receiver functions.
-3. Build service in ./internal/service that uses the repository and applies business logic.
-4. Build the controller (handler) in ./internal/controller that accepts the request, performs data validation, then sends to the service to interact with database.
-5. Add the new controller to the API struct in the ./internal/routes/routes.go file. This allows it to be used within the routes.
-6. Add validation to handler using govalidator. This functions by adding `valid:""` key-value pairs to struct DTO definitions (/internal/models) that are being passed into the ValidateStruct function (used in controllers).
-7. Update routes in ./cmd/routes.go to use the handler that has been created in step 5.
+3. Build incoming DTO models for Create and Update JSON requests in ./internal/models
+4. Build service in ./internal/service that uses the repository and applies business logic.
+5. Build the controller (handler) in ./internal/controller that accepts the request, performs data validation, then sends to the service to interact with database.
+6. Add validation to handler using govalidator. This is done by adding `valid:""` key-value pairs to struct DTO definitions (/internal/models) that are being passed into the ValidateStruct function (used in controllers).
+7. Add the new controller to the API struct in the ./internal/routes/routes.go file. This allows it to be used within the Routes function in the same file. Build routes to use the handlers that have been created in step 4 using the api struct.
 8. Update the ApiSetup function in the ./cmd/main.go file to build the new repository, service, and controller.
+9. Add the route to the RBAC authorization policy file (./internal/auth/defaultPolicy.go)
+10. (Testing) For e2e testing, you will need to update the controllers_test.go file in ./internal/controller. Updates are required in the buildAPI, setupDatabase & setupDBAuthAppModels functions
 
 ---
 
@@ -79,6 +81,12 @@ go test ./...
 ```
 
 This will run all files that match the testing file naming convention (\*\_test.go).
+
+Tests for repositories, services, and controllers should be in their respsective directories. The controllers folder consists of E2E tests.  
+The setup for these tests is in the controllers_test.go file.
+
+Upon adding a new module:
+-Make sure to build a DB struct that contains the modules of: repo, service, & controller. This object should then be added to the testDbRepo which serves as the test connection that will be serving the requests for the DB and API.
 
 #### Additional flags
 
@@ -110,6 +118,8 @@ To edit schemas: Go to ./internal/db/schemas.go
 The schemas are Structs based off of gorm.Model.
 
 After creating the schema in schemas.go, go to db.go and add to automigrate.
+
+Note for creating and updating using GORM: Relationship data that does not yet exist will be created as a new entry. However, if you try to edit an existing record, it will not allow you to.
 
 ## Role based access control (RBAC) settings
 
