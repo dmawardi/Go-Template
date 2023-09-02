@@ -29,6 +29,7 @@ func (a api) Routes() http.Handler {
 	// Use built in Chi middleware
 	mux.Use(middleware.Recoverer)
 	mux.Use(middleware.Logger)
+	mux.Use(corsMiddleware)
 
 	// Public routes
 	mux.Group(func(mux chi.Router) {
