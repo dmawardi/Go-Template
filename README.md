@@ -42,11 +42,17 @@ go run ./cmd
 
 ## To run using Docker
 
+To run the application within a Docker container, you will need to build the image and run the container.
+
+When running Docker on a Mac with an ARM processor, you will need to use the buildx command to build the image for amd64. This is where the --platform option comes in handy.
+
 "container-name" is typically the github address of your project. (ie. dmawardi/go-template)
 
 ```
 <!-- Builds docker image -->
 docker build -t container-name .
+<!-- Builds Docker image for amd64 (if on arm64) -->
+docker buildx build --platform linux/amd64 -t container-name .
 
 
 <!-- runs docker image and matches port -->
@@ -68,7 +74,7 @@ Follow these steps to add a feature to the API. This template uses the clean arc
 7. Add the new controller to the API struct in the ./internal/routes/routes.go file. This allows it to be used within the Routes function in the same file. Build routes to use the handlers that have been created in step 4 using the api struct.
 8. Update the ApiSetup function in the ./cmd/main.go file to build the new repository, service, and controller.
 9. Add the route to the RBAC authorization policy file (./internal/auth/defaultPolicy.go)
-10. (Testing) For e2e testing, you will need to update the controllers_test.go file in ./internal/controller. Updates are required in the buildAPI, setupDatabase & setupDBAuthAppModels functions
+10. (Testing) For e2e testing, you will need to update the controllers_test.go file in ./internal/controller. Updates are required in the testDbRepo struct, buildAPI, setupDatabase & setupDBAuthAppModels functions
 
 ---
 
@@ -98,15 +104,16 @@ Upon adding a new module:
 ## API documentation
 
 API documentation is auto generated using markdown within code. This is achieved using Swag.
-You must navigate to folder with main.go to generate.
 
 The below commands must be used upon making changes to the API in order to regenerate the API docs.
 
 - "-d" directory flag allows custom directory to be used
+- "-g" flag allows direct pointing to the main.go file for generation of swagger annotations from files that are imported (ie. controllers, services, repositories, etc.)
 - "--pd" flag parses dependecies as well
+- "--parseInternal" flag parses internal packages
 
 ```
-swag init -d ./cmd --pd
+swag init -d ./internal/controller -g ../../cmd/main.go --pd --parseInternal
 ```
 
 This will update API documentation generated in the ./docs folder. It is served on path /swagger
