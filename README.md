@@ -40,25 +40,6 @@ HMAC_SECRET=
 go run ./cmd
 ```
 
-## To run using Docker
-
-To run the application within a Docker container, you will need to build the image and run the container.
-
-When running Docker on a Mac with an ARM processor, you will need to use the buildx command to build the image for amd64. This is where the --platform option comes in handy.
-
-"container-name" is typically the github address of your project. (ie. dmawardi/go-template)
-
-```
-<!-- Builds docker image -->
-docker build -t container-name .
-<!-- Builds Docker image for amd64 (if on arm64) -->
-docker buildx build --platform linux/amd64 -t container-name .
-
-
-<!-- runs docker image and matches port -->
-docker run --publish 8080:8080 container-name
-```
-
 ---
 
 ## How to use
@@ -136,3 +117,44 @@ This data structure is used by the setupcasbin policy to implement policy in DB 
 SetupCasbinPolicy functions in a way where it adds policies only if they're not found already.
 
 Format of policy: Subject, Object, Action (ie. "Who" is accessing "DB object" to commit "CRUD action")
+
+## To run using Docker
+
+To run the application within a Docker container, you will need to build the image and run the container.
+
+When running Docker on a Mac with an ARM processor, you will need to use the buildx command to build the image for amd64. This is where the --platform option comes in handy.
+
+"container-name" is typically the github address of your project. (ie. dmawardi/go-template)
+
+```
+<!-- Builds docker image -->
+docker build -t container-name .
+<!-- Builds Docker image for amd64 (if on arm64) -->
+docker buildx build --platform linux/amd64 -t container-name .
+
+
+<!-- runs docker image and matches port -->
+docker run --publish 8080:8080 container-name
+```
+
+In order to run the Docker image on a server, you will need to push the image to a Docker registry (Docker Hub). This can be done using Docker Desktop
+
+## To deploy container on a server
+
+First, ensure that Docker is installed on the server.
+
+Then, pull the Docker image on the server using the container name (dmawardi/go-template:latest) and the docker pull command:
+
+```
+
+docker pull container-name:version
+
+```
+
+Then, run the Docker image on the server using the following command:
+
+```
+
+docker run -d -p 8080:8080 container-name:version
+
+```

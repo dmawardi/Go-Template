@@ -42,9 +42,9 @@ func NewUserController(service service.UserService) UserController {
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        limit   path      int  true  "limit"
-// @Param        offset   path      int  true  "offset"
-// @Param        order   path      int  true  "order by"
+// @Param        limit   query      int  true  "limit"
+// @Param        offset   query      int  false  "offset"
+// @Param        order   query      int  false  "order by"
 // @Success      200 {object} []models.CreatedUser
 // @Failure      400 {string} string "Can't find users"
 // @Failure      400 {string} string "Must include limit parameter with a max value of 50"
@@ -61,7 +61,7 @@ func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 	offset, _ := strconv.Atoi(offsetParam)
 
 	// Check that limit is present as requirement
-	if (limit == 0) || (limit >= 50) {
+	if (limit == 0) || (limit > 50) {
 		http.Error(w, "Must include limit parameter with a max value of 50", http.StatusBadRequest)
 		return
 	}
@@ -237,7 +237,6 @@ func (c userController) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	// Else write success
 	w.Write([]byte("Deletion successful!"))
-	return
 }
 
 // API/ME
