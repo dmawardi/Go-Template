@@ -70,7 +70,7 @@ func (r *userRepository) FindAll(limit int, offset int, order string, conditions
 		Prev_Page:        helpers.ReturnNilIfZero(prevPage),
 	}
 	// Query all users based on the received parameters
-	users, err := QueryAllUsersBasedOnParams(limit, offset, order, r.DB)
+	users, err := QueryAllUsersBasedOnParams(limit, offset, order, conditions, r.DB)
 	if err != nil {
 		fmt.Printf("Error querying db for list of users: %s", err)
 		return nil, err
@@ -167,7 +167,7 @@ func (r *userRepository) Update(id int, user *db.User) (*db.User, error) {
 }
 
 // Takes limit, offset, and order parameters, builds a query and executes returning a list of users
-func QueryAllUsersBasedOnParams(limit int, offset int, order string, dbClient *gorm.DB) ([]db.User, error) {
+func QueryAllUsersBasedOnParams(limit int, offset int, order string, conditions []string, dbClient *gorm.DB) ([]db.User, error) {
 	// Build model to query database
 	users := []db.User{}
 	// Build base query for users table
@@ -184,6 +184,13 @@ func QueryAllUsersBasedOnParams(limit int, offset int, order string, dbClient *g
 	if order != "" {
 		query.Order(order)
 	}
+	// Add conditions to query
+	if len(conditions) > 0 {
+		for _, condition := range conditions {
+			// Add condition to query
+			query.Where(condition)
+		}
+	}
 	// Query database
 	result := query.Find(&users)
 	if result.Error != nil {
@@ -191,28 +198,4 @@ func QueryAllUsersBasedOnParams(limit int, offset int, order string, dbClient *g
 	}
 	// Return if no errors with result
 	return users, nil
-}
-
-func CountUsersBasedOnParams(conditions []string, dbClient *gorm.DB) (*int64, error) {
-	// Fetch metadata from database
-	var totalCount int64
-
-	// Count the total number of records
-	query := dbClient.Model(&db.User{})
-
-	// Add conditions to query
-	if len(conditions) > 0 {
-		for _, condition := range conditions {
-			// Add condition to query
-			query.Where(condition)
-		}
-
-	}
-
-	// Execute query
-	countResult := query.Count(&totalCount)
-	if countResult.Error != nil {
-		return nil, countResult.Error
-	}
-	return &totalCount, nil
 }
