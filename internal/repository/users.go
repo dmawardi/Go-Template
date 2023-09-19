@@ -4,13 +4,15 @@ import (
 	"fmt"
 
 	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type UserRepository interface {
 	// Find a list of all users in the Database
-	FindAll(int, int, string) (*[]db.User, error)
+	FindAll(limit int, offset int, order string, conditions []string) (*models.PaginatedUsers, error)
 	FindById(int) (*db.User, error)
 	FindByEmail(string) (*db.User, error)
 	Create(user *db.User) (*db.User, error)
@@ -38,7 +40,35 @@ func (r *userRepository) Create(user *db.User) (*db.User, error) {
 }
 
 // Find a list of users in the database
-func (r *userRepository) FindAll(limit int, offset int, order string) (*[]db.User, error) {
+func (r *userRepository) FindAll(limit int, offset int, order string, conditions []string) (*models.PaginatedUsers, error) {
+	// Fetch metadata from database
+	var totalCount *int64
+
+	// Count the total number of records
+	totalCount, err := db.CountBasedOnConditions(db.User{}, conditions, r.DB)
+	if err != nil {
+		return nil, err
+	}
+	// Calculate next page
+	nextPage := offset + limit
+	// If next page is greater than total count, set to 0
+	if nextPage > int(*totalCount) {
+		nextPage = 0
+	}
+	prevPage := offset - limit
+	// If prev page is less than 0, set to 0
+	if prevPage < 0 {
+		prevPage = 0
+	}
+
+	// Build metadata object
+	metaData := models.SchemaMetaData{
+		Total_Records:    *totalCount,
+		Records_Per_Page: limit,
+		Current_Page:     offset,
+		Next_Page:        helpers.ReturnNilIfZero(nextPage),
+		Prev_Page:        helpers.ReturnNilIfZero(prevPage),
+	}
 	// Query all users based on the received parameters
 	users, err := QueryAllUsersBasedOnParams(limit, offset, order, r.DB)
 	if err != nil {
@@ -46,7 +76,10 @@ func (r *userRepository) FindAll(limit int, offset int, order string) (*[]db.Use
 		return nil, err
 	}
 
-	return &users, nil
+	return &models.PaginatedUsers{
+		Data: &users,
+		Meta: metaData,
+	}, nil
 }
 
 // Find user in database by ID
@@ -158,4 +191,28 @@ func QueryAllUsersBasedOnParams(limit int, offset int, order string, dbClient *g
 	}
 	// Return if no errors with result
 	return users, nil
+}
+
+func CountUsersBasedOnParams(conditions []string, dbClient *gorm.DB) (*int64, error) {
+	// Fetch metadata from database
+	var totalCount int64
+
+	// Count the total number of records
+	query := dbClient.Model(&db.User{})
+
+	// Add conditions to query
+	if len(conditions) > 0 {
+		for _, condition := range conditions {
+			// Add condition to query
+			query.Where(condition)
+		}
+
+	}
+
+	// Execute query
+	countResult := query.Count(&totalCount)
+	if countResult.Error != nil {
+		return nil, countResult.Error
+	}
+	return &totalCount, nil
 }

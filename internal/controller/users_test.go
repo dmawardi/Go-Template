@@ -93,16 +93,16 @@ func TestUserController_FindAll(t *testing.T) {
 	}
 
 	// Convert response JSON to struct
-	var body []db.User
+	var body *models.PaginatedUsers
 	json.Unmarshal(rr.Body.Bytes(), &body)
 
 	// Check length of user array
-	if len(body) != 2 {
-		t.Errorf("Users array in findAll failed: expected %d, got %d", 2, len(body))
+	if len(*body.Data) != 2 {
+		t.Errorf("Users array in findAll failed: expected %d, got %d", 2, len(*body.Data))
 	}
 
 	// Iterate through users array received
-	for _, item := range body {
+	for _, item := range *body.Data {
 		// If id is admin id
 		if item.ID == testConnection.accounts.admin.details.ID {
 			// Check details

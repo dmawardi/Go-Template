@@ -10,7 +10,7 @@ import (
 )
 
 type UserService interface {
-	FindAll(int, int, string) (*[]db.User, error)
+	FindAll(limit int, offset int, order string, conditions []string) (*models.PaginatedUsers, error)
 	FindById(int) (*db.User, error)
 	FindByEmail(string) (*db.User, error)
 	Create(user *models.CreateUser) (*db.User, error)
@@ -51,9 +51,9 @@ func (s *userService) Create(user *models.CreateUser) (*db.User, error) {
 }
 
 // Find a list of users in the database
-func (s *userService) FindAll(limit int, offset int, order string) (*[]db.User, error) {
+func (s *userService) FindAll(limit int, offset int, order string, conditions []string) (*models.PaginatedUsers, error) {
 
-	users, err := s.repo.FindAll(limit, offset, order)
+	users, err := s.repo.FindAll(limit, offset, order, conditions)
 	if err != nil {
 		return nil, err
 	}

@@ -28,3 +28,28 @@ func DbConnect() *gorm.DB {
 
 	return db
 }
+
+// Counts the number of records in a table based on conditions
+func CountBasedOnConditions(databaseSchema interface{}, conditions []string, dbClient *gorm.DB) (*int64, error) {
+	// Fetch metadata from database
+	var totalCount int64
+
+	// Count the total number of records
+	query := dbClient.Model(databaseSchema)
+
+	// Add conditions to query
+	if len(conditions) > 0 {
+		for _, condition := range conditions {
+			// Add condition to query
+			query.Where(condition)
+		}
+
+	}
+
+	// Execute query
+	countResult := query.Count(&totalCount)
+	if countResult.Error != nil {
+		return nil, countResult.Error
+	}
+	return &totalCount, nil
+}

@@ -116,3 +116,35 @@ func UpdateStructField(structPtr interface{}, fieldName string, fieldValue inter
 	field.Set(fieldValueRef)
 	return nil
 }
+
+// Used for pagination to return a nil value if the incoming int is 0
+func ReturnNilIfZero(i int) *int {
+	if i == 0 {
+		return nil
+	}
+	return &i
+}
+
+// Accepts request and a slice of conditions to extract from the request
+func ExtractConditionParams(r *http.Request, userConditions []string) ([]string, error) {
+	// Grab URL query parameters
+	queryParams := r.URL.Query()
+
+	// extract conditions from query params
+	extractedConditions := []string{}
+	// Iterate through conditions
+	for _, condition := range userConditions {
+		// Check if condition is present in query params
+		if queryParams.Get(condition) != "" {
+			// Extract value from query params
+			queryValue := queryParams.Get(condition)
+			// Replace double quotes with single quotes
+			modQueryValue := strings.Replace(queryValue, `"`, "'", -1)
+			// Build string condition
+			stringCondition := fmt.Sprintf("%s = %s", condition, modQueryValue)
+			// If present, append to slice
+			extractedConditions = append(extractedConditions, stringCondition)
+		}
+	}
+	return extractedConditions, nil
+}

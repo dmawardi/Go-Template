@@ -226,18 +226,18 @@ func TestUserService_FindAll(t *testing.T) {
 		t.Fatalf("failed to create test user2: %v", err)
 	}
 
-	users, err := testConnection.serv.FindAll(10, 0, "")
+	users, err := testConnection.serv.FindAll(10, 0, "", []string{})
 	if err != nil {
 		t.Fatalf("failed to find all: %v", err)
 	}
 
 	// Make sure both users are in database
-	if len(*users) != 2 {
-		t.Errorf("Length of []users is not as expected. Got: %v", len(*users))
+	if len(*users.Data) != 2 {
+		t.Errorf("Length of []users is not as expected. Got: %v", len(*users.Data))
 	}
 
 	// Iterate through results checking user 1 and 2 results
-	for _, u := range *users {
+	for _, u := range *users.Data {
 		// If it's the first user
 		if int(u.ID) == int(createdUser1.ID) {
 			// check details of first created user

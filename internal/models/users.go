@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/dmawardi/Go-Template/internal/db"
 	"gorm.io/gorm"
 )
 
@@ -57,4 +58,9 @@ type UpdatedUser struct {
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at"`
+}
+
+type PaginatedUsers struct {
+	Data *[]db.User     `json:"data"`
+	Meta SchemaMetaData `json:"meta"`
 }

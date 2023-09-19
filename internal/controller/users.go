@@ -45,16 +45,28 @@ func NewUserController(service service.UserService) UserController {
 // @Param        limit   query      int  true  "limit"
 // @Param        offset   query      int  false  "offset"
 // @Param        order   query      int  false  "order by"
-// @Success      200 {object} []models.CreatedUser
+// @Success      200 {object} []models.PaginatedUsers
 // @Failure      400 {string} string "Can't find users"
 // @Failure      400 {string} string "Must include limit parameter with a max value of 50"
 // @Router       /users/{id} [get]
 // @Security BearerToken
 func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab URL query parameters
-	limitParam := r.URL.Query().Get("limit")
-	offsetParam := r.URL.Query().Get("offset")
-	orderBy := r.URL.Query().Get("order")
+	queryParams := r.URL.Query()
+	// Separate params
+	limitParam := queryParams.Get("limit")
+	offsetParam := queryParams.Get("offset")
+	orderBy := queryParams.Get("order")
+
+	// Prepare to grab user conditions
+	userConditions := []string{"Name", "Username", "Email", "Role"}
+
+	extractedConditions, err := helpers.ExtractConditionParams(r, userConditions)
+	if err != nil {
+		fmt.Println("Error extracting conditions: ", err)
+		http.Error(w, "Can't find conditions", http.StatusBadRequest)
+		return
+	}
 
 	// Convert to int
 	limit, _ := strconv.Atoi(limitParam)
@@ -67,7 +79,7 @@ func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Query database for all users using query params
-	foundUsers, err := c.service.FindAll(limit, offset, orderBy)
+	foundUsers, err := c.service.FindAll(limit, offset, orderBy, extractedConditions)
 	if err != nil {
 		http.Error(w, "Can't find users", http.StatusBadRequest)
 		return
