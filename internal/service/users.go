@@ -24,10 +24,11 @@ type UserService interface {
 
 type userService struct {
 	repo repository.UserRepository
+	mail email.Email
 }
 
 func NewUserService(repo repository.UserRepository) UserService {
-	return &userService{repo}
+	return &userService{repo: repo, mail: email.NewSMTPEmail()}
 }
 
 // Creates a user in the database
@@ -135,7 +136,7 @@ func (s *userService) ResetPasswordAndSendEmail(userEmail string) error {
 	}
 
 	// Send email with new password async (non-blocking)
-	go email.SendEmail(userEmail, "Password Reset Request", emailString)
+	go s.mail.SendEmail(userEmail, "Password Reset Request", emailString)
 
 	// Return no error found
 	return nil

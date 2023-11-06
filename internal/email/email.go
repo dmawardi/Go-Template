@@ -6,21 +6,31 @@ import (
 	"os"
 )
 
+type Email interface {
+	SendEmail(recipient, subject, body string) error
+}
+
+// Email struct
+type email struct {
+	Auth        smtp.Auth
+	SmtpAddress string
+	FromAddress string
+	SendMail    func(from, recipient, body string) error
+}
+
+func NewSMTPEmail() Email {
+	return &email{
+		Auth:        smtp.PlainAuth("", os.Getenv("SMTP_USERNAME"), os.Getenv("SMTP_PASSWORD"), os.Getenv("SMTP_HOST")),
+		SmtpAddress: os.Getenv("SMTP_HOST") + ":" + os.Getenv("SMTP_PORT"),
+		FromAddress: os.Getenv("SMTP_USERNAME"),
+	}
+}
+
 // Sends email using SMTP
-func SendEmail(recipient, subject, body string) error {
-	// Set up authentication information.
-	smtpHost := os.Getenv("SMTP_HOST") // SMTP server host
-	smtpPort := os.Getenv("SMTP_PORT") // SMTP server port, often 587 for STARTTLS or 465 for SSL
-	username := os.Getenv("SMTP_USERNAME")
-	password := os.Getenv("SMTP_PASSWORD")
-	from := "support@telukbirukarya.com"
-
-	// Usually, the auth will be PlainAuth for SMTP servers requiring authentication.
-	auth := smtp.PlainAuth("", username, password, smtpHost)
-
+func (e *email) SendEmail(recipient, subject, body string) error {
 	// Set MIME and other headers
 	headers := make(map[string]string)
-	headers["From"] = from
+	headers["From"] = e.FromAddress
 	headers["To"] = recipient
 	headers["Subject"] = subject
 	headers["MIME-Version"] = "1.0"
@@ -33,24 +43,16 @@ func SendEmail(recipient, subject, body string) error {
 	}
 
 	// The msg parameter should be an RFC 822-style email with headers first,
-	// a blank line, and then the message body.
+	// a blank line, and then the message body (Go Template).
 	msg := []byte(
 		header + "\r\n" +
 			body + "\r\n")
-	// []byte(
-	// 	"To: " + recipient + "\r\n" +
-	// 		"Subject: " + subject + "\r\n" +
-	// 		"\r\n" +
-	// 		body + "\r\n")
-
-	// Combine host and port for the smtp.SendMail() call
-	addr := smtpHost + ":" + smtpPort
 
 	// This sends the email with a plain auth setup
-	err := smtp.SendMail(addr, auth, from, []string{recipient}, msg)
+	err := smtp.SendMail(e.SmtpAddress, e.Auth, e.FromAddress, []string{recipient}, msg)
 	if err != nil {
 		return fmt.Errorf("smtp.SendMail() failed with: %s", err)
 	}
-	fmt.Println("Email sent successfully!")
+	fmt.Printf("Email sent successfully to: %s\n", recipient)
 	return nil
 }
