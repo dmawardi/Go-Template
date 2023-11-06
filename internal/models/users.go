@@ -60,6 +60,10 @@ type UpdatedUser struct {
 	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
 
+type ForgotPassword struct {
+	Email string `json:"email" valid:"email,required"`
+}
+
 type PaginatedUsers struct {
 	Data *[]db.User     `json:"data"`
 	Meta SchemaMetaData `json:"meta"`

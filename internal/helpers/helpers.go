@@ -1,8 +1,11 @@
 package helpers
 
 import (
+	"bytes"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"reflect"
 	"strings"
@@ -147,4 +150,43 @@ func ExtractConditionParams(r *http.Request, userConditions []string) ([]string,
 		}
 	}
 	return extractedConditions, nil
+}
+
+// Generates random string with n characters
+func GenerateRandomString(n int) (string, error) {
+	const lettersAndDigits = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+	// Make a byte slice of n length
+	bytes := make([]byte, n)
+
+	// Fill byte slice with random bytes
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+
+	// Replace each byte with a letter or digit
+	for i, b := range bytes {
+		bytes[i] = lettersAndDigits[b%byte(len(lettersAndDigits))]
+	}
+
+	// Return the random string
+	return string(bytes), nil
+}
+
+// LoadTemplate parses an HTML template, executes it with the provided data, and returns the result as a string.
+func LoadTemplate(templateFilePath string, data interface{}) (string, error) {
+	// Parse the template file
+	t, err := template.ParseFiles(templateFilePath)
+	if err != nil {
+		return "", err
+	}
+
+	// Build the template with the injected data
+	var tpl bytes.Buffer
+	if err := t.Execute(&tpl, data); err != nil {
+		return "", err
+	}
+
+	return tpl.String(), nil
 }

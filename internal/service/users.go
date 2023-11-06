@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/dmawardi/Go-Template/internal/email"
+	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	"golang.org/x/crypto/bcrypt"
@@ -16,6 +18,8 @@ type UserService interface {
 	Create(user *models.CreateUser) (*db.User, error)
 	Update(int, *models.UpdateUser) (*db.User, error)
 	Delete(int) error
+	// Takes an email and if the email is found in the database, will reset the password and send an email to the user with the new password
+	ResetPasswordAndSendEmail(email string) error
 }
 
 type userService struct {
@@ -94,6 +98,46 @@ func (s *userService) Delete(id int) error {
 		return err
 	}
 	// else
+	return nil
+}
+
+// Takes an email and if the email is found in the database, will reset the password and send an email to the user with the new password
+func (s *userService) ResetPasswordAndSendEmail(userEmail string) error {
+	// Check if user exists in db
+	foundUser, err := s.repo.FindByEmail(userEmail)
+	if err != nil {
+		fmt.Println("error in resetting password. User not found: ", userEmail)
+		return err
+	}
+	// Else
+	// Generate random password
+	randomPassword, err := helpers.GenerateRandomString(10)
+	if err != nil {
+		return err
+	}
+	// Update found user's password
+	s.repo.Update(int(foundUser.ID), &db.User{Password: randomPassword})
+
+	// Build data for template
+	data := struct {
+		Name        string
+		NewPassword string
+	}{
+		Name:        foundUser.Name,
+		NewPassword: randomPassword,
+	}
+
+	// Build HTML email template from file using injected data
+	emailString, err := helpers.LoadTemplate("internal/email/templates/password-reset.tmpl", data)
+	if err != nil {
+		fmt.Printf("error in loading template: %v", err)
+		return err
+	}
+
+	// Send email with new password async (non-blocking)
+	go email.SendEmail(userEmail, "Password Reset Request", emailString)
+
+	// Return no error found
 	return nil
 }
 

@@ -67,9 +67,6 @@ func main() {
 	// Set in state
 	app.DbClient = client
 
-	// userToCreate := db.User{Name: "Goba", Username: "Walow", Password: "certainly", Email: "gustav@mail.com"}
-	// createdUser, err := services.CreateUser(&userToCreate)
-
 	// Create api
 	api := ApiSetup(client)
 

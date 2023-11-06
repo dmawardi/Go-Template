@@ -25,6 +25,8 @@ type UserController interface {
 	UpdateMyProfile(w http.ResponseWriter, r *http.Request)
 	// Login
 	Login(w http.ResponseWriter, r *http.Request)
+	// Reset password
+	ResetPassword(w http.ResponseWriter, r *http.Request)
 }
 
 type userController struct {
@@ -420,4 +422,47 @@ func (c userController) Login(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteAsJSON(w, loginResponse)
 		return
 	}
+}
+
+// Reset password
+// Handler to reset password
+// @Summary      Reset password
+// @Description  Reset password
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Param        email body string true "Email"
+// @Success      200 {string} string "Password reset request successful!"
+// @Failure      400 {string} string "Password reset request failed"
+// @Router       /user/reset [post]
+func (c userController) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	// Grab email from request body
+	var forgotPassword models.ForgotPassword
+	// Decode request body as JSON and store in login
+	err := json.NewDecoder(r.Body).Decode(&forgotPassword)
+	if err != nil {
+		fmt.Println("Decoding error: ", err)
+		http.Error(w, "Password reset request failed", http.StatusBadRequest)
+		return
+	}
+
+	// Validate the incoming DTO
+	pass, valErrors := helpers.GoValidateStruct(&forgotPassword)
+	// If failure detected
+	if !pass {
+		// Write bad request header
+		w.WriteHeader(http.StatusBadRequest)
+		// Write validation errors to JSON
+		helpers.WriteAsJSON(w, valErrors)
+		return
+	}
+	// else, validation passes and allow through
+	err = c.service.ResetPasswordAndSendEmail(forgotPassword.Email)
+	if err != nil {
+		http.Error(w, "Password reset request failed", http.StatusBadRequest)
+		return
+	}
+
+	// Else
+	helpers.WriteAsJSON(w, "Password reset request successful!")
 }

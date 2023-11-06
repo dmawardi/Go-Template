@@ -38,6 +38,8 @@ func (a api) Routes() http.Handler {
 		mux.Get("/", controller.GetJobs)
 		// Login
 		mux.Post("/api/users/login", a.user.Login)
+		// Forgot password
+		mux.Post("/api/users/forgot-password", a.user.ResetPassword)
 
 		// Create new user
 		mux.Post("/api/users", a.user.Create)
