@@ -93,5 +93,42 @@ func TestGoValidateStruct(t *testing.T) {
 		}
 
 	}
+}
 
+// TestGenerateRandomString tests the GenerateRandomString function.
+func TestGenerateRandomString(t *testing.T) {
+	tests := []struct {
+		name    string
+		length  int
+		wantErr bool
+	}{
+		{"zero length", 0, false},
+		{"positive length", 10, false},
+		{"large length", 1000, false},
+		// Can't really force an error in this case since rand.Read rarely fails,
+		// but you could hypothetically test that case as well.
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := helpers.GenerateRandomString(tt.length)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GenerateRandomString() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if len(got) != tt.length {
+				t.Errorf("GenerateRandomString() got length = %v, want %v", len(got), tt.length)
+			}
+			for _, r := range got {
+				if !isLetterOrDigit(r) {
+					t.Errorf("GenerateRandomString() got a non-letter/digit character: %v", r)
+				}
+			}
+		})
+	}
+}
+
+// (helper function for generate random string) isLetterOrDigit checks if a rune is a letter or a digit.
+func isLetterOrDigit(r rune) bool {
+	return ('a' <= r && r <= 'z') || ('A' <= r && r <= 'Z') || ('0' <= r && r <= '9')
 }
