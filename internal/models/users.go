@@ -60,7 +60,7 @@ type UpdatedUser struct {
 	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
 
-type ForgotPassword struct {
+type ResetPasswordAndEmailVerification struct {
 	Email string `json:"email" valid:"email,required"`
 }
 

@@ -440,9 +440,9 @@ func (c userController) Login(w http.ResponseWriter, r *http.Request) {
 // @Router       /user/reset [post]
 func (c userController) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	// Grab email from request body
-	var forgotPassword models.ForgotPassword
+	var resetPassword models.ResetPasswordAndEmailVerification
 	// Decode request body as JSON and store in login
-	err := json.NewDecoder(r.Body).Decode(&forgotPassword)
+	err := json.NewDecoder(r.Body).Decode(&resetPassword)
 	if err != nil {
 		fmt.Println("Decoding error: ", err)
 		http.Error(w, "Password reset request failed", http.StatusBadRequest)
@@ -450,7 +450,7 @@ func (c userController) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&forgotPassword)
+	pass, valErrors := helpers.GoValidateStruct(&resetPassword)
 	// If failure detected
 	if !pass {
 		// Write bad request header
@@ -460,7 +460,7 @@ func (c userController) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// else, validation passes and allow through
-	err = c.service.ResetPasswordAndSendEmail(forgotPassword.Email)
+	err = c.service.ResetPasswordAndSendEmail(resetPassword.Email)
 	if err != nil {
 		http.Error(w, "Password reset request failed", http.StatusBadRequest)
 		return
@@ -517,7 +517,7 @@ func (c userController) EmailVerification(w http.ResponseWriter, r *http.Request
 // EmailVerification is the HTTP handler for the email verification endpoint
 func (c userController) ResendVerificationEmail(w http.ResponseWriter, r *http.Request) {
 	// Grab email from request body
-	var verifyEmail models.ForgotPassword
+	var verifyEmail models.ResetPasswordAndEmailVerification
 	// Decode request body as JSON and store in login
 	err := json.NewDecoder(r.Body).Decode(&verifyEmail)
 	if err != nil {
