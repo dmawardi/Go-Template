@@ -27,6 +27,9 @@ type UserController interface {
 	Login(w http.ResponseWriter, r *http.Request)
 	// Reset password
 	ResetPassword(w http.ResponseWriter, r *http.Request)
+	// Email Verification
+	ResendVerificationEmail(w http.ResponseWriter, r *http.Request)
+	EmailVerification(w http.ResponseWriter, r *http.Request)
 }
 
 type userController struct {
@@ -465,4 +468,97 @@ func (c userController) ResetPassword(w http.ResponseWriter, r *http.Request) {
 
 	// Else
 	helpers.WriteAsJSON(w, "Password reset request successful!")
+}
+
+// Email Verification
+// @Summary      Email Verification
+// @Description  Email Verification
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Param		token path string true "Token"
+// @Success      200 {string} string "Email verified successfully"
+// @Failure      400 {string} string "Token is required"
+// @Failure      401 {string} string "Invalid or expired token"
+// EmailVerification is the HTTP handler for the email verification endpoint
+func (c userController) EmailVerification(w http.ResponseWriter, r *http.Request) {
+	// The token is expected to be in the query string, e.g., /verify-email?token=12345
+	token := chi.URLParam(r, "token")
+	if token == "" {
+		http.Error(w, "Token is required", http.StatusBadRequest)
+		return
+	}
+
+	// Call the service to verify the token
+	err := c.service.VerifyEmailCode(token)
+	if err != nil {
+		fmt.Printf("Error verifying email: %s", err)
+		// Handle the error
+		http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
+		return
+	}
+
+	// Token is valid; you might want to redirect the user to a confirmation page or back to the app
+	w.WriteHeader(http.StatusOK)
+	helpers.WriteAsJSON(w, "Email verified successfully")
+}
+
+// Send Verification Email
+// @Summary      Send Verification Email
+// @Description  Send Verification Email
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Param        email body string true "Email"
+// @Success      200 {string} string "Email sent successfully"
+// @Failure      400 {string} string "Email is required"
+// @Failure      401 {string} string "Invalid email"
+// @Failure      401 {string} string "Email already verified"
+// EmailVerification is the HTTP handler for the email verification endpoint
+func (c userController) ResendVerificationEmail(w http.ResponseWriter, r *http.Request) {
+	// Grab email from request body
+	var verifyEmail models.ForgotPassword
+	// Decode request body as JSON and store in login
+	err := json.NewDecoder(r.Body).Decode(&verifyEmail)
+	if err != nil {
+		fmt.Println("Decoding error: ", err)
+		http.Error(w, "Password reset request failed", http.StatusBadRequest)
+		return
+	}
+
+	// Validate the incoming DTO
+	pass, valErrors := helpers.GoValidateStruct(&verifyEmail)
+	// If failure detected
+	if !pass {
+		// Write bad request header
+		w.WriteHeader(http.StatusBadRequest)
+		// Write validation errors to JSON
+		helpers.WriteAsJSON(w, valErrors)
+		return
+	}
+
+	// If validation passes
+	foundUser, err := c.service.FindByEmail(verifyEmail.Email)
+	if err != nil {
+		http.Error(w, "Invalid email", http.StatusUnauthorized)
+		return
+	}
+
+	// If user is already verified
+	if foundUser.Verified {
+		http.Error(w, "Email already verified", http.StatusUnauthorized)
+		return
+	}
+
+	// Call the service to resend a verification email for the associated user
+	err = c.service.ResendEmailVerification(int(foundUser.ID))
+	if err != nil {
+		// Handle the error
+		http.Error(w, "Error sending verification email", http.StatusUnauthorized)
+		return
+	}
+
+	// Write successful response
+	w.WriteHeader(http.StatusOK)
+	helpers.WriteAsJSON(w, "Email sent successfully")
 }

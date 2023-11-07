@@ -40,6 +40,9 @@ func (a api) Routes() http.Handler {
 		mux.Post("/api/users/login", a.user.Login)
 		// Forgot password
 		mux.Post("/api/users/forgot-password", a.user.ResetPassword)
+		// Verify Email
+		mux.Get("/api/users/verify-email/{token}", a.user.EmailVerification)
+		mux.Post("/api/users/send-verification-email", a.user.ResendVerificationEmail)
 
 		// Create new user
 		mux.Post("/api/users", a.user.Create)

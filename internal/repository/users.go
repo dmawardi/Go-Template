@@ -13,11 +13,14 @@ import (
 type UserRepository interface {
 	// Find a list of all users in the Database
 	FindAll(limit int, offset int, order string, conditions []string) (*models.PaginatedUsers, error)
-	FindById(int) (*db.User, error)
-	FindByEmail(string) (*db.User, error)
 	Create(user *db.User) (*db.User, error)
 	Update(int, *db.User) (*db.User, error)
 	Delete(int) error
+	// Find
+	FindById(int) (*db.User, error)
+	FindByEmail(string) (*db.User, error)
+	// Verification
+	FindByVerificationCode(string) (*db.User, error)
 }
 
 type userRepository struct {
@@ -103,6 +106,20 @@ func (r *userRepository) FindByEmail(email string) (*db.User, error) {
 	user := db.User{}
 	// Check if user exists in db
 	result := r.DB.Where("email = ?", email).First(&user)
+
+	// If error detected
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	// else
+	return &user, nil
+}
+
+func (r *userRepository) FindByVerificationCode(token string) (*db.User, error) {
+	// Create an empty ref object of type user
+	user := db.User{}
+	// Check if user exists in db
+	result := r.DB.Where("verification_code = ?", token).First(&user)
 
 	// If error detected
 	if result.Error != nil {
