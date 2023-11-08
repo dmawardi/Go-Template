@@ -35,7 +35,7 @@ type AuthToken struct {
 	UserID string `json:"userID"`
 	Email  string `json:"email"`
 	Role   string `json:"role"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 // Setup RBAC enforcer based using gorm client. Connects to DB and builds base policy
@@ -81,9 +81,8 @@ func GenerateJWT(userID int, email, roleName string) (string, error) {
 		// Convert ID to string
 		UserID: fmt.Sprint(userID),
 		Role:   roleName,
-		StandardClaims: jwt.StandardClaims{
-			// Set expiry
-			ExpiresAt: expirationTime.Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
 		},
 	}
 
@@ -99,17 +98,19 @@ func GenerateJWT(userID int, email, roleName string) (string, error) {
 	return tokenString, nil
 }
 
-// Validates and parses signed token
+// Validates and parses signed token and checks if expired
 func ValidateAndParseToken(w http.ResponseWriter, r *http.Request) (tokenData *AuthToken, err error) {
 	// Grab request header
 	header := r.Header
 	// Extract token string from Authorization header by removing prefix "Bearer "
 	_, tokenString, _ := strings.Cut(header.Get("Authorization"), " ")
 
+	// If token string is empty
 	if tokenString == "" {
 		err := errors.New("Authentication Token not detected")
 		return nil, err
 	}
+
 	// Parse token string and claims. Filter through auth token
 	token, err := jwt.ParseWithClaims(
 		tokenString,
@@ -130,8 +131,12 @@ func ValidateAndParseToken(w http.ResponseWriter, r *http.Request) (tokenData *A
 		err = errors.New("couldn't parse claims")
 		return &AuthToken{}, err
 	}
-	// If successful but expired
-	if claims.ExpiresAt < time.Now().Local().Unix() {
+
+	// Token expiry check
+	// Generate the current time in numeric date format
+	currentTime := jwt.NewNumericDate(time.Now())
+	// Check if expired
+	if claims.RegisteredClaims.ExpiresAt != nil && claims.RegisteredClaims.ExpiresAt.Before(currentTime.Time) {
 		err = errors.New("token expired")
 		return &AuthToken{}, err
 	}

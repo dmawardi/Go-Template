@@ -1,7 +1,10 @@
+# User Policies
 p, user, megaSeeds, gather
 p, user, timeCrystals, gather
+# Moderator Policies
 p, moderator, megaSeeds, consume
 p, moderator, timeCrystals, consume
+# Admin Policies
 p, admin, megaSeeds, destroy
 p, admin, timeCrystals, destroy
 # inheritance
