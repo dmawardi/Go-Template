@@ -1,42 +1,55 @@
 package auth
 
 type policySet struct {
-	subject string
-	object  string
-	action  string
+	Subject string
+	Object  string
+	Action  string
+}
+
+type Policy struct {
+	PType   string
+	Subject string
+	Object  string
+	Action  string
+}
+
+type GroupingPolicy struct {
+	PType string
+	User  string
+	Role  string
 }
 
 var DefaultPolicyList = []policySet{
 	// User
 	// api/me
 	{
-		subject: "user", object: "/api/me", action: "read",
+		Subject: "user", Object: "/api/me", Action: "read",
 	},
 	{
-		subject: "user", object: "/api/me", action: "update",
+		Subject: "user", Object: "/api/me", Action: "update",
 	},
 	// Admin
 	// api/me
 	{
-		subject: "admin", object: "/api/me", action: "read",
+		Subject: "admin", Object: "/api/me", Action: "read",
 	},
 	{
-		subject: "admin", object: "/api/me", action: "create",
+		Subject: "admin", Object: "/api/me", Action: "create",
 	},
 	{
-		subject: "admin", object: "/api/me", action: "update",
+		Subject: "admin", Object: "/api/me", Action: "update",
 	},
 	// api/users
 	{
-		subject: "admin", object: "/api/users", action: "create",
+		Subject: "admin", Object: "/api/users", Action: "create",
 	},
 	{
-		subject: "admin", object: "/api/users", action: "read",
+		Subject: "admin", Object: "/api/users", Action: "read",
 	},
 	{
-		subject: "admin", object: "/api/users", action: "update",
+		Subject: "admin", Object: "/api/users", Action: "update",
 	},
 	{
-		subject: "admin", object: "/api/users", action: "delete",
+		Subject: "admin", Object: "/api/users", Action: "delete",
 	},
 }

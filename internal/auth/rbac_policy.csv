@@ -1,12 +1,23 @@
 # User Policies
-p, user, megaSeeds, gather
-p, user, timeCrystals, gather
+p,user,/api/me,read
+p,user,/api/me,update
+
 # Moderator Policies
-p, moderator, megaSeeds, consume
-p, moderator, timeCrystals, consume
+p,moderator,/api/users,read
+p,moderator,/api/me,read
+p,moderator,/api/me,update
+
 # Admin Policies
-p, admin, megaSeeds, destroy
-p, admin, timeCrystals, destroy
-# inheritance
-g, moderator, user
-g, admin, moderator
+p,admin,/api/users,read
+p,admin,/api/users,create
+p,admin,/api/users,update
+p,admin,/api/users,delete
+p,admin,/api/me,read
+p,admin,/api/me,update
+
+# User Roles
+g,2,user
+
+# Group Inheritance
+g2,moderator,user
+g2,admin,moderator

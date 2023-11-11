@@ -2,7 +2,6 @@ package auth
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/dmawardi/Go-Template/internal/db"
@@ -15,7 +14,6 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 
 		// Validate the token
 		tokenData, err := ValidateAndParseToken(w, r)
-		fmt.Println("tokendata received: ", tokenData)
 		// If error detected
 		if err != nil {
 			http.Error(w, "Error parsing authentication token", http.StatusForbidden)
@@ -45,7 +43,6 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 
 // Middleware to check whether user is authorized
 func Authorize(subjectEmail, object, action string) bool {
-
 	// Extract user ID from JWT and check if user exists in database.
 	foundUser, err := FindByEmail(subjectEmail)
 	if err != nil {
@@ -56,17 +53,17 @@ func Authorize(subjectEmail, object, action string) bool {
 	// Load Authorization policy from Database
 	err = app.RBEnforcer.LoadPolicy()
 	if err != nil {
-		log.Fatal("Failed to load RBAC Enforcer policy in Authorization middleware")
+		fmt.Printf("Failed to load RBAC Enforcer policy in Authorization middleware")
 		return false
 	}
 
-	// Enforce policy for user's role
-	ok, err := app.RBEnforcer.Enforce(foundUser.Role, object, action)
+	// Enforce policy for user's role using their ID
+	ok, err := app.RBEnforcer.Enforce(fmt.Sprint(foundUser.ID), object, action)
 	if err != nil {
-		log.Fatal("Failed to enforce RBAC policy in Authorization middleware")
+		fmt.Print("Failed to enforce RBAC policy in Authorization middleware: ", err, "\nUser ID: ", foundUser.ID, "\nObject: ", object, "\nAction: ", action, "\n")
 		return false
 	}
-	fmt.Printf("%s is accessing %s to %s. Allowed? %v\n", subjectEmail, object, action, ok)
+	fmt.Printf("%s (ID: %v) is accessing %s to %s. Allowed? %v\n", subjectEmail, foundUser.ID, object, action, ok)
 
 	// Return result of enforcement
 	return ok

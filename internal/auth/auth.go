@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"log"
@@ -64,7 +65,7 @@ func EnforcerSetup(db *gorm.DB) (*casbin.Enforcer, error) {
 	}
 
 	// Create default policies if not already detected within system
-	SetupCasbinPolicy(enforcer, DefaultPolicyList)
+	SetupDefaultCasbinPolicy(enforcer)
 
 	// else
 	return enforcer, nil
@@ -162,13 +163,109 @@ func ActionFromMethod(httpMethod string) string {
 }
 
 // Set up policy settings in DB for casbin rules
-func SetupCasbinPolicy(enforcer *casbin.Enforcer, sliceOfPolicies []policySet) {
-	for _, policy := range sliceOfPolicies {
+func SetupDefaultCasbinPolicy(enforcer *casbin.Enforcer) {
+	pathToPolicies := buildPathToDefaultPolicies()
+	// Open the CSV file
+	f, err := os.Open(pathToPolicies)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
 
-		// if enforcer does not already have policy
-		if hasPolicy := enforcer.HasPolicy(policy.subject, policy.object, policy.action); !hasPolicy {
-			// create policy
-			enforcer.AddPolicy(policy.subject, policy.object, policy.action)
+	// Create a new reader
+	r := csv.NewReader(f)
+
+	// Set the comment character for the reader to ignore
+	r.Comment = '#'
+	// Set the fields per record to -1 to allow for variable number of fields
+	// This is because we have both policies and grouping policies in the same file
+	r.FieldsPerRecord = -1
+
+	// Iterate through the records
+	for {
+		// Read each record from csv
+		record, err := r.Read()
+		if err != nil {
+			fmt.Printf("Finished reading the file:%v\n", err)
+			break
+		}
+
+		// Switch based on the value of the first column
+		switch record[0] {
+		case "p":
+			// If the first column is "p", then it is a policy
+			// Map the record to a Policy struct
+			policy := Policy{
+				PType:   record[0],
+				Subject: record[1],
+				Object:  record[2],
+				Action:  record[3],
+			}
+
+			// Check if the policy already exists
+			hasPolicy := enforcer.HasPolicy(policy.Subject, policy.Object, policy.Action)
+
+			// If the policy does not exist, add it
+			if !hasPolicy {
+				success, err := enforcer.AddPolicy(policy.Subject, policy.Object, policy.Action)
+				if err != nil {
+					log.Printf("Error adding policy: %v", err)
+					continue
+				}
+				if !success {
+					log.Printf("Policy was not added: %v", policy)
+					continue
+				}
+			}
+
+		case "g":
+			// If the first column is "g", then it is a grouping policy
+			// Map the record to a GroupingPolicy struct
+			groupingPolicy := GroupingPolicy{
+				PType: record[0],
+				User:  record[1],
+				Role:  record[2],
+			}
+
+			// Check if the grouping policy already exists
+			hasGroupingPolicy := enforcer.HasGroupingPolicy(groupingPolicy.User, groupingPolicy.Role)
+
+			// If the grouping policy does not exist, add it
+			if !hasGroupingPolicy {
+				success, err := enforcer.AddGroupingPolicy(groupingPolicy.User, groupingPolicy.Role)
+				if err != nil {
+					log.Printf("Error adding grouping policy: %v", err)
+					continue
+				}
+				if !success {
+					log.Printf("Grouping policy was not added: %v", groupingPolicy)
+					continue
+				}
+			}
+
+		case "g2":
+			// Form a named grouping policy
+			namedGroupingPolicy := GroupingPolicy{
+				PType: record[0],
+				User:  record[1],
+				Role:  record[2],
+			}
+
+			// Check if the grouping policy already exists
+			hasGroupingPolicy := enforcer.HasNamedGroupingPolicy(record[0], namedGroupingPolicy.User, namedGroupingPolicy.Role)
+
+			// If the grouping policy does not exist, add it
+			if !hasGroupingPolicy {
+				success, err := enforcer.AddNamedGroupingPolicy(record[0], namedGroupingPolicy.User, namedGroupingPolicy.Role)
+				if err != nil {
+					log.Printf("Error adding grouping policy: %v", err)
+					continue
+				}
+				if !success {
+					log.Printf("Grouping policy was not added: %v", namedGroupingPolicy)
+					continue
+				}
+			}
 		}
 	}
 }
@@ -203,5 +300,21 @@ func buildPathToPolicyModel() string {
 
 	// Grab initial part of path and join with path from project root directory
 	rbacModelPath := splitPath[0] + "/internal/auth/rbac_model.conf"
+	return rbacModelPath
+}
+
+// Returns a string that is agnostic for test and production usage
+func buildPathToDefaultPolicies() string {
+	// generate path
+	dirPath, err := os.Getwd()
+	if err != nil {
+		log.Fatal("Could not get working directory")
+	}
+
+	// Split path to remove excess path when running tests
+	splitPath := strings.Split(dirPath, "internal")
+
+	// Grab initial part of path and join with path from project root directory
+	rbacModelPath := splitPath[0] + "/internal/auth/rbac_policy.csv"
 	return rbacModelPath
 }
