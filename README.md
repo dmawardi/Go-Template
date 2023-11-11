@@ -111,12 +111,33 @@ Note for creating and updating using GORM: Relationship data that does not yet e
 
 ## Role based access control (RBAC) settings
 
-The authorization settings are found in the ./internal/auth/defaultPolicy.go file.
+The authorization model is found in the ./internal/auth/rbac_model.conf file.
 This data structure is used by the setupcasbin policy to implement policy in DB upon server start.
 
-SetupCasbinPolicy functions in a way where it adds policies only if they're not found already.
+The default policy is found in the ./internal/auth/rbac_policy.csv file.
 
-Format of policy: Subject, Object, Action (ie. "Who" is accessing "DB object" to commit "CRUD action")
+Format of policy: Subject, Object, Action ("Who" is accessing "DB object" to commit "CRUD action")
+
+Eg. admin, /api/v1/users, POST
+
+In the policy implementation above:
+p = Used to assign permissions to roles
+eg. Assigning read permission to user role for /api/me endpoint
+| p type | v0 | v1 | v2 |
+| ------ | ---- | ------- | ---- |
+| p | user | /api/me | read |
+
+g = Used to assign roles to users
+eg. Assigning a moderator role to user with id 2
+| p type | v0 | v1 |
+| ------ | ---- | ------- |
+| g | 2 | moderator |
+
+g2 = Used to assign roles to roles to create an inheritance heirarchy
+eg. Allocating all permissions for moderator role to admin role
+| p type | v0 | v1 |
+| ------ | ---- | ------- |
+| g2 | admin | moderator |
 
 ## To run using Docker
 

@@ -28,7 +28,7 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 		// Determine associated action based on HTTP method
 		action := ActionFromMethod(httpMethod)
 		// Enforce RBAC policy and determine if user is authorized to perform action
-		allowed := Authorize(tokenData.Email, object, action)
+		allowed := Authorize(tokenData.UserID, object, action)
 
 		// If not allowed
 		if !allowed {
@@ -42,28 +42,28 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 }
 
 // Middleware to check whether user is authorized
-func Authorize(subjectEmail, object, action string) bool {
+func Authorize(userId, object, action string) bool {
 	// Extract user ID from JWT and check if user exists in database.
-	foundUser, err := FindByEmail(subjectEmail)
-	if err != nil {
-		fmt.Println("No user has been found in db with that id")
-		return false
-	}
+	// foundUser, err := FindByEmail(subjectEmail)
+	// if err != nil {
+	// 	fmt.Println("No user has been found in db with that id")
+	// 	return false
+	// }
 
 	// Load Authorization policy from Database
-	err = app.RBEnforcer.LoadPolicy()
+	err := app.RBEnforcer.LoadPolicy()
 	if err != nil {
 		fmt.Printf("Failed to load RBAC Enforcer policy in Authorization middleware")
 		return false
 	}
 
 	// Enforce policy for user's role using their ID
-	ok, err := app.RBEnforcer.Enforce(fmt.Sprint(foundUser.ID), object, action)
+	ok, err := app.RBEnforcer.Enforce(userId, object, action)
 	if err != nil {
-		fmt.Print("Failed to enforce RBAC policy in Authorization middleware: ", err, "\nUser ID: ", foundUser.ID, "\nObject: ", object, "\nAction: ", action, "\n")
+		fmt.Print("Failed to enforce RBAC policy in Authorization middleware: ", err, "\nUser ID: ", userId, "\nObject: ", object, "\nAction: ", action, "\n")
 		return false
 	}
-	fmt.Printf("%s (ID: %v) is accessing %s to %s. Allowed? %v\n", subjectEmail, foundUser.ID, object, action, ok)
+	fmt.Printf("User with ID %s  is accessing %s to %s. Allowed? %v\n", userId, object, action, ok)
 
 	// Return result of enforcement
 	return ok
