@@ -43,13 +43,6 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 
 // Middleware to check whether user is authorized
 func Authorize(userId, object, action string) bool {
-	// Extract user ID from JWT and check if user exists in database.
-	// foundUser, err := FindByEmail(subjectEmail)
-	// if err != nil {
-	// 	fmt.Println("No user has been found in db with that id")
-	// 	return false
-	// }
-
 	// Load Authorization policy from Database
 	err := app.RBEnforcer.LoadPolicy()
 	if err != nil {

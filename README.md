@@ -15,6 +15,7 @@ This repository will serve as a base web application in Go.
 You will be required to setup a .env file in the root of the project folder. This will need to contain the database details, and the encryption (HMAC) / JSON web token session secrets.
 
 ```
+# Database Settings
 DB_USER=postgres
 DB_PASS=
 DB_HOST=localhost
@@ -22,6 +23,11 @@ DB_PORT=5432
 DB_NAME=
 SESSIONS_SECRET_KEY=
 HMAC_SECRET=
+# SMTP Settings
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USERNAME=
+SMTP_PASSWORD=
 ```
 
 ### Database (Object Relational Management)
@@ -138,6 +144,13 @@ eg. Allocating all permissions for moderator role to admin role
 | p type | v0 | v1 |
 | ------ | ---- | ------- |
 | g2 | admin | moderator |
+
+What about record level control?
+eg. User can only edit their own profile
+
+For sake of flexibility, reducing casbin policy model complexity, and to avoid having to create a new policy for each new record, we will use custom application logic within handlers to check if the user is the owner of the record to allow passing of the request to the service.
+
+Request -> Authorization (does user have permission through role?) -> Validation (does user own record?) -> Service (perform CRUD operation)
 
 ## To run using Docker
 
