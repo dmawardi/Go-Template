@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ .Title }}</title>
+    <link rel="stylesheet" href="/static/admin/styles/header.css" />
+    <link rel="stylesheet" href="/static/admin/styles/sidebar.css" />
+    <link rel="stylesheet" href="/static/admin/styles/base.css" />
+  </head>
+  <body>
+    {{ template "header" . }}
+    <section class="main">
+      {{ template "sidebar" . }}
+      <div class="content-section">{{.Content}}</div>
+    </section>
+    {{ template "footer" . }}
+  </body>
+</html>

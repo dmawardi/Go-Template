@@ -1,0 +1,38 @@
+/* Styles for the header */
+.admin-header {
+  background-color: #007bff;
+  color: #fff;
+  /* padding: 10px 0; */
+  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.right-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+}
+
+.admin-logo {
+  font-size: 24px;
+  padding: 20px 20px;
+  font-weight: bold;
+}
+
+.admin-nav {
+  list-style: none;
+  padding: 0;
+}
+
+.admin-nav li {
+  display: inline;
+  margin-right: 20px;
+}
+
+.admin-nav a {
+  text-decoration: none;
+  color: #fff;
+}

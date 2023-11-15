@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 
+	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/controller"
 	"github.com/go-chi/chi"
@@ -76,6 +77,9 @@ func (a api) Routes() http.Handler {
 	fileServer := http.FileServer(http.Dir("./static"))
 	// Handle all calls to /static/* by stripping prefix and sending to file server
 	mux.Handle("/static/*", http.StripPrefix("/static/", fileServer))
+
+	// Add admin routes
+	mux = adminpanel.AddAdminRoutes(mux)
 
 	return mux
 }
