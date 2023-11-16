@@ -41,7 +41,7 @@ func (c adminUserController) AllUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Execute the template with data and write to response
-	tmpl.ExecuteTemplate(w, "layout.html", data)
+	tmpl.ExecuteTemplate(w, "layout.tmpl", data)
 }
 
 func (c adminUserController) UserDetail(w http.ResponseWriter, r *http.Request) {

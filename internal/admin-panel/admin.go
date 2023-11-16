@@ -83,7 +83,7 @@ func NewAdminApiController(base AdminBaseController, users AdminUserController) 
 
 func parseAdminTemplates() (*template.Template, error) {
 	// Parse the base template
-	tmpl := template.New("/internal/admin-panel/templates/layout.html")
+	tmpl := template.New("/internal/admin-panel/templates/layout.tmpl")
 
 	// Walk through all files in the templates directory
 	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
@@ -91,7 +91,7 @@ func parseAdminTemplates() (*template.Template, error) {
 			return err
 		}
 		// If the file is not a directory and has the .html extension
-		if !info.IsDir() && filepath.Ext(path) == ".html" {
+		if !info.IsDir() && filepath.Ext(path) == ".tmpl" {
 			// Parse the file
 			_, err = tmpl.ParseFiles(path)
 			if err != nil {
