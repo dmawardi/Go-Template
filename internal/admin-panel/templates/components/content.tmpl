@@ -1,0 +1,24 @@
+
+{{define "content"}}
+    {{if .FormPage}}
+    <!-- Content to display if the condition is true -->
+     <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>Form</h1>
+                <p>Form page detected</p>
+            </div>
+        </div>
+    </div>
+{{else}}
+    <!-- Content to display if the condition is false -->
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>Form</h1>
+                <p>Form page not detected</p>
+            </div>
+        </div>
+{{end}}
+   
+{{end}}

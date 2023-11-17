@@ -1,15 +1,18 @@
 {{define "sidebar"}}
 <!-- Sidebar -->
 <div class="sidebar">
-  <!-- Example sidebar items -->
-  <div class="sidebar-item">
-    <div class="sidebar-label">Users</div>
-    <div class="plus-sign">+</div>
-  </div>
-  <div class="sidebar-item">
-    <div class="sidebar-label">Products</div>
-    <div class="plus-sign">+</div>
-  </div>
+  <ul class="sidebar-menu">
+    {{
+      range.SidebarList
+    }}
+    <li class="sidebar-item">
+      <div class="sidebar-label">{{.}}</div>
+      <div class="plus-sign">+ Add</div>
+    </li>
+    {{
+      end
+    }}
+  </ul>
   <!-- Add more sidebar items as needed -->
 </div>
-{{end}}
+{{ end }}

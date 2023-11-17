@@ -12,7 +12,9 @@
     {{ template "header" . }}
     <section class="main">
       {{ template "sidebar" . }}
-      <div class="content-section">{{.Content}}</div>
+      <div class="content-section">{{.Content}}
+      {{ template "content" . }}
+      </div>
     </section>
     {{ template "footer" . }}
   </body>
