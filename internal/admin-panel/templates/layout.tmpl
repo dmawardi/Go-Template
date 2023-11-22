@@ -7,12 +7,14 @@
     <link rel="stylesheet" href="/static/admin/styles/header.css" />
     <link rel="stylesheet" href="/static/admin/styles/sidebar.css" />
     <link rel="stylesheet" href="/static/admin/styles/base.css" />
+    <link rel="stylesheet" href="/static/admin/styles/form.css" />
+
   </head>
   <body>
     {{ template "header" . }}
     <section class="main">
       {{ template "sidebar" . }}
-      <div class="content-section">{{.Content}}
+      <div class="content-section">
       {{ template "content" . }}
       </div>
     </section>

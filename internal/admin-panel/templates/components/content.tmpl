@@ -1,20 +1,27 @@
 
 {{define "content"}}
     {{if .FormPage}}
-    <!-- Content to display if the condition is true -->
-     <div class="container">
+     <div class="content-container">
         <div class="row">
-            <div class="col-md-12">
+            <div>
                 <h1>Form</h1>
-                <p>Form page detected</p>
+                {{template "form" .FormData}}
+            </div>
+        </div>
+    </div>
+    {{else if .UserEditFormPage}}
+    <div class="content-container">
+        <div>
+            <div>
+                <h1>Form</h1>
+                {{template "form" .FormData}}
             </div>
         </div>
     </div>
 {{else}}
-    <!-- Content to display if the condition is false -->
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
+    <div class="content-container">
+        <div>
+            <div>
                 <h1>Form</h1>
                 <p>Form page not detected</p>
             </div>

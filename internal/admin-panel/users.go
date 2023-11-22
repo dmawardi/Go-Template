@@ -2,7 +2,6 @@ package adminpanel
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 )
 
@@ -32,27 +31,50 @@ func (c adminUserController) AllUsers(w http.ResponseWriter, r *http.Request) {
 	// Data to be injected into template
 	data := struct {
 		Title       string
-		Content     template.HTML
 		SidebarList []string
-		FormPage    bool
-		FormFields  []FormField
+		// Form
+		FormPage bool
+		FormData FormData
 	}{
 		Title:       "Hello world",
-		Content:     template.HTML("<h1>This is the content</h1>"),
 		SidebarList: sidebarList,
 		FormPage:    true,
-		FormFields: []FormField{
-			{
-				Label:       "Username",
-				Placeholder: "Enter username",
-				InputType:   "text",
-				FieldType:   "text",
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: "/admin/users",
+				FormMethod: "POST",
+			},
+			FormFields: []FormField{
+				{
+					Label:       "Username",
+					Name:        "username",
+					Placeholder: "Cilandak 213",
+					Value:       "",
+					Type:        "text",
+					Required:    true,
+					Disabled:    false,
+					Errors:      []ErrorMessage{{Message: "This is an error message"}},
+				},
+				{
+					Label:       "Password",
+					Name:        "password",
+					Placeholder: "",
+					Value:       "",
+					Type:        "text",
+					Required:    true,
+					Disabled:    true,
+					Errors:      []ErrorMessage{{Message: "This is an error message"}},
+				},
 			},
 		},
 	}
 
 	// Execute the template with data and write to response
-	tmpl.ExecuteTemplate(w, "layout.tmpl", data)
+	err = tmpl.ExecuteTemplate(w, "layout.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 }
 
 func (c adminUserController) UserDetail(w http.ResponseWriter, r *http.Request) {
@@ -67,21 +89,21 @@ func (c adminUserController) UserDetail(w http.ResponseWriter, r *http.Request) 
 	// Data to be injected into template
 	data := struct {
 		Title       string
-		Content     template.HTML
 		SidebarList []string
 		FormPage    bool
 		FormFields  []FormField
 	}{
 		Title:       "Hello world",
-		Content:     template.HTML("<h1>This is the content</h1>"),
 		SidebarList: sidebarList,
 		FormPage:    false,
 		FormFields: []FormField{
 			{
 				Label:       "Username",
+				Name:        "username",
 				Placeholder: "Enter username",
-				InputType:   "text",
-				FieldType:   "text",
+				Value:       "",
+				Type:        "text",
+				Required:    true,
 			},
 		},
 	}
