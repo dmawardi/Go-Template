@@ -10,6 +10,7 @@ import (
 
 	_ "github.com/swaggo/http-swagger/example/go-chi/docs"
 
+	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/controller"
@@ -60,6 +61,7 @@ func main() {
 	// Set state in other packages
 	controller.SetStateInHandlers(&app)
 	auth.SetStateInAuth(&app)
+	adminpanel.SetStateInAdminPanel(&app)
 	service.BuildServiceState(&app)
 
 	// Create client using DbConnect

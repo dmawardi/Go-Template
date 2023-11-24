@@ -7,8 +7,12 @@ import (
 	"path/filepath"
 
 	"github.com/dmawardi/Go-Template/internal/auth"
+	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/go-chi/chi"
 )
+
+// init state for db access
+var app *config.AppConfig
 
 // Build admin api controller
 var adminApi = NewAdminApiController(NewAdminBaseController(), NewUserAdminController())
@@ -114,4 +118,9 @@ func parseAdminTemplates() (*template.Template, error) {
 	}
 
 	return tmpl, nil
+}
+
+// Function called in main.go to connect app state to current file
+func SetStateInAdminPanel(a *config.AppConfig) {
+	app = a
 }

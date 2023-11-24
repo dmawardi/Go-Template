@@ -43,11 +43,11 @@ type PartialUser struct {
 
 // Update User structure for Data transfer.
 type UpdateUser struct {
-	ID       int    `json:"id,omitempty"`
 	Username string `json:"username,omitempty" valid:"length(6|25)"`
 	Password string `json:"password,omitempty" valid:"length(6|30)"`
 	Name     string `json:"name,omitempty" valid:"length(6|80)"`
 	Email    string `json:"email,omitempty" valid:"email"`
+	Verified bool   `json:"verified,omitempty" valid:"bool"`
 }
 type UpdatedUser struct {
 	ID        uint           `json:"id"`

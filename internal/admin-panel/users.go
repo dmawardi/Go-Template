@@ -3,6 +3,10 @@ package adminpanel
 import (
 	"fmt"
 	"net/http"
+	"strconv"
+
+	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/go-chi/chi"
 )
 
 type AdminUserController interface {
@@ -32,7 +36,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Data to be injected into template
 	data := PageRenderData{
 		PageTitle:    "Admin User Home",
-		SectionTitle: "Edit a User record",
+		SectionTitle: "Select a user to edit",
 		SidebarList:  sidebarList,
 		TableData: TableData{
 			TableHeaders: []string{"ID", "Username", "Email"},
@@ -144,6 +148,21 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
+	// Grab URL parameter
+	stringParameter := chi.URLParam(r, "id")
+	// Convert to int
+	idParameter, err := strconv.Atoi(stringParameter)
+	fmt.Println("id parameter from request: ", stringParameter)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	// Init a new user struct
+	foundUser := &db.User{}
+	// Search for user by ID and store in foundUser
+	app.DbClient.Find(foundUser, idParameter)
+
 	// Parse the template
 	tmpl, err := parseAdminTemplates()
 	if err != nil {
@@ -234,4 +253,12 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err.Error())
 		return
 	}
+}
+
+type UserEditableFields struct {
+	Username string `json:"username,omitempty" valid:"length(6|25)"`
+	Password string `json:"password,omitempty" valid:"length(6|30)"`
+	Name     string `json:"name,omitempty" valid:"length(6|80)"`
+	Email    string `json:"email,omitempty" valid:"email"`
+	Verified bool   `json:"verified,omitempty" valid:"bool"`
 }
