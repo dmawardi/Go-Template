@@ -1,31 +1,66 @@
-
 {{define "content"}}
-    {{if .FormPage}}
-     <div class="content-container">
-        <div class="row">
-            <div>
-                <h1>Form</h1>
-                {{template "form" .FormData}}
-            </div>
-        </div>
+{{if .PageType.EditPage}}
+<div class="content-container">
+  <div class="row">
+    <div>
+      <h1>Edit page detected</h1>
+      {{template "form" .FormData}}
     </div>
-    {{else if .UserEditFormPage}}
-    <div class="content-container">
-        <div>
-            <div>
-                <h1>Form</h1>
-                {{template "form" .FormData}}
-            </div>
-        </div>
+  </div>
+</div>
+{{else if .PageType.ReadPage}}
+<div class="content-container">
+  <div class="row">
+    <div>
+      <h1>{{.SectionTitle}}</h1>
+      <!-- Search box -->
+      <div class="search-box">
+        <form class="search-form" action="">
+          <input
+            type="text"
+            id="search-input"
+            class="search-input"
+            name="search"
+            placeholder="Search Records"
+            value=""
+            required
+          />
+          <button type="submit" class="submit-button">Search</button>
+        </form>
+      </div>
+      <!-- Data table (includes action box) -->
+      {{ template "data-table" .TableData }}
+      <p>Read page detected</p>
     </div>
+  </div>
+</div>
+{{else if .PageType.CreatePage}}
+<div class="content-container">
+  <div>
+    <div>
+      <h1>Create</h1>
+      <p>Create page detected</p>
+    </div>
+  </div>
+</div>
+{{else if .PageType.DeletePage}}
+<div class="content-container">
+  <div>
+    <div>
+      <h1>Delete</h1>
+      <p>Delete page detected</p>
+    </div>
+  </div>
+</div>
 {{else}}
-    <div class="content-container">
-        <div>
-            <div>
-                <h1>Form</h1>
-                <p>Form page not detected</p>
-            </div>
-        </div>
-{{end}}
-   
-{{end}}
+<div class="content-container">
+  <div>
+    <div>
+      <h1>Form</h1>
+      <p>Form page not detected</p>
+    </div>
+  </div>
+</div>
+{{ end }}
+
+{{ end }}

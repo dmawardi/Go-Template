@@ -1,0 +1,77 @@
+{{define "data-table"}}
+<div>
+  <form class="action-form" action="">
+    <div class="action-box">
+      <div id="action-box" class="actions">
+        <label for="action-select" class="action-label">Action:</label>
+        <select name="action" id="action-select" class="action-select" required>
+          <option value="" selected>---------</option>
+          <option value="delete">Delete selected items</option>
+          <!-- Add more action options as needed -->
+        </select>
+        <input type="submit" value="Go" class="action-submit" />
+      </div>
+    </div>
+    <!-- Table -->
+    <div class="data-table-container">
+      <table class="data-table">
+        <!-- Headers -->
+        <thead>
+          <tr>
+            <th class="checkbox-column">
+              <input
+                type="checkbox"
+                id="select-all"
+                onclick="selectAllRows(this)"
+              />
+              <label for="select-all"></label>
+            </th>
+            {{
+              range.TableHeaders
+            }}
+            <th>{{.}}</th>
+            {{
+              end
+            }}
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <!-- Table Body -->
+        <tbody>
+          {{
+            range.TableRows
+          }}
+          <tr>
+            <!-- For each row -->
+            <td>
+              <input
+                type="checkbox"
+                name="selected_items"
+                class="select-row"
+                value="{{ index .Data 0 }}"
+                onclick="updateSelectAll(this)"
+              />
+              <label for="{{ printf "select-row-%s" (index .Data 0) }}"></label>
+            </td>
+       
+            {{
+              range.Data
+            }}
+            <td>{{.}}</td>
+            {{
+              end
+            }}
+            <td>
+              <a href="#">Edit</a>
+              <a href="#">Delete</a>
+            </td>
+          </tr>
+          {{
+            end
+          }}
+        </tbody>
+      </table>
+    </div>
+  </form>
+</div>
+{{ end }}

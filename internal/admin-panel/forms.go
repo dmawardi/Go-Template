@@ -1,6 +1,7 @@
 package adminpanel
 
 // Go Template components
+
 type FormData struct {
 	FormFields  []FormField
 	FormDetails FormDetails

@@ -30,10 +30,16 @@ func AddAdminRoutes(router *chi.Mux) *chi.Mux {
 			w.Write([]byte("This is the admin login page"))
 		})
 		// admin users
-		mux.Get("/admin/users", adminApi.users.AllUsers)
-		mux.Get("/admin/users/{id}", adminApi.users.UserDetail)
-		// mux.Post("/admin/users", adminApi.users.Create)
-		// mux.Put("/admin/users/{id}", adminApi.users.Edit)
+		// Read (all users)
+		mux.Get("/admin/users", adminApi.users.FindAll)
+		// Create (GET form / POST form)
+		mux.Get("/admin/users/create", adminApi.users.Create)
+		mux.Post("/admin/users/create", adminApi.users.Create)
+		// Delete
+		mux.Post("/admin/users/delete", adminApi.users.Delete)
+		// Edit/Update (GET data in form / POST form)
+		mux.Get("/admin/users/{id}", adminApi.users.Edit)
+		mux.Post("/admin/users/{id}", adminApi.users.Edit)
 
 		// Private routes
 		mux.Group(func(mux chi.Router) {
@@ -81,6 +87,7 @@ func NewAdminApiController(base AdminBaseController, users AdminUserController) 
 	return AdminApiController{base, users}
 }
 
+// Parses all the template files in the templates directory
 func parseAdminTemplates() (*template.Template, error) {
 	// Parse the base template
 	tmpl := template.New("/internal/admin-panel/templates/layout.tmpl")

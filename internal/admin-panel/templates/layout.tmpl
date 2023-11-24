@@ -3,21 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{ .Title }}</title>
+    <title>{{ .PageTitle }}</title>
     <link rel="stylesheet" href="/static/admin/styles/header.css" />
     <link rel="stylesheet" href="/static/admin/styles/sidebar.css" />
     <link rel="stylesheet" href="/static/admin/styles/base.css" />
     <link rel="stylesheet" href="/static/admin/styles/form.css" />
-
+    <link rel="stylesheet" href="/static/admin/styles/read.css" />
   </head>
   <body>
     {{ template "header" . }}
     <section class="main">
       {{ template "sidebar" . }}
       <div class="content-section">
-      {{ template "content" . }}
+        {{ template "content" . }}
       </div>
     </section>
     {{ template "footer" . }}
+    <script src="/static/admin/js/table.js"></script>
   </body>
 </html>
