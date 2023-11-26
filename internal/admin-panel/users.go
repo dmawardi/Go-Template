@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
 )
 
@@ -18,10 +19,11 @@ type AdminUserController interface {
 }
 
 type adminUserController struct {
+	service service.UserService
 }
 
-func NewUserAdminController() AdminUserController {
-	return &adminUserController{}
+func NewUserAdminController(service service.UserService) AdminUserController {
+	return &adminUserController{service: service}
 }
 
 func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
@@ -255,10 +257,32 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type UserEditableFields struct {
-	Username string `json:"username,omitempty" valid:"length(6|25)"`
-	Password string `json:"password,omitempty" valid:"length(6|30)"`
-	Name     string `json:"name,omitempty" valid:"length(6|80)"`
-	Email    string `json:"email,omitempty" valid:"email"`
-	Verified bool   `json:"verified,omitempty" valid:"bool"`
+// Used to build Create user form
+var CreateUserDataSchema = []FormField{
+	{Label: "ID", Name: "id", Placeholder: "", Value: "", Type: "number", Required: false, Disabled: true, Errors: []ErrorMessage{{Message: "This is an error message"}}},
+	{Label: "Created At", Name: "created_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+	{Label: "Updated At", Name: "updated_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+	{Label: "Name", Name: "name", Placeholder: "Enter name", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+	{Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{{Message: "This is an error message"}}},
+	{Label: "Email", Name: "email", Placeholder: "Enter email", Value: "", Type: "email", Required: true, Disabled: false, Errors: []ErrorMessage{}},
+	{Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: true, Disabled: false, Errors: []ErrorMessage{{Message: "This is an error message"}}},
+	{Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+	{Label: "Verified", Name: "verified", Placeholder: "", Value: "false", Type: "checkbox", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+	{Label: "Verification Code", Name: "verification_code", Placeholder: "Enter verification code", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+	{Label: "Verification Code Expiry", Name: "verification_code_expiry", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+}
+
+// Used to build Edit user form
+var EditUserDataSchema = []FormField{
+	{Label: "ID", Name: "id", Placeholder: "", Value: "", Type: "number", Required: false, Disabled: true, Errors: []ErrorMessage{{Message: "This is an error message"}}},
+	{Label: "Created At", Name: "created_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+	{Label: "Updated At", Name: "updated_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+	{Label: "Name", Name: "name", Placeholder: "Enter name", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+	{Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{{Message: "This is an error message"}}},
+	{Label: "Email", Name: "email", Placeholder: "Enter email", Value: "", Type: "email", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+	{Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: false, Disabled: false, Errors: []ErrorMessage{{Message: "This is an error message"}}},
+	{Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+	{Label: "Verified", Name: "verified", Placeholder: "", Value: "false", Type: "checkbox", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+	{Label: "Verification Code", Name: "verification_code", Placeholder: "Enter verification code", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+	{Label: "Verification Code Expiry", Name: "verification_code_expiry", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 }

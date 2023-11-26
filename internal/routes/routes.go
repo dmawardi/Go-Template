@@ -14,14 +14,16 @@ import (
 
 type Api interface {
 	Routes() http.Handler
+	AddAdminRoutes(router *chi.Mux) *chi.Mux
 }
 
 type api struct {
-	user controller.UserController
+	Admin adminpanel.AdminController
+	User  controller.UserController
 }
 
-func NewApi(user controller.UserController) Api {
-	return &api{user}
+func NewApi(admin adminpanel.AdminController, user controller.UserController) Api {
+	return &api{Admin: admin, User: user}
 }
 
 func (a api) Routes() http.Handler {
@@ -38,15 +40,15 @@ func (a api) Routes() http.Handler {
 		// @tag.description Unprotected routes
 		mux.Get("/", controller.GetJobs)
 		// Login
-		mux.Post("/api/users/login", a.user.Login)
+		mux.Post("/api/users/login", a.User.Login)
 		// Forgot password
-		mux.Post("/api/users/forgot-password", a.user.ResetPassword)
+		mux.Post("/api/users/forgot-password", a.User.ResetPassword)
 		// Verify Email
-		mux.Get("/api/users/verify-email/{token}", a.user.EmailVerification)
-		mux.Post("/api/users/send-verification-email", a.user.ResendVerificationEmail)
+		mux.Get("/api/users/verify-email/{token}", a.User.EmailVerification)
+		mux.Post("/api/users/send-verification-email", a.User.ResendVerificationEmail)
 
 		// Create new user
-		mux.Post("/api/users", a.user.Create)
+		mux.Post("/api/users", a.User.Create)
 
 		// Private routes
 		mux.Group(func(mux chi.Router) {
@@ -55,15 +57,15 @@ func (a api) Routes() http.Handler {
 			// @tag.name Private routes
 			// @tag.description Protected routes
 			// users
-			mux.Get("/api/users", a.user.FindAll)
-			mux.Get("/api/users/{id}", a.user.Find)
-			mux.Put("/api/users/{id}", a.user.Update)
-			mux.Delete("/api/users/{id}", a.user.Delete)
+			mux.Get("/api/users", a.User.FindAll)
+			mux.Get("/api/users/{id}", a.User.Find)
+			mux.Put("/api/users/{id}", a.User.Update)
+			mux.Delete("/api/users/{id}", a.User.Delete)
 
 			// My profile
-			mux.Get("/api/me", a.user.GetMyUserDetails)
+			mux.Get("/api/me", a.User.GetMyUserDetails)
 			mux.Post("/api/me", controller.HealthCheck)
-			mux.Put("/api/me", a.user.UpdateMyProfile)
+			mux.Put("/api/me", a.User.UpdateMyProfile)
 		})
 
 	})
@@ -78,8 +80,51 @@ func (a api) Routes() http.Handler {
 	// Handle all calls to /static/* by stripping prefix and sending to file server
 	mux.Handle("/static/*", http.StripPrefix("/static/", fileServer))
 
-	// Add admin routes
-	mux = adminpanel.AddAdminRoutes(mux)
+	// // Add admin routes
+	mux = a.AddAdminRoutes(mux)
 
 	return mux
+}
+
+// Function to add new routes to an existing Chi mux router
+func (a api) AddAdminRoutes(router *chi.Mux) *chi.Mux {
+	// Admin routes
+	// router.Get("/admin", func(w http.ResponseWriter, r *http.Request) {
+	// 	w.Write([]byte("This is the admin login page"))
+	// })
+	// Public routes
+	router.Group(func(mux chi.Router) {
+		// @tag.name Public Routes
+		// @tag.description Unprotected routes
+		mux.Get("/admin", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("This is the admin login page sailor"))
+		})
+		// admin users
+		// Read (all users)
+		mux.Get("/admin/users", a.Admin.User.FindAll)
+		// Create (GET form / POST form)
+		mux.Get("/admin/users/create", a.Admin.User.Create)
+		mux.Post("/admin/users/create", a.Admin.User.Create)
+		// Delete
+		mux.Post("/admin/users/delete", a.Admin.User.Delete)
+		// Edit/Update (GET data in form / POST form)
+		mux.Get("/admin/users/{id}", a.Admin.User.Edit)
+		mux.Post("/admin/users/{id}", a.Admin.User.Edit)
+
+		// Private routes
+		mux.Group(func(mux chi.Router) {
+			mux.Use(auth.AuthenticateJWT)
+
+			// @tag.name Private routes
+			// @tag.description Protected routes
+			// admin home
+			mux.Get("/admin/home", func(w http.ResponseWriter, r *http.Request) {
+				w.Write([]byte("This is the admin main home page"))
+			})
+
+		})
+
+	})
+
+	return router
 }

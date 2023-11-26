@@ -1,8 +1,6 @@
 package service
 
-import (
-	"github.com/dmawardi/Go-Template/internal/config"
-)
+import "github.com/dmawardi/Go-Template/internal/config"
 
 // Repository used by handler package
 var app *config.AppConfig

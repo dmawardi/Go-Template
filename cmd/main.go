@@ -96,13 +96,18 @@ func main() {
 	}
 }
 
+// Edit this to use the entire appconfig instead of just the client
+// Build API and store the services and repos in the config
 func ApiSetup(client *gorm.DB) routes.Api {
 	// user
 	userRepo := repository.NewUserRepository(client)
 	userService := service.NewUserService(userRepo)
 	userController := controller.NewUserController(userService)
 
+	// Admin panel
+	adminController := adminpanel.NewAdminController(adminpanel.NewAdminBaseController(), adminpanel.NewUserAdminController(userService))
+
 	// Build API using controllers
-	api := routes.NewApi(userController)
+	api := routes.NewApi(adminController, userController)
 	return api
 }
