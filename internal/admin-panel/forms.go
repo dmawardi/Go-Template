@@ -10,7 +10,8 @@ type FormData struct {
 // Data for each form field
 type FormField struct {
 	// Label above input
-	Label string
+	Label   string
+	DbLabel string
 	// Used for form submission
 	Name string
 	// Is this field required?

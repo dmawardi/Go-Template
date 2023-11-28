@@ -6,6 +6,7 @@
   border: 1px solid #ccc;
   border-radius: 5px;
   background-color: #f7f7f7;
+  color: black;
 }
 
 /* Custom input styles */
@@ -14,6 +15,13 @@
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+.form-checkbox {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin: 10px 0 10px 15px;
 }
 
 /* Error message styles */

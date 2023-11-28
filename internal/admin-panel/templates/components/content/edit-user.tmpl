@@ -10,7 +10,11 @@
     {{end}}
     </label>
     <br />
+    {{if eq .Type "checkbox"}}
+    <input class="form-checkbox" type="{{.Type}}" class="form-control" id="{{.Name}}" name="{{.Name}}" placeholder="{{.Placeholder}}" value="{{.Value}}" {{if .Required}}required{{end}}  {{if .Disabled}}disabled{{end}}>
+    {{else}}
     <input class="form-input" type="{{.Type}}" class="form-control" id="{{.Name}}" name="{{.Name}}" placeholder="{{.Placeholder}}" value="{{.Value}}" {{if .Required}}required{{end}}  {{if .Disabled}}disabled{{end}}>
+    {{end}}
     <!-- Error message placeholder -->
         <div class="error-message">
             {{if .Errors}}
