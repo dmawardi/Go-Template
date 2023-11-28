@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/routes"
 
@@ -29,6 +30,7 @@ var app config.AppConfig
 type TestDbRepo struct {
 	dbClient *gorm.DB
 	users    userDB
+	admin    adminpanel.AdminController
 	router   http.Handler
 	// For authentication mocking
 	accounts userAccounts
@@ -85,6 +87,7 @@ func TestMain(m *testing.M) {
 // Builds new API using routes package
 func (t TestDbRepo) buildAPI() http.Handler {
 	api := routes.NewApi(
+		t.admin,
 		t.users.cont,
 	)
 	// Extract handlers from api
