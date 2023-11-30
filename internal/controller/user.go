@@ -320,7 +320,7 @@ func (c userController) UpdateMyProfile(w http.ResponseWriter, r *http.Request) 
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Success      200 {object} models.CreatedUser
+// @Success      200 {object} db.User
 // @Failure      400 {string} string "Can't find user details"
 // @Router       /me [get]
 // @Security BearerToken

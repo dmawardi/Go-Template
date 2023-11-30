@@ -31,6 +31,7 @@ type TestDbRepo struct {
 	dbClient *gorm.DB
 	users    userDB
 	admin    adminpanel.AdminController
+	posts    postDB
 	router   http.Handler
 	// For authentication mocking
 	accounts userAccounts
@@ -41,6 +42,12 @@ type userDB struct {
 	repo repository.UserRepository
 	serv service.UserService
 	cont controller.UserController
+}
+
+type postDB struct {
+	repo repository.PostRepository
+	serv service.PostService
+	cont controller.PostController
 }
 
 // Account structures
@@ -89,6 +96,7 @@ func (t TestDbRepo) buildAPI() http.Handler {
 	api := routes.NewApi(
 		t.admin,
 		t.users.cont,
+		t.posts.cont,
 	)
 	// Extract handlers from api
 	handler := api.Routes()

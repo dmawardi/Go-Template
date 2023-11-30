@@ -1,11 +1,16 @@
 # User Policies
 p,user,/api/me,read
 p,user,/api/me,update
+p,user,/api/posts,read
 
 # Moderator Policies
 p,moderator,/api/users,read
 p,moderator,/api/me,read
 p,moderator,/api/me,update
+p,moderator,/api/posts,create
+p,moderator,/api/posts,update
+p,moderator,/api/posts,delete
+
 
 # Admin Policies
 p,admin,/api/users,read
@@ -15,9 +20,10 @@ p,admin,/api/users,delete
 p,admin,/api/me,read
 p,admin,/api/me,update
 
+
 # User Roles
-g,2,user
+g,1,user
 
 # Group Inheritance
-g2,moderator,user
-g2,admin,moderator
+g,moderator,user
+g,admin,moderator

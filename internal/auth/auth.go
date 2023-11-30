@@ -22,9 +22,6 @@ var app *config.AppConfig
 
 var JWTKey = []byte(os.Getenv("HMAC_SECRET"))
 
-// JWTSecretKey := os.Getenv("HMAC_SECRET")
-// var JWTKey = []byte("")
-
 // Function called in main.go to connect app state to current file
 func SetStateInAuth(a *config.AppConfig) {
 	app = a
@@ -186,7 +183,6 @@ func SetupDefaultCasbinPolicy(enforcer *casbin.Enforcer) {
 		// Read each record from csv
 		record, err := r.Read()
 		if err != nil {
-			fmt.Printf("Finished reading the file:%v\n", err)
 			break
 		}
 

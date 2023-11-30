@@ -56,7 +56,7 @@ func Authorize(userId, object, action string) bool {
 		fmt.Print("Failed to enforce RBAC policy in Authorization middleware: ", err, "\nUser ID: ", userId, "\nObject: ", object, "\nAction: ", action, "\n")
 		return false
 	}
-	fmt.Printf("User with ID %s  is accessing %s to %s. Allowed? %v\n", userId, object, action, ok)
+	fmt.Printf("User with ID %s is accessing %s to %s. Allowed? %v\n", userId, object, action, ok)
 
 	// Return result of enforcement
 	return ok

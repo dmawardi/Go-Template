@@ -20,10 +20,11 @@ type Api interface {
 type api struct {
 	Admin adminpanel.AdminController
 	User  controller.UserController
+	Post  controller.PostController
 }
 
-func NewApi(admin adminpanel.AdminController, user controller.UserController) Api {
-	return &api{Admin: admin, User: user}
+func NewApi(admin adminpanel.AdminController, user controller.UserController, post controller.PostController) Api {
+	return &api{Admin: admin, User: user, Post: post}
 }
 
 func (a api) Routes() http.Handler {
@@ -66,6 +67,13 @@ func (a api) Routes() http.Handler {
 			mux.Get("/api/me", a.User.GetMyUserDetails)
 			mux.Post("/api/me", controller.HealthCheck)
 			mux.Put("/api/me", a.User.UpdateMyProfile)
+
+			// Posts
+			mux.Get("/api/posts", a.Post.FindAll)
+			mux.Get("/api/posts/{id}", a.Post.Find)
+			mux.Put("/api/posts/{id}", a.Post.Update)
+			mux.Post("/api/posts", a.Post.Create)
+			mux.Delete("/api/posts/{id}", a.Post.Delete)
 		})
 
 	})

@@ -60,7 +60,7 @@ Follow these steps to add a feature to the API. This template uses the clean arc
 6. Add validation to handler using govalidator. This is done by adding `valid:""` key-value pairs to struct DTO definitions (/internal/models) that are being passed into the ValidateStruct function (used in controllers).
 7. Add the new controller to the API struct in the ./internal/routes/routes.go file. This allows it to be used within the Routes function in the same file. Build routes to use the handlers that have been created in step 4 using the api struct.
 8. Update the ApiSetup function in the ./cmd/main.go file to build the new repository, service, and controller.
-9. Add the route to the RBAC authorization policy file (./internal/auth/defaultPolicy.go)
+9. Add the route to the RBAC authorization policy file (./internal/auth/rbac_policy.go)
 10. (Testing) For e2e testing, you will need to update the controllers_test.go file in ./internal/controller. Updates are required in the testDbRepo struct, buildAPI, setupDatabase & setupDBAuthAppModels functions
 
 ---
