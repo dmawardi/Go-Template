@@ -40,6 +40,18 @@
       {{if
       .Disabled}}disabled{{end}}
     />
+    {{else if eq .Type "textarea"}}
+    <textarea
+      class="form-checkbox"
+      type="{{.Type}}"
+      class="form-control"
+      id="{{.Name}}"
+      name="{{.Name}}"
+      placeholder="{{.Placeholder}}"
+      value="{{.Value}}"
+      {{if
+      .Required}}required{{end}}
+    ></textarea>
     {{else}}
     <input
       class="form-input"

@@ -44,7 +44,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 
 	// Data to be injected into template
 	data := PageRenderData{
-		PageTitle:    "Admin User Home",
+		PageTitle:    "Admin: Users",
 		SectionTitle: "Select a user to edit",
 		SidebarList:  sidebarList,
 		TableData: TableData{
@@ -111,8 +111,9 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 
 	// Data to be injected into template
 	data := PageRenderData{
-		PageTitle:   "Hello world",
-		SidebarList: sidebarList,
+		PageTitle:    "Create User",
+		SectionTitle: "Create a new user",
+		SidebarList:  sidebarList,
 		PageType: PageType{
 			EditPage:   false,
 			ReadPage:   false,
@@ -175,8 +176,9 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 
 	// Data to be injected into template
 	data := PageRenderData{
-		PageTitle:   "Hello world",
-		SidebarList: sidebarList,
+		PageTitle:    "Edit User: " + stringParameter,
+		SectionTitle: "Edit User: " + stringParameter,
+		SidebarList:  sidebarList,
 		PageType: PageType{
 			EditPage:   true,
 			ReadPage:   false,

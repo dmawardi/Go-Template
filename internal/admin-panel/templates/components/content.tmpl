@@ -3,7 +3,7 @@
 <div class="content-container">
   <div class="row">
     <div>
-      <h1>Edit page detected</h1>
+      <h1>{{.SectionTitle}}</h1>
       {{template "form" .FormData}}
     </div>
   </div>
@@ -37,16 +37,16 @@
 <div class="content-container">
   <div class="row">
     <div>
-      <h1>Create</h1>
+      <h1>{{.SectionTitle}}</h1>
       {{template "form" .FormData}}
     </div>
   </div>
 </div>
 {{else if .PageType.DeletePage}}
 <div class="content-container">
-  <div>
+  <div class="row">
     <div>
-      <h1>Delete</h1>
+      <h1>{{.SectionTitle}}: </h1>
       <p>Delete page detected</p>
     </div>
   </div>
@@ -55,7 +55,7 @@
 <div class="content-container">
   <div>
     <div>
-      <h1>Form</h1>
+      <h1>Error?</h1>
       <p>Form page not detected</p>
     </div>
   </div>
