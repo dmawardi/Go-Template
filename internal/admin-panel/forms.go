@@ -25,6 +25,12 @@ type FormField struct {
 	Placeholder string
 	Type        string
 	Errors      []ErrorMessage
+	Selectors   []FormFieldSelector
+}
+
+type FormFieldSelector struct {
+	Value string
+	Label string
 }
 
 // Display of errors in form

@@ -21,7 +21,16 @@
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  margin: 10px 0 10px 15px;
+  margin: 10px 0 10px 3vw;
+}
+
+.form-input-disabled {
+  text-align: right;
+}
+
+select {
+  margin-left: 3vw;
+  width: 20vw;
 }
 
 /* Error message styles */

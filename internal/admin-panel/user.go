@@ -11,6 +11,12 @@ import (
 	"github.com/go-chi/chi"
 )
 
+var roleSelection = []FormFieldSelector{
+	{Value: "user", Label: "User"},
+	{Value: "admin", Label: "Admin"},
+	{Value: "moderator", Label: "Moderator"},
+}
+
 type AdminUserController interface {
 	FindAll(w http.ResponseWriter, r *http.Request)
 	Create(w http.ResponseWriter, r *http.Request)
@@ -100,7 +106,8 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err.Error())
 		return
 	}
-	fmt.Printf("%+v\n", tmpl.DefinedTemplates())
+
+	createUserForm := GenerateCreateUserForm()
 
 	// Data to be injected into template
 	data := PageRenderData{
@@ -117,28 +124,7 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 				FormAction: "/admin/users",
 				FormMethod: "POST",
 			},
-			FormFields: []FormField{
-				{
-					Label:       "Username",
-					Name:        "username",
-					Placeholder: "Cilandak 213",
-					Value:       "",
-					Type:        "text",
-					Required:    true,
-					Disabled:    false,
-					Errors:      []ErrorMessage{{Message: "This is an error message"}},
-				},
-				{
-					Label:       "Password",
-					Name:        "password",
-					Placeholder: "",
-					Value:       "",
-					Type:        "text",
-					Required:    true,
-					Disabled:    true,
-					Errors:      []ErrorMessage{{Message: "This is an error message"}},
-				},
-			},
+			FormFields: createUserForm,
 		},
 	}
 
@@ -172,8 +158,6 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 	// Init new User Edit form
 	editUserDataSchema := GenerateEditUserForm()
 
-	fmt.Printf("%+v\n", editUserDataSchema)
-
 	// Populate form field placeholders with data from database
 	err = PopulateUserPlaceholdersWithMap(*foundUser, &editUserDataSchema)
 	if err != nil {
@@ -182,15 +166,12 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("%+v\n", editUserDataSchema)
-
 	// Parse the template
 	tmpl, err := parseAdminTemplates()
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
-	fmt.Printf("%+v\n", tmpl.DefinedTemplates())
 
 	// Data to be injected into template
 	data := PageRenderData{
@@ -258,17 +239,12 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 // Used to build Create user form
 func GenerateCreateUserForm() []FormField {
 	return []FormField{
-		{DbLabel: "ID", Label: "ID", Name: "id", Placeholder: "", Value: "", Type: "number", Required: false, Disabled: true, Errors: []ErrorMessage{{Message: "This is an error message"}}},
-		{DbLabel: "CreatedAt", Label: "Created At", Name: "created_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
-		{DbLabel: "UpdatedAt", Label: "Updated At", Name: "updated_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 		{DbLabel: "Name", Label: "Name", Name: "name", Placeholder: "Enter name", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{{Message: "This is an error message"}}},
 		{DbLabel: "Email", Label: "Email", Name: "email", Placeholder: "Enter email", Value: "", Type: "email", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Password", Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: true, Disabled: false, Errors: []ErrorMessage{{Message: "This is an error message"}}},
-		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: roleSelection},
 		{DbLabel: "Verified", Label: "Verified", Name: "verified", Placeholder: "", Value: "false", Type: "checkbox", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "VerificationCode", Label: "Verification Code", Name: "verification_code", Placeholder: "Enter verification code", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
-		{DbLabel: "VerificationCodeExpiry", Label: "Verification Code Expiry", Name: "verification_code_expiry", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 	}
 }
 
@@ -276,16 +252,16 @@ func GenerateCreateUserForm() []FormField {
 func GenerateEditUserForm() []FormField {
 	return []FormField{
 		{DbLabel: "ID", Label: "ID", Name: "id", Placeholder: "", Value: "", Type: "number", Required: false, Disabled: true, Errors: []ErrorMessage{{Message: "This is an error message"}}},
-		{DbLabel: "CreatedAt", Label: "Created At", Name: "created_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
-		{DbLabel: "UpdatedAt", Label: "Updated At", Name: "updated_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 		{DbLabel: "Name", Label: "Name", Name: "name", Placeholder: "Enter name", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{{Message: "This is an error message"}}},
 		{DbLabel: "Email", Label: "Email", Name: "email", Placeholder: "Enter email", Value: "", Type: "email", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		// {DbLabel: "Password", Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: false, Disabled: false, Errors: []ErrorMessage{{Message: "This is an error message"}}},
-		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: roleSelection},
 		{DbLabel: "Verified", Label: "Verified", Name: "verified", Placeholder: "", Value: "false", Type: "checkbox", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "VerificationCode", Label: "Verification Code", Name: "verification_code", Placeholder: "Enter verification code", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 		{DbLabel: "VerificationCodeExpiry", Label: "Verification Code Expiry", Name: "verification_code_expiry", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+		{DbLabel: "CreatedAt", Label: "Created At", Name: "created_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+		{DbLabel: "UpdatedAt", Label: "Updated At", Name: "updated_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 	}
 }
 

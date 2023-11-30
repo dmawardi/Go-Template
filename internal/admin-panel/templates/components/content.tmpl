@@ -35,10 +35,10 @@
 </div>
 {{else if .PageType.CreatePage}}
 <div class="content-container">
-  <div>
+  <div class="row">
     <div>
       <h1>Create</h1>
-      <p>Create page detected</p>
+      {{template "form" .FormData}}
     </div>
   </div>
 </div>
