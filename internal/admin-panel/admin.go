@@ -44,7 +44,7 @@ func NewAdminController(base AdminBaseController, users AdminUserController) Adm
 }
 
 // Parses all the template files in the templates directory
-func parseAdminTemplates() (*template.Template, error) {
+func ParseAdminTemplates() (*template.Template, error) {
 	// Parse the base template
 	tmpl := template.New("/internal/admin-panel/templates/layout.tmpl")
 

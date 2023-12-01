@@ -113,7 +113,6 @@ func (c userController) Find(w http.ResponseWriter, r *http.Request) {
 	stringParameter := chi.URLParam(r, "id")
 	// Convert to int
 	idParameter, err := strconv.Atoi(stringParameter)
-	fmt.Println("id parameter from request: ", stringParameter)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return

@@ -7,8 +7,11 @@ import (
 	"time"
 
 	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
+	"github.com/pkg/errors"
 )
 
 var roleSelection = []FormFieldSelector{
@@ -35,7 +38,7 @@ func NewUserAdminController(service service.UserService) AdminUserController {
 
 func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Parse the template
-	tmpl, err := parseAdminTemplates()
+	tmpl, err := ParseAdminTemplates()
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -75,7 +78,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 					Type:        "text",
 					Required:    true,
 					Disabled:    false,
-					Errors:      []ErrorMessage{{Message: "This is an error message"}},
+					Errors:      []ErrorMessage{},
 				},
 				{
 					Label:       "Password",
@@ -85,7 +88,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 					Type:        "text",
 					Required:    true,
 					Disabled:    true,
-					Errors:      []ErrorMessage{{Message: "This is an error message"}},
+					Errors:      []ErrorMessage{},
 				},
 			},
 		},
@@ -100,15 +103,61 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
-	// Parse the template
-	tmpl, err := parseAdminTemplates()
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
+	// Init new User Create form
 	createUserForm := GenerateCreateUserForm()
 
+	// If form is being submitted (method = POST)
+	if r.Method == "POST" {
+		// Parse the form
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+
+		// Preparation for validation
+		// Parse the verified attribute from the form
+		verified := false
+		// If the verified attribute is present in the form (ie. true)
+		if r.FormValue("verified") != "" {
+			// Set verified to true
+			verified = true
+		}
+		// Build struct for validation
+		userToValidate := models.CreateUser{
+			Name:     r.FormValue("name"),
+			Username: r.FormValue("username"),
+			Email:    r.FormValue("email"),
+			Password: r.FormValue("password"),
+			Role:     r.FormValue("role"),
+			Verified: verified,
+		}
+		fmt.Printf("%+v\n", userToValidate)
+		// Validate struct
+		pass, valErrors := helpers.GoValidateStruct(userToValidate)
+		// If failure detected
+		// If validation passes
+		if pass {
+			// Create user
+			_, err = c.service.Create(&userToValidate)
+			if err != nil {
+				http.Error(w, "Error creating user", http.StatusInternalServerError)
+				return
+			}
+			// Redirect or render a success message
+			http.Redirect(w, r, "/user/create/success", http.StatusSeeOther)
+			return
+		}
+
+		// If validation fails
+		// Populate form field errors
+		SetValidationErrorsInForm(createUserForm, *valErrors)
+		// Populate previouisly entered values (Avoids password)
+		PopulateUserValuesWithMap(r, &createUserForm)
+
+	}
+
+	// Render preparation
 	// Data to be injected into template
 	data := PageRenderData{
 		PageTitle:    "Create User",
@@ -122,15 +171,15 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{
-				FormAction: "/admin/users",
-				FormMethod: "POST",
+				FormAction: "/admin/users/create",
+				FormMethod: "post",
 			},
 			FormFields: createUserForm,
 		},
 	}
 
 	// Execute the template with data and write to response
-	err = tmpl.ExecuteTemplate(w, "layout.tmpl", data)
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -168,7 +217,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse the template
-	tmpl, err := parseAdminTemplates()
+	tmpl, err := ParseAdminTemplates()
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -204,17 +253,17 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 
 func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 	// Parse the template
-	tmpl, err := parseAdminTemplates()
+	tmpl, err := ParseAdminTemplates()
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
-	fmt.Printf("%+v\n", tmpl.DefinedTemplates())
 
 	// Data to be injected into template
 	data := PageRenderData{
-		PageTitle:   "Hello world",
-		SidebarList: sidebarList,
+		PageTitle:    "Delete User",
+		SectionTitle: "Delete User",
+		SidebarList:  sidebarList,
 		PageType: PageType{
 			EditPage:   false,
 			ReadPage:   false,
@@ -242,22 +291,22 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 func GenerateCreateUserForm() []FormField {
 	return []FormField{
 		{DbLabel: "Name", Label: "Name", Name: "name", Placeholder: "Enter name", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{{Message: "This is an error message"}}},
+		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Email", Label: "Email", Name: "email", Placeholder: "Enter email", Value: "", Type: "email", Required: true, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Password", Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: true, Disabled: false, Errors: []ErrorMessage{{Message: "This is an error message"}}},
+		{DbLabel: "Password", Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: roleSelection},
-		{DbLabel: "Verified", Label: "Verified", Name: "verified", Placeholder: "", Value: "false", Type: "checkbox", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "Verified", Label: "Verified", Name: "verified", Placeholder: "", Value: "true", Type: "checkbox", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 	}
 }
 
 // Used to build Edit user form
 func GenerateEditUserForm() []FormField {
 	return []FormField{
-		{DbLabel: "ID", Label: "ID", Name: "id", Placeholder: "", Value: "", Type: "number", Required: false, Disabled: true, Errors: []ErrorMessage{{Message: "This is an error message"}}},
+		{DbLabel: "ID", Label: "ID", Name: "id", Placeholder: "", Value: "", Type: "number", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 		{DbLabel: "Name", Label: "Name", Name: "name", Placeholder: "Enter name", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{{Message: "This is an error message"}}},
+		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Email", Label: "Email", Name: "email", Placeholder: "Enter email", Value: "", Type: "email", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		// {DbLabel: "Password", Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: false, Disabled: false, Errors: []ErrorMessage{{Message: "This is an error message"}}},
+		// {DbLabel: "Password", Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: roleSelection},
 		{DbLabel: "Verified", Label: "Verified", Name: "verified", Placeholder: "", Value: "false", Type: "checkbox", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "VerificationCode", Label: "Verification Code", Name: "verification_code", Placeholder: "Enter verification code", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
@@ -268,7 +317,7 @@ func GenerateEditUserForm() []FormField {
 }
 
 // Used to populate form field placeholders with data from database
-func PopulateUserPlaceholdersWithMap(user db.User, fields *[]FormField) error {
+func PopulateUserPlaceholdersWithMap(user db.User, form *[]FormField) error {
 	// Map of user fields
 	fieldMap := map[string]string{
 		"ID":                     fmt.Sprint(user.ID),
@@ -284,12 +333,43 @@ func PopulateUserPlaceholdersWithMap(user db.User, fields *[]FormField) error {
 	}
 
 	// Loop through fields and populate placeholders
-	for i := range *fields {
+	for i := range *form {
 		// Get pointer to field
-		field := &(*fields)[i]
+		field := &(*form)[i]
 		// If the field exists in the map, populate the placeholder
 		if val, ok := fieldMap[field.DbLabel]; ok {
 			field.Placeholder = val
+		} else {
+			return fmt.Errorf("field: %s not found in map", field.DbLabel)
+		}
+	}
+	return nil
+}
+
+// Used to populate form field placeholders with data from database
+func PopulateUserValuesWithMap(r *http.Request, form *[]FormField) error {
+	// Parse the form
+	err := r.ParseForm()
+	if err != nil {
+		return errors.New("Error parsing form")
+	}
+
+	// Map of user fields
+	fieldMap := map[string]string{
+		"Name":     r.FormValue("name"),
+		"Username": r.FormValue("username"),
+		"Email":    r.FormValue("email"),
+		"Role":     r.FormValue("role"),
+		"Verified": r.FormValue("verified"),
+	}
+
+	// Loop through fields and populate placeholders
+	for i := range *form {
+		// Get pointer to field
+		field := &(*form)[i]
+		// If the field exists in the map, populate the placeholder
+		if val, ok := fieldMap[field.DbLabel]; ok {
+			field.Value = val
 		} else {
 			return fmt.Errorf("field: %s not found in map", field.DbLabel)
 		}

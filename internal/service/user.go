@@ -51,6 +51,8 @@ func (s *userService) Create(user *models.CreateUser) (*db.User, error) {
 		Password: string(hashedPassword),
 		Name:     user.Name,
 		Email:    user.Email,
+		Role:     user.Role,
+		Verified: user.Verified,
 	}
 
 	// Create above user in database
@@ -152,7 +154,7 @@ func (s *userService) ResetPasswordAndSendEmail(userEmail string) error {
 // Updates user in database
 func (s *userService) Update(id int, user *models.UpdateUser) (*db.User, error) {
 	// Create db User type of incoming DTO
-	dbUser := &db.User{Name: user.Name, Username: user.Username, Email: user.Email, Password: user.Password}
+	dbUser := &db.User{Name: user.Name, Username: user.Username, Email: user.Email, Password: user.Password, Role: user.Role, Verified: user.Verified}
 
 	// Update using repo
 	updatedUser, err := s.repo.Update(id, dbUser)

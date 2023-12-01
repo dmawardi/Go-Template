@@ -1,5 +1,12 @@
 package adminpanel
 
+import (
+	"fmt"
+	"strings"
+
+	"github.com/dmawardi/Go-Template/internal/models"
+)
+
 // Go Template components
 
 type FormData struct {
@@ -34,9 +41,7 @@ type FormFieldSelector struct {
 }
 
 // Display of errors in form
-type ErrorMessage struct {
-	Message string
-}
+type ErrorMessage string
 
 type UserEditForm struct {
 	Title  string
@@ -47,4 +52,41 @@ type UserEditForm struct {
 type FormDetails struct {
 	FormAction string
 	FormMethod string
+}
+
+// Sets the Errors field in each field of a form
+func SetValidationErrorsInForm(form []FormField, validationErrors models.ValidationError) {
+	// Iterate through fields
+	for i, field := range form {
+		// Check if field name is in validation errors
+		if errors, ok := validationErrors.Validation_errors[field.Name]; ok {
+			// If found, iterate through errors
+			for _, err := range errors {
+				// Get error message
+				errorMessage := ErrorMessage(err)
+				// If error contains does not, remove validated text
+				if strings.Contains(err, "does not") {
+					// Split string using does
+					split := strings.Split(err, "does")
+					// Update error message with rebuilt string
+					errorMessage = ErrorMessage(fmt.Sprintf("Does %s", split[1]))
+				}
+				// Append error message to field
+				form[i].Errors = append(form[i].Errors, errorMessage)
+			}
+		}
+	}
+}
+
+// Adds an error to a specific field in a form
+func addErrorToField(fields []FormField, fieldName string, newError ErrorMessage) {
+	// Iterate through fields
+	for i, field := range fields {
+		// Check if field name matches
+		if field.Name == fieldName {
+			// If found, append error message to field
+			fields[i].Errors = append(fields[i].Errors, newError)
+			break // assuming only one field can have the matching name
+		}
+	}
 }

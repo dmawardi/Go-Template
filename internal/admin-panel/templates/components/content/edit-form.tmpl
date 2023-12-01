@@ -1,5 +1,5 @@
 {{define "form"}}
-<form class="admin-form">
+<form class="admin-form" action="{{.FormDetails.FormAction}}" method="{{.FormDetails.FormMethod}}">
   {{ range.FormFields }}
   <div class="form-group">
     <label for="{{.Name}}">
@@ -71,7 +71,7 @@
     <div class="error-message">
       {{if .Errors}}
       {{ range.Errors }}
-      <p>{{.Message}}</p>
+      <p>{{.}}</p>
       {{ end }}
       {{ end }}
     </div>

@@ -58,6 +58,15 @@ func main() {
 		log.Fatal("Unable to load environment variables.")
 	}
 
+	// Parse the template files in the templates directory
+	tmpl, err := adminpanel.ParseAdminTemplates()
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	// Set template in state
+	app.AdminTemplates = tmpl
+
 	// Set state in other packages
 	controller.SetStateInHandlers(&app)
 	auth.SetStateInAuth(&app)
