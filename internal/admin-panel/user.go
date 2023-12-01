@@ -37,14 +37,6 @@ func NewUserAdminController(service service.UserService) AdminUserController {
 }
 
 func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
-	// Parse the template
-	tmpl, err := ParseAdminTemplates()
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-	fmt.Printf("%+v\n", tmpl.DefinedTemplates())
-
 	// Data to be injected into template
 	data := PageRenderData{
 		PageTitle:    "Admin: Users",
@@ -69,33 +61,12 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 				FormAction: "/admin/users",
 				FormMethod: "POST",
 			},
-			FormFields: []FormField{
-				{
-					Label:       "Username",
-					Name:        "username",
-					Placeholder: "Cilandak 213",
-					Value:       "",
-					Type:        "text",
-					Required:    true,
-					Disabled:    false,
-					Errors:      []ErrorMessage{},
-				},
-				{
-					Label:       "Password",
-					Name:        "password",
-					Placeholder: "",
-					Value:       "",
-					Type:        "text",
-					Required:    true,
-					Disabled:    true,
-					Errors:      []ErrorMessage{},
-				},
-			},
+			FormFields: []FormField{},
 		},
 	}
 
 	// Execute the template with data and write to response
-	err = tmpl.ExecuteTemplate(w, "layout.tmpl", data)
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -104,35 +75,17 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 
 func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 	// Init new User Create form
-	createUserForm := GenerateCreateUserForm()
+	createUserForm := c.generateCreateForm()
 
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
-		// Parse the form
-		err := r.ParseForm()
+		// Extract user form submission
+		userToValidate, err := c.extractCreateFormSubmission(r)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
 		}
 
-		// Preparation for validation
-		// Parse the verified attribute from the form
-		verified := false
-		// If the verified attribute is present in the form (ie. true)
-		if r.FormValue("verified") != "" {
-			// Set verified to true
-			verified = true
-		}
-		// Build struct for validation
-		userToValidate := models.CreateUser{
-			Name:     r.FormValue("name"),
-			Username: r.FormValue("username"),
-			Email:    r.FormValue("email"),
-			Password: r.FormValue("password"),
-			Role:     r.FormValue("role"),
-			Verified: verified,
-		}
-		fmt.Printf("%+v\n", userToValidate)
 		// Validate struct
 		pass, valErrors := helpers.GoValidateStruct(userToValidate)
 		// If failure detected
@@ -145,7 +98,7 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			// Redirect or render a success message
-			http.Redirect(w, r, "/user/create/success", http.StatusSeeOther)
+			http.Redirect(w, r, "/admin/users/create/success", http.StatusSeeOther)
 			return
 		}
 
@@ -153,7 +106,7 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 		// Populate form field errors
 		SetValidationErrorsInForm(createUserForm, *valErrors)
 		// Populate previouisly entered values (Avoids password)
-		PopulateUserValuesWithMap(r, &createUserForm)
+		populateFormValuesWithRequestSubmission(r, &createUserForm)
 
 	}
 
@@ -206,10 +159,10 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Init new User Edit form
-	editUserDataSchema := GenerateEditUserForm()
+	editUserDataSchema := c.generateEditForm()
 
 	// Populate form field placeholders with data from database
-	err = PopulateUserPlaceholdersWithMap(*foundUser, &editUserDataSchema)
+	err = populateUserPlaceholdersWithMap(*foundUser, &editUserDataSchema)
 	if err != nil {
 		http.Error(w, "Error generating form", http.StatusInternalServerError)
 		fmt.Printf("Error generating form: %s\n", err.Error())
@@ -287,8 +240,9 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Form Helper functions
 // Used to build Create user form
-func GenerateCreateUserForm() []FormField {
+func (c adminUserController) generateCreateForm() []FormField {
 	return []FormField{
 		{DbLabel: "Name", Label: "Name", Name: "name", Placeholder: "Enter name", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
@@ -300,7 +254,7 @@ func GenerateCreateUserForm() []FormField {
 }
 
 // Used to build Edit user form
-func GenerateEditUserForm() []FormField {
+func (c adminUserController) generateEditForm() []FormField {
 	return []FormField{
 		{DbLabel: "ID", Label: "ID", Name: "id", Placeholder: "", Value: "", Type: "number", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 		{DbLabel: "Name", Label: "Name", Name: "name", Placeholder: "Enter name", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
@@ -316,8 +270,38 @@ func GenerateEditUserForm() []FormField {
 	}
 }
 
+// Used to extract form submission from request
+func (c adminUserController) extractCreateFormSubmission(r *http.Request) (models.CreateUser, error) {
+	// Parse the form
+	err := r.ParseForm()
+	if err != nil {
+		return models.CreateUser{}, errors.New("Error parsing form")
+	}
+
+	// Preparation for validation
+	// Parse the verified attribute from the form
+	verified := false
+	// If the verified attribute is present in the form (ie. true)
+	if r.FormValue("verified") != "" {
+		// Set verified to true
+		verified = true
+	}
+	// Build struct for validation
+	userToValidate := models.CreateUser{
+		Name:     r.FormValue("name"),
+		Username: r.FormValue("username"),
+		Email:    r.FormValue("email"),
+		Password: r.FormValue("password"),
+		Role:     r.FormValue("role"),
+		Verified: verified,
+	}
+
+	return userToValidate, nil
+}
+
+// Basic helper functions
 // Used to populate form field placeholders with data from database
-func PopulateUserPlaceholdersWithMap(user db.User, form *[]FormField) error {
+func populateUserPlaceholdersWithMap(user db.User, form *[]FormField) error {
 	// Map of user fields
 	fieldMap := map[string]string{
 		"ID":                     fmt.Sprint(user.ID),
@@ -347,7 +331,7 @@ func PopulateUserPlaceholdersWithMap(user db.User, form *[]FormField) error {
 }
 
 // Used to populate form field placeholders with data from database
-func PopulateUserValuesWithMap(r *http.Request, form *[]FormField) error {
+func populateFormValuesWithRequestSubmission(r *http.Request, form *[]FormField) error {
 	// Parse the form
 	err := r.ParseForm()
 	if err != nil {
