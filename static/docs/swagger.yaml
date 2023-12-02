@@ -1,0 +1,572 @@
+basePath: /api/
+definitions:
+  db.Post:
+    properties:
+      body:
+        type: string
+      created_at:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/db.User'
+      user_id:
+        type: integer
+    type: object
+  db.User:
+    properties:
+      created_at:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      email:
+        type: string
+      id:
+        description: gorm.Model `json:"-"`
+        type: integer
+      name:
+        type: string
+      posts:
+        description: Relationships
+        items:
+          $ref: '#/definitions/db.Post'
+        type: array
+      role:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+      verification_code:
+        type: string
+      verification_code_expiry:
+        type: string
+      verified:
+        description: Verification
+        type: boolean
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  models.CreatePost:
+    properties:
+      body:
+        type: string
+      title:
+        type: string
+      user:
+        $ref: '#/definitions/db.User'
+    type: object
+  models.CreateUser:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+      verified:
+        type: boolean
+    type: object
+  models.CreatedUser:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  models.Login:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  models.LoginResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  models.PaginatedPosts:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/db.Post'
+        type: array
+      meta:
+        $ref: '#/definitions/models.SchemaMetaData'
+    type: object
+  models.PaginatedUsers:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/db.User'
+        type: array
+      meta:
+        $ref: '#/definitions/models.SchemaMetaData'
+    type: object
+  models.PartialUser:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+  models.SchemaMetaData:
+    properties:
+      current_page:
+        description: Current page number
+        type: integer
+      next_page:
+        description: Next page number (null if there is no next page)
+        type: integer
+      prev_page:
+        description: Previous page number (null if there is no previous page)
+        type: integer
+      records_per_page:
+        description: Number of records displayed per page
+        type: integer
+      total_records:
+        description: Total number of records in the entire dataset
+        type: integer
+    type: object
+  models.UpdatePost:
+    properties:
+      body:
+        type: string
+      title:
+        type: string
+      user:
+        $ref: '#/definitions/db.User'
+    type: object
+  models.UpdateUser:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+      verified:
+        type: boolean
+    type: object
+  models.UpdatedUser:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a template API server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Go Template
+  version: "1.0"
+paths:
+  /me:
+    get:
+      consumes:
+      - application/json
+      description: Return my user details
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.User'
+        "400":
+          description: Can't find user details
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Get my user profile details
+      tags:
+      - User
+  /posts:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new post
+      parameters:
+      - description: New Post Json
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePost'
+      produces:
+      - text/plain
+      responses:
+        "201":
+          description: Post creation successful!
+          schema:
+            type: string
+        "400":
+          description: Post creation failed.
+          schema:
+            type: string
+      summary: Create Post
+      tags:
+      - Post
+  /posts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an existing post
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Deletion successful!
+          schema:
+            type: string
+        "400":
+          description: Failed post deletion
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Delete Post
+      tags:
+      - Admin
+    get:
+      consumes:
+      - application/json
+      description: Find a post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.Post'
+        "400":
+          description: Can't find post
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Find post
+      tags:
+      - Post
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing post
+      parameters:
+      - description: Update Post Json
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePost'
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.Post'
+        "400":
+          description: Failed post update
+          schema:
+            type: string
+        "403":
+          description: Authentication Token not detected
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Update Post
+      tags:
+      - Post
+  /user/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Updates the currently logged in user
+      parameters:
+      - description: Update User Json
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUser'
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PartialUser'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "403":
+          description: Authentication Token not detected
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Update my profile
+      tags:
+      - User
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Log in to user account
+      parameters:
+      - description: Login JSON
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.LoginResponse'
+        "401":
+          description: Invalid Credentials
+          schema:
+            type: string
+        "405":
+          description: Method not supported
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - Login
+  /user/reset:
+    post:
+      consumes:
+      - application/json
+      description: Reset password
+      parameters:
+      - description: Email
+        in: body
+        name: email
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset request successful!
+          schema:
+            type: string
+        "400":
+          description: Password reset request failed
+          schema:
+            type: string
+      summary: Reset password
+      tags:
+      - User
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user
+      parameters:
+      - description: NewUserJson
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateUser'
+      produces:
+      - text/plain
+      responses:
+        "201":
+          description: User creation successful!
+          schema:
+            type: string
+        "400":
+          description: User creation failed.
+          schema:
+            type: string
+      summary: Create User
+      tags:
+      - User
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an existing user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Deletion successful!
+          schema:
+            type: string
+        "400":
+          description: Failed user deletion
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Delete User
+      tags:
+      - Admin
+    get:
+      consumes:
+      - application/json
+      description: Find a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CreatedUser'
+        "400":
+          description: Can't find user
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Find User
+      tags:
+      - User
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing user
+      parameters:
+      - description: Update User Json
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUser'
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UpdatedUser'
+        "400":
+          description: Failed user update
+          schema:
+            type: string
+        "403":
+          description: Authentication Token not detected
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Update User
+      tags:
+      - User
+securityDefinitions:
+  BearerToken:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

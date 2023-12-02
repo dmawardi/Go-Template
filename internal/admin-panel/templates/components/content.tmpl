@@ -46,8 +46,13 @@
 <div class="content-container">
   <div class="row">
     <div>
-      <h1>{{.SectionTitle}}: </h1>
-      <p>Delete page detected</p>
+      <h1>{{.SectionTitle}}</h1>
+      <div class="delete-box">
+        <form class="delete-form" action="">
+          <a href="{{.SchemaHome}}" class="delete-cancel-button">Cancel</a>
+          <button type="submit" class="delete-button">Delete</button>
+        </form>
+      </div>
     </div>
   </div>
 </div>
@@ -58,6 +63,7 @@
       <h1>{{.SectionTitle}}</h1>
     </div>
   </div>
+</div>
 {{else}}
 <div class="content-container">
   <div>

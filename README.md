@@ -104,7 +104,12 @@ The below commands must be used upon making changes to the API in order to regen
 - "--parseInternal" flag parses internal packages
 
 ```
+<!-- Generate docs from home folder -->
 swag init -d ./internal/controller -g ../../cmd/main.go --pd --parseInternal
+<!-- Remove old API docs folder in static -->
+rm -rf static/docs
+<!-- To move the generated folder to be accessible to users -->
+mv docs static/
 ```
 
 This will update API documentation generated in the ./docs folder. It is served on path /swagger

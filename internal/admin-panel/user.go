@@ -14,11 +14,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+// For role selection in form
 var roleSelection = []FormFieldSelector{
 	{Value: "user", Label: "User"},
 	{Value: "admin", Label: "Admin"},
 	{Value: "moderator", Label: "Moderator"},
 }
+
+// Schema home used to return to the schema home page from delete
+var adminUserUrl = "/admin/users"
 
 type AdminUserController interface {
 	FindAll(w http.ResponseWriter, r *http.Request)
@@ -27,6 +31,7 @@ type AdminUserController interface {
 	Edit(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
 	// Success pages
+	// Success page for creation
 	CreateSuccess(w http.ResponseWriter, r *http.Request)
 	EditSuccess(w http.ResponseWriter, r *http.Request)
 }
@@ -40,17 +45,34 @@ func NewUserAdminController(service service.UserService) AdminUserController {
 }
 
 func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
+	// Grab all users from database
+	users, err := c.service.FindAll(25, 0, "", []string{})
+	if err != nil {
+		http.Error(w, "Error finding users", http.StatusInternalServerError)
+		return
+	}
+	fmt.Printf("%+v\n", (*users.Data)[0])
 	// Data to be injected into template
 	data := PageRenderData{
 		PageTitle:    "Admin: Users",
 		SectionTitle: "Select a user to edit",
 		SidebarList:  sidebarList,
 		TableData: TableData{
-			TableHeaders: []string{"ID", "Username", "Email"},
+			AdminSchemaUrl: "users",
+			TableHeaders:   []string{"ID", "Username", "Email"},
 			TableRows: []TableRow{
-				{Data: []string{"1", "admin", "admin@bulba.com"}},
-				{Data: []string{"2", "admin", "admin@bulba.com"}},
-				{Data: []string{"3", "admin", "admin@bulba.com"}},
+				{
+					Data: []string{"1", "admin", "admin@bulba.com"},
+					Edit: EditInfo{EditUrl: "/admin/users/1", DeleteUrl: "/admin/users/delete/1"},
+				},
+				{
+					Data: []string{"2", "admin", "admin@bulba.com"},
+					Edit: EditInfo{EditUrl: "/admin/users/2", DeleteUrl: "/admin/users/delete/2"},
+				},
+				{
+					Data: []string{"3", "admin", "admin@bulba.com"},
+					Edit: EditInfo{EditUrl: "/admin/users/3", DeleteUrl: "/admin/users/delete/3"},
+				},
 			},
 		},
 		PageType: PageType{
@@ -69,7 +91,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -232,6 +254,44 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
+	// Grab URL parameter
+	stringParameter := chi.URLParam(r, "id")
+	// Convert to int
+	_, err := strconv.Atoi(stringParameter)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    "Delete User",
+		SectionTitle: "Are you sure you wish to delete user: " + stringParameter + "?",
+		SidebarList:  sidebarList,
+		SchemaHome:   adminUserUrl,
+		PageType: PageType{
+			EditPage:   false,
+			ReadPage:   false,
+			CreatePage: false,
+			DeletePage: true,
+		},
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: "/admin/users/delete/" + stringParameter,
+				FormMethod: "post",
+			},
+			FormFields: []FormField{},
+		},
+	}
+
+	// Execute the template with data and write to response
+	err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+
 func (c adminUserController) CreateSuccess(w http.ResponseWriter, r *http.Request) {
 	// Data to be injected into template
 	data := PageRenderData{
@@ -245,13 +305,7 @@ func (c adminUserController) CreateSuccess(w http.ResponseWriter, r *http.Reques
 			DeletePage:  false,
 			SuccessPage: true,
 		},
-		FormData: FormData{
-			FormDetails: FormDetails{
-				FormAction: "/admin/users",
-				FormMethod: "POST",
-			},
-			FormFields: []FormField{},
-		},
+		FormData: FormData{},
 	}
 
 	// Execute the template with data and write to response
@@ -280,42 +334,6 @@ func (c adminUserController) EditSuccess(w http.ResponseWriter, r *http.Request)
 
 	// Execute the template with data and write to response
 	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-}
-
-func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
-	// Parse the template
-	tmpl, err := ParseAdminTemplates()
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
-	// Data to be injected into template
-	data := PageRenderData{
-		PageTitle:    "Delete User",
-		SectionTitle: "Delete User",
-		SidebarList:  sidebarList,
-		PageType: PageType{
-			EditPage:   false,
-			ReadPage:   false,
-			CreatePage: false,
-			DeletePage: true,
-		},
-		FormData: FormData{
-			FormDetails: FormDetails{
-				FormAction: "/admin/users",
-				FormMethod: "POST",
-			},
-			FormFields: []FormField{},
-		},
-	}
-
-	// Execute the template with data and write to response
-	err = tmpl.ExecuteTemplate(w, "layout.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return

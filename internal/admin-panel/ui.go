@@ -11,6 +11,8 @@ type PageRenderData struct {
 	// In BODY
 	SectionTitle string
 	SidebarList  []sidebarItem
+	// Schema home used to return to the schema home page from delete
+	SchemaHome string // eg. /admin/users/
 	// Page type (Used for content selection)
 	PageType PageType
 	// Form
@@ -29,12 +31,21 @@ type PageType struct {
 
 // Data table
 type TableData struct {
-	TableHeaders []string
-	TableRows    []TableRow
+	AdminSchemaUrl string // eg. /users/
+	TableHeaders   []string
+	TableRows      []TableRow
 }
 
+// Data to complete a table row
 type TableRow struct {
 	Data []string
+	Edit EditInfo
+}
+
+// Edit info for the Edit column in the table
+type EditInfo struct {
+	EditUrl   string
+	DeleteUrl string
 }
 
 // Goes through a list of structs and returns a list of strings based on input slice

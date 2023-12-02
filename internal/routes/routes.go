@@ -80,7 +80,7 @@ func (a api) Routes() http.Handler {
 
 	// Serve API Swagger docs
 	mux.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/docs/swagger.json"), //The url pointing to API definition
+		httpSwagger.URL("http://localhost:8080/static/docs/swagger.json"), //The url pointing to API definition
 	))
 
 	// Build fileserver using static directory
@@ -115,7 +115,8 @@ func (a api) AddAdminRoutes(router *chi.Mux) *chi.Mux {
 		mux.Post("/admin/users/create", a.Admin.User.Create)
 		mux.Get("/admin/users/create/success", a.Admin.User.CreateSuccess)
 		// Delete
-		mux.Post("/admin/users/delete", a.Admin.User.Delete)
+		mux.Get("/admin/users/delete/{id}", a.Admin.User.Delete)
+		mux.Post("/admin/users/delete/{id}", a.Admin.User.Delete)
 		// Edit/Update (GET data in form / POST form)
 		mux.Get("/admin/users/{id}", a.Admin.User.Edit)
 		mux.Post("/admin/users/{id}", a.Admin.User.Edit)
