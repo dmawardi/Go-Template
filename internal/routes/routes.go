@@ -113,11 +113,13 @@ func (a api) AddAdminRoutes(router *chi.Mux) *chi.Mux {
 		// Create (GET form / POST form)
 		mux.Get("/admin/users/create", a.Admin.User.Create)
 		mux.Post("/admin/users/create", a.Admin.User.Create)
+		mux.Get("/admin/users/create/success", a.Admin.User.CreateSuccess)
 		// Delete
 		mux.Post("/admin/users/delete", a.Admin.User.Delete)
 		// Edit/Update (GET data in form / POST form)
 		mux.Get("/admin/users/{id}", a.Admin.User.Edit)
 		mux.Post("/admin/users/{id}", a.Admin.User.Edit)
+		mux.Get("/admin/users/edit/success", a.Admin.User.EditSuccess)
 
 		// Private routes
 		mux.Group(func(mux chi.Router) {

@@ -51,12 +51,19 @@
     </div>
   </div>
 </div>
+{{else if .PageType.SuccessPage}}
+<div class="content-container">
+  <div class="row">
+    <div>
+      <h1>{{.SectionTitle}}</h1>
+    </div>
+  </div>
 {{else}}
 <div class="content-container">
   <div>
     <div>
-      <h1>Error?</h1>
-      <p>Form page not detected</p>
+      <h1>Whoops! Sorry!</h1>
+      <p>We couldn't find that page!</p>
     </div>
   </div>
 </div>

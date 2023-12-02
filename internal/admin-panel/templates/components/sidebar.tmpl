@@ -6,8 +6,14 @@
       range.SidebarList
     }}
     <li class="sidebar-item">
-      <div class="sidebar-label">{{.}}</div>
-      <div class="plus-sign">+ Add</div>
+      <div class="sidebar-label">
+        <a href="{{.FindAllLink}}">
+          {{.Name}}
+        </a>
+      </div>
+      <a class="add-link" href="{{.AddLink}}">
+        <div class="plus-sign">+ Add</div>
+      </a>
     </li>
     {{
       end

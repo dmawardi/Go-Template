@@ -26,6 +26,9 @@ type AdminUserController interface {
 	// Edit is also used to view the record details
 	Edit(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
+	// Success pages
+	CreateSuccess(w http.ResponseWriter, r *http.Request)
+	EditSuccess(w http.ResponseWriter, r *http.Request)
 }
 
 type adminUserController struct {
@@ -107,7 +110,6 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 		SetValidationErrorsInForm(createUserForm, *valErrors)
 		// Populate previouisly entered values (Avoids password)
 		populateFormValuesWithRequestSubmission(r, &createUserForm)
-
 	}
 
 	// Render preparation
@@ -140,6 +142,9 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
+	// Init new User Edit form
+	editUserForm := c.generateEditForm()
+
 	// Grab URL parameter
 	stringParameter := chi.URLParam(r, "id")
 	// Convert to int
@@ -149,6 +154,40 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// If form is being submitted (method = POST)
+	if r.Method == "POST" {
+		// Extract user form submission
+		userToValidate, err := c.extractUpdateFormSubmission(r)
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+
+		// Validate struct
+		pass, valErrors := helpers.GoValidateStruct(userToValidate)
+		// If failure detected
+		// If validation passes
+		if pass {
+			// Update user
+			_, err = c.service.Update(idParameter, &userToValidate)
+			if err != nil {
+				http.Error(w, "Error updating user", http.StatusInternalServerError)
+				return
+			}
+			// Redirect or render a success message
+			http.Redirect(w, r, "/admin/users/edit/success", http.StatusSeeOther)
+			return
+		}
+
+		// If validation fails
+		// Populate form field errors
+		SetValidationErrorsInForm(editUserForm, *valErrors)
+		// Populate previouisly entered values (Avoids password)
+		populateFormValuesWithRequestSubmission(r, &editUserForm)
+	}
+
+	// If not POST, ie. GET
+	// Find current details of user to use as placeholder values
 	// Init a new user struct
 	foundUser := &db.User{}
 	// Search for user by ID and store in foundUser
@@ -158,21 +197,10 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Init new User Edit form
-	editUserDataSchema := c.generateEditForm()
-
 	// Populate form field placeholders with data from database
-	err = populateUserPlaceholdersWithMap(*foundUser, &editUserDataSchema)
+	err = populateUserPlaceholdersWithMap(*foundUser, &editUserForm)
 	if err != nil {
 		http.Error(w, "Error generating form", http.StatusInternalServerError)
-		fmt.Printf("Error generating form: %s\n", err.Error())
-		return
-	}
-
-	// Parse the template
-	tmpl, err := ParseAdminTemplates()
-	if err != nil {
-		fmt.Println(err.Error())
 		return
 	}
 
@@ -189,15 +217,69 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{
-				FormAction: "/admin/users",
-				FormMethod: "POST",
+				FormAction: "/admin/users/edit/" + stringParameter,
+				FormMethod: "post",
 			},
-			FormFields: editUserDataSchema,
+			FormFields: editUserForm,
 		},
 	}
 
 	// Execute the template with data and write to response
-	err = tmpl.ExecuteTemplate(w, "layout.tmpl", data)
+	err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+
+func (c adminUserController) CreateSuccess(w http.ResponseWriter, r *http.Request) {
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    "User Creation form submitted",
+		SectionTitle: "User Created Successfully!",
+		SidebarList:  sidebarList,
+		PageType: PageType{
+			EditPage:    false,
+			ReadPage:    false,
+			CreatePage:  false,
+			DeletePage:  false,
+			SuccessPage: true,
+		},
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: "/admin/users",
+				FormMethod: "POST",
+			},
+			FormFields: []FormField{},
+		},
+	}
+
+	// Execute the template with data and write to response
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+
+func (c adminUserController) EditSuccess(w http.ResponseWriter, r *http.Request) {
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    "User Edit form submitted",
+		SectionTitle: "User Updated Successfully!",
+		SidebarList:  sidebarList,
+		PageType: PageType{
+			EditPage:    false,
+			ReadPage:    false,
+			CreatePage:  false,
+			DeletePage:  false,
+			SuccessPage: true,
+		},
+		FormData: FormData{},
+	}
+
+	// Execute the template with data and write to response
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -288,6 +370,35 @@ func (c adminUserController) extractCreateFormSubmission(r *http.Request) (model
 	}
 	// Build struct for validation
 	userToValidate := models.CreateUser{
+		Name:     r.FormValue("name"),
+		Username: r.FormValue("username"),
+		Email:    r.FormValue("email"),
+		Password: r.FormValue("password"),
+		Role:     r.FormValue("role"),
+		Verified: verified,
+	}
+
+	return userToValidate, nil
+}
+
+// Used to extract form submission from request
+func (c adminUserController) extractUpdateFormSubmission(r *http.Request) (models.UpdateUser, error) {
+	// Parse the form
+	err := r.ParseForm()
+	if err != nil {
+		return models.UpdateUser{}, errors.New("Error parsing form")
+	}
+
+	// Preparation for validation
+	// Parse the verified attribute from the form
+	verified := false
+	// If the verified attribute is present in the form (ie. true)
+	if r.FormValue("verified") != "" {
+		// Set verified to true
+		verified = true
+	}
+	// Build struct for validation
+	userToValidate := models.UpdateUser{
 		Name:     r.FormValue("name"),
 		Username: r.FormValue("username"),
 		Email:    r.FormValue("email"),

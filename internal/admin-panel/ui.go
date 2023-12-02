@@ -10,7 +10,7 @@ type PageRenderData struct {
 	PageTitle string
 	// In BODY
 	SectionTitle string
-	SidebarList  []string
+	SidebarList  []sidebarItem
 	// Page type (Used for content selection)
 	PageType PageType
 	// Form
@@ -20,10 +20,11 @@ type PageRenderData struct {
 
 // Page type (Used for content selection)
 type PageType struct {
-	EditPage   bool
-	ReadPage   bool
-	CreatePage bool
-	DeletePage bool
+	EditPage    bool
+	ReadPage    bool
+	CreatePage  bool
+	DeletePage  bool
+	SuccessPage bool
 }
 
 // Data table

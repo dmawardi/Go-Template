@@ -12,8 +12,12 @@ import (
 // init state for db access
 var app *config.AppConfig
 
-// Build schema item list for sidebar
-var sidebarList = []string{"Users", "Groups"}
+// Build item list for sidebar (Add for every module)
+var sidebarList = []sidebarItem{
+	{Name: "Users", AddLink: "/admin/users/create", FindAllLink: "/admin/users"},
+	{Name: "Groups", AddLink: "/admin/groups/create", FindAllLink: "/admin/groups"},
+	{Name: "Posts", AddLink: "/admin/posts/create", FindAllLink: "/admin/posts"},
+}
 
 // Function called in main.go to connect app state to current file
 func SetStateInAdminPanel(a *config.AppConfig) {
@@ -75,4 +79,11 @@ func ParseAdminTemplates() (*template.Template, error) {
 // RECEIVER FUNCTIONS
 func (c adminBaseController) Home(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("This is the admin main home page"))
+}
+
+// Used for rendering admin sidebar
+type sidebarItem struct {
+	Name        string
+	FindAllLink string
+	AddLink     string
 }
