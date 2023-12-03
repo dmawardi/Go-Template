@@ -46,6 +46,19 @@ func NewUserAdminController(service service.UserService) AdminUserController {
 	return &adminUserController{service: service}
 }
 
+// Convert data to AdminPanelSchema
+func (c adminUserController) convertDataToAdminPanelSchema(slice []db.User) []db.AdminPanelSchema {
+	// Init AdminPanelSchema
+	var schemaSlice []db.AdminPanelSchema
+	// Loop through users and append to schemaSlice
+	for _, user := range slice {
+		// Append user to schemaSlice
+		schemaSlice = append(schemaSlice, user)
+	}
+
+	return schemaSlice
+}
+
 func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab all users from database
 	users, err := c.service.FindAll(25, 0, "", []string{})
@@ -53,30 +66,19 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error finding users", http.StatusInternalServerError)
 		return
 	}
-	fmt.Printf("%+v\n", (*users.Data)[0])
+	// Convert data to AdminPanelSchema
+	adminUserSlice := c.convertDataToAdminPanelSchema(*users.Data)
+
+	// Build the table data
+	tableData := BuildTableData(adminUserSlice, adminUserUrl, tableHeaders)
+
 	// Data to be injected into template
 	data := PageRenderData{
 		PageTitle:    "Admin: Users",
 		SectionTitle: "Select a user to edit",
 		SidebarList:  sidebarList,
-		TableData: TableData{
-			AdminSchemaUrl: "users",
-			TableHeaders:   tableHeaders,
-			TableRows: []TableRow{
-				{
-					Data: []string{"1", "admin", "admin@bulba.com"},
-					Edit: EditInfo{EditUrl: "/admin/users/1", DeleteUrl: "/admin/users/delete/1"},
-				},
-				{
-					Data: []string{"2", "admin", "admin@bulba.com"},
-					Edit: EditInfo{EditUrl: "/admin/users/2", DeleteUrl: "/admin/users/delete/2"},
-				},
-				{
-					Data: []string{"3", "admin", "admin@bulba.com"},
-					Edit: EditInfo{EditUrl: "/admin/users/3", DeleteUrl: "/admin/users/delete/3"},
-				},
-			},
-		},
+		TableData:    tableData,
+		SchemaHome:   adminUserUrl,
 		PageType: PageType{
 			EditPage:   false,
 			ReadPage:   true,
@@ -514,3 +516,12 @@ func populateFormValuesWithRequestSubmission(r *http.Request, form *[]FormField)
 	}
 	return nil
 }
+
+// func (c adminUserController) convertDataToAdminPanelSchema(usersSlice []db.User) []db.AdminPanelSchema {
+// 	var schemaSlice []db.AdminPanelSchema
+// 	for _, user := range usersSlice {
+// 		schemaSlice = append(schemaSlice, user)
+// 	}
+
+// 	return schemaSlice
+// }

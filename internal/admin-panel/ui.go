@@ -52,11 +52,11 @@ type EditInfo struct {
 }
 
 // Form data
-// Function to build table data
-func BuildTableData(listOfSchemaObjects []db.AdminPanelSchema, adminSchemaUrl string, tableHeaders []string) TableData {
+// Function to build table data from slice of adminpanel schema objects, admin schema url (eg. /admin/users) and table headers
+func BuildTableData(listOfSchemaObjects []db.AdminPanelSchema, adminSchemaBaseUrl string, tableHeaders []string) TableData {
 	// Init table data
 	tableData := TableData{
-		AdminSchemaUrl: adminSchemaUrl,
+		AdminSchemaUrl: adminSchemaBaseUrl,
 		TableHeaders:   tableHeaders,
 		TableRows:      []TableRow{},
 	}
@@ -68,14 +68,14 @@ func BuildTableData(listOfSchemaObjects []db.AdminPanelSchema, adminSchemaUrl st
 			Data: []string{},
 			// Fill in edit info
 			Edit: EditInfo{
-				EditUrl:   fmt.Sprintf("admin/%s/%s", adminSchemaUrl, object.GetID()),
-				DeleteUrl: fmt.Sprintf("admin/%s/delete/%s", adminSchemaUrl, object.GetID()),
+				EditUrl:   fmt.Sprintf("%s/%s", adminSchemaBaseUrl, object.GetID()),
+				DeleteUrl: fmt.Sprintf("%s/delete/%s", adminSchemaBaseUrl, object.GetID()),
 			},
 		}
 
-		// Append data based on the table headers
+		// Iterate through tableheaders
 		for _, header := range tableHeaders {
-			// Use header string values to get values from schema object
+			// Use header string values to get values from schema object and append
 			row.Data = append(row.Data, object.ObtainValue(header))
 		}
 
