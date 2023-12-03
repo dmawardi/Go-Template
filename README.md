@@ -63,6 +63,12 @@ Follow these steps to add a feature to the API. This template uses the clean arc
 9. Add the route to the RBAC authorization policy file (./internal/auth/rbac_policy.go)
    ADMIN
 10. Add a new file in ./internal/admin-panel with the title of the schema being built. Inside will need to contain:
+11. The db schema will need to fit the specs of the db.AdminPanelSchema, so add two receiver functions to your schema struct.
+
+- The first will be a funciton that returns the ID of the schema (GetId())
+- The second will be a function that returns the value of the field given a key (ObtainValue())
+  These functions will be used in the admin panel to display the data.
+
 11. Add the routes in the AddAdminRoutes function in ./internal/routes/routes.go
 12. Add the route to the RBAC authorization policy file (./internal/auth/rbac_policy.go)
 13. (Testing) For e2e testing, you will need to update the controllers_test.go file in ./internal/controller. Updates are required in the testDbRepo struct, buildAPI, setupDatabase & setupDBAuthAppModels functions

@@ -2,9 +2,12 @@ package adminpanel
 
 import (
 	"fmt"
-	"reflect"
+
+	"github.com/dmawardi/Go-Template/internal/db"
 )
 
+// Data used to render each page
+// Contains state for the page
 type PageRenderData struct {
 	// In HEAD
 	PageTitle string
@@ -44,46 +47,41 @@ type TableRow struct {
 
 // Edit info for the Edit column in the table
 type EditInfo struct {
-	EditUrl   string
-	DeleteUrl string
+	EditUrl   string // eg. admin/users/1
+	DeleteUrl string // eg. admin/users/delete/1
 }
 
-// Goes through a list of structs and returns a list of strings based on input slice
-func GetStructFieldValues(listOfData []interface{}, listOfTableHeaders []string) [][]string {
-	// Init a nested array to hold values
-	var values [][]string
-	// Get values for each row
-	for _, rowItem := range listOfData {
-		var row []string
-		// Get values for each header
-		row = getDynamicFieldValues(rowItem, listOfTableHeaders)
-
-		// Add row to values slice
-		values = append(values, row)
-	}
-	return values
-}
-
-// Function to get dynamic field values in the specified order
-func getDynamicFieldValues(obj interface{}, fieldNames []string) []string {
-	value := reflect.ValueOf(obj)
-	if value.Kind() != reflect.Struct {
-		return nil
+// Form data
+// Function to build table data
+func BuildTableData(listOfSchemaObjects []db.AdminPanelSchema, adminSchemaUrl string, tableHeaders []string) TableData {
+	// Init table data
+	tableData := TableData{
+		AdminSchemaUrl: adminSchemaUrl,
+		TableHeaders:   tableHeaders,
+		TableRows:      []TableRow{},
 	}
 
-	numFields := len(fieldNames)
-	values := make([]string, numFields)
-
-	for i := 0; i < numFields; i++ {
-		fieldName := fieldNames[i]
-		field := value.FieldByName(fieldName)
-
-		if !field.IsValid() {
-			values[i] = "" // Use an empty string for missing fields
-		} else {
-			values[i] = fmt.Sprint(field.Interface()) // Convert to string
+	// Loop through listOfSchemaObjects and build table rows
+	for _, object := range listOfSchemaObjects {
+		// Init table row
+		row := TableRow{
+			Data: []string{},
+			// Fill in edit info
+			Edit: EditInfo{
+				EditUrl:   fmt.Sprintf("admin/%s/%s", adminSchemaUrl, object.GetID()),
+				DeleteUrl: fmt.Sprintf("admin/%s/delete/%s", adminSchemaUrl, object.GetID()),
+			},
 		}
+
+		// Append data based on the table headers
+		for _, header := range tableHeaders {
+			// Use header string values to get values from schema object
+			row.Data = append(row.Data, object.ObtainValue(header))
+		}
+
+		// Append row to table data
+		tableData.TableRows = append(tableData.TableRows, row)
 	}
 
-	return values
+	return tableData
 }

@@ -21,6 +21,8 @@ var roleSelection = []FormFieldSelector{
 	{Value: "moderator", Label: "Moderator"},
 }
 
+var tableHeaders = []string{"ID", "Username", "Email"}
+
 // Schema home used to return to the schema home page from delete
 var adminUserUrl = "/admin/users"
 
@@ -31,9 +33,9 @@ type AdminUserController interface {
 	Edit(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
 	// Success pages
-	// Success page for creation
 	CreateSuccess(w http.ResponseWriter, r *http.Request)
 	EditSuccess(w http.ResponseWriter, r *http.Request)
+	DeleteSuccess(w http.ResponseWriter, r *http.Request)
 }
 
 type adminUserController struct {
@@ -59,7 +61,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 		SidebarList:  sidebarList,
 		TableData: TableData{
 			AdminSchemaUrl: "users",
-			TableHeaders:   []string{"ID", "Username", "Email"},
+			TableHeaders:   tableHeaders,
 			TableRows: []TableRow{
 				{
 					Data: []string{"1", "admin", "admin@bulba.com"},
@@ -321,6 +323,29 @@ func (c adminUserController) EditSuccess(w http.ResponseWriter, r *http.Request)
 	data := PageRenderData{
 		PageTitle:    "User Edit form submitted",
 		SectionTitle: "User Updated Successfully!",
+		SidebarList:  sidebarList,
+		PageType: PageType{
+			EditPage:    false,
+			ReadPage:    false,
+			CreatePage:  false,
+			DeletePage:  false,
+			SuccessPage: true,
+		},
+		FormData: FormData{},
+	}
+
+	// Execute the template with data and write to response
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+func (c adminUserController) DeleteSuccess(w http.ResponseWriter, r *http.Request) {
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    "User Delete form submitted",
+		SectionTitle: "User Deleted Successfully!",
 		SidebarList:  sidebarList,
 		PageType: PageType{
 			EditPage:    false,
