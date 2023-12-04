@@ -265,7 +265,7 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 	// Convert to int
 	idParameter, err := strconv.Atoi(stringParameter)
 	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		serveAdminError(w, "Unable to interpret ID")
 		return
 	}
 	// If form is being submitted (method = POST)
@@ -311,6 +311,7 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Success handlers
 func (c adminUserController) CreateSuccess(w http.ResponseWriter, r *http.Request) {
 	// Data to be injected into template
 	data := PageRenderData{

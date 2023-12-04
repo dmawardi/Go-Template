@@ -1,6 +1,7 @@
 package adminpanel
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"os"
@@ -79,6 +80,31 @@ func ParseAdminTemplates() (*template.Template, error) {
 // RECEIVER FUNCTIONS
 func (c adminBaseController) Home(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("This is the admin main home page"))
+}
+
+// Function to render the Admin error page to the response
+func serveAdminError(w http.ResponseWriter, sectionTitle string) {
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    "Error - Admin",
+		SectionTitle: sectionTitle,
+		SidebarList:  sidebarList,
+		SchemaHome:   adminUserUrl,
+		PageType: PageType{
+			EditPage:   false,
+			ReadPage:   false,
+			CreatePage: false,
+			DeletePage: true,
+		},
+		FormData: FormData{},
+	}
+
+	// Execute the template with data and write to response
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 }
 
 // Used for rendering admin sidebar
