@@ -48,19 +48,6 @@ func NewUserAdminController(service service.UserService) AdminUserController {
 	return &adminUserController{service: service}
 }
 
-// Convert data to AdminPanelSchema
-func (c adminUserController) convertDataToAdminPanelSchema(slice []db.User) []db.AdminPanelSchema {
-	// Init AdminPanelSchema
-	var schemaSlice []db.AdminPanelSchema
-	// Loop through users and append to schemaSlice
-	for _, user := range slice {
-		// Append user to schemaSlice
-		schemaSlice = append(schemaSlice, user)
-	}
-
-	return schemaSlice
-}
-
 func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab all users from database
 	users, err := c.service.FindAll(25, 0, "", []string{})
@@ -137,7 +124,7 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 		// Populate form field errors
 		SetValidationErrorsInForm(createUserForm, *valErrors)
 		// Populate previouisly entered values (Avoids password)
-		populateFormValuesWithRequestSubmission(r, &createUserForm)
+		c.populateValuesWithForm(r, &createUserForm)
 	}
 
 	// Render preparation
@@ -212,7 +199,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		// Populate form field errors
 		SetValidationErrorsInForm(editUserForm, *valErrors)
 		// Populate previouisly entered values (Avoids password)
-		populateFormValuesWithRequestSubmission(r, &editUserForm)
+		c.populateValuesWithForm(r, &editUserForm)
 	}
 
 	// If not POST, ie. GET
@@ -226,7 +213,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Populate form field placeholders with data from database
-	err = populateUserPlaceholdersWithMap(*foundUser, &editUserForm)
+	err = c.populatePlaceholders(*foundUser, &editUserForm)
 	if err != nil {
 		http.Error(w, "Error generating form", http.StatusInternalServerError)
 		return
@@ -472,7 +459,7 @@ func (c adminUserController) extractUpdateFormSubmission(r *http.Request) (model
 
 // Basic helper functions
 // Used to populate form field placeholders with data from database
-func populateUserPlaceholdersWithMap(user db.User, form *[]FormField) error {
+func (c adminUserController) populatePlaceholders(user db.User, form *[]FormField) error {
 	// Map of user fields
 	fieldMap := map[string]string{
 		"ID":                     fmt.Sprint(user.ID),
@@ -509,7 +496,7 @@ func populateUserPlaceholdersWithMap(user db.User, form *[]FormField) error {
 }
 
 // Used to populate form field placeholders with data from database
-func populateFormValuesWithRequestSubmission(r *http.Request, form *[]FormField) error {
+func (c adminUserController) populateValuesWithForm(r *http.Request, form *[]FormField) error {
 	// Parse the form
 	err := r.ParseForm()
 	if err != nil {
@@ -537,4 +524,17 @@ func populateFormValuesWithRequestSubmission(r *http.Request, form *[]FormField)
 		}
 	}
 	return nil
+}
+
+// Convert data to AdminPanelSchema
+func (c adminUserController) convertDataToAdminPanelSchema(slice []db.User) []db.AdminPanelSchema {
+	// Init AdminPanelSchema
+	var schemaSlice []db.AdminPanelSchema
+	// Loop through users and append to schemaSlice
+	for _, user := range slice {
+		// Append user to schemaSlice
+		schemaSlice = append(schemaSlice, user)
+	}
+
+	return schemaSlice
 }

@@ -90,10 +90,36 @@
   width: 12px;
 }
 
+/* Search box */
+.record-nav-buttons {
+  text-align: right;
+  margin-top: 1vh;
+}
+
+.records-per-page {
+  color: black;
+  text-align: right;
+}
+
+.search-form-col {
+  flex: 1;
+}
+
+.search-form-row {
+  display: flex;
+  flex-direction: column; /* Stack columns vertically on small screens */
+  gap: 10px; /* Space between columns */
+}
+
 /* Large screens (desktops) */
 @media (min-width: 993px) {
   /* Adjust styles for large screens */
   .search-input {
-    width: 35%;
+    width: 25vw;
+  }
+
+  /* Search box */
+  .search-form-row {
+    flex-direction: row;
   }
 }

@@ -16,16 +16,36 @@
       <!-- Search box -->
       <div class="search-box">
         <form class="search-form" action="">
-          <input
-            type="text"
-            id="search-input"
-            class="search-input"
-            name="search"
-            placeholder="Search Records"
-            value=""
-            required
-          />
-          <button type="submit" class="submit-button">Search</button>
+          <div class="search-form-row">
+            <div class="search-form-col">
+              <input
+                type="text"
+                id="search-input"
+                class="search-input"
+                name="search"
+                placeholder="Search Records"
+                value=""
+              />
+              <button type="submit" class="submit-button">Search</button>
+            </div>
+            <div class="search-form-col">
+              <div class="records-per-page">
+                <label for="recordsPerPage">Records per page:</label>
+                <select id="recordsPerPage" name="recordsPerPage">
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+              <div class="record-nav-buttons">
+                <button type="submit" name="page" value="previous">
+                  Previous
+                </button>
+                <button type="submit" name="page" value="next">Next</button>
+              </div>
+            </div>
+          </div>
         </form>
       </div>
       <!-- Data table (includes action box) -->

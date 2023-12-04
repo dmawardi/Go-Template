@@ -20,6 +20,9 @@ var sidebarList = []sidebarItem{
 	{Name: "Posts", AddLink: "/admin/posts/create", FindAllLink: "/admin/posts"},
 }
 
+// Displayed on find all pages
+var recordsPerPage = []int{10, 25, 50, 100}
+
 // Function called in main.go to connect app state to current file
 func SetStateInAdminPanel(a *config.AppConfig) {
 	app = a

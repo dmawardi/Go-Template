@@ -56,11 +56,6 @@
   text-align: right;
 }
 
-select {
-  margin-left: 3vw;
-  width: 20vw;
-}
-
 /* Error message styles */
 .error-message {
   color: #ff0000;
