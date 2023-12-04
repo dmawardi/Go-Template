@@ -50,7 +50,7 @@ type UpdateUser struct {
 	Password string `json:"password,omitempty" valid:"length(6|30)"`
 	Name     string `json:"name,omitempty" valid:"length(6|80)"`
 	Email    string `json:"email,omitempty" valid:"email"`
-	Verified bool   `json:"verified,omitempty" valid:"bool"`
+	Verified bool   `json:"verified,omitempty"`
 	Role     string `json:"role,omitempty" valid:"in(admin|moderator|user)"`
 }
 type UpdatedUser struct {

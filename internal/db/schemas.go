@@ -26,7 +26,7 @@ type User struct {
 	Password  string         `json:"-"`
 	Role      string         `json:"role,omitempty" gorm:"default:user"`
 	// Verification
-	Verified               bool      `json:"verified,omitempty" gorm:"default:false"`
+	Verified               *bool     `json:"verified,omitempty" gorm:"default:false"`
 	VerificationCode       string    `json:"verification_code,omitempty" gorm:"default:null"`
 	VerificationCodeExpiry time.Time `json:"verification_code_expiry,omitempty" gorm:"default:null"`
 	// Relationships

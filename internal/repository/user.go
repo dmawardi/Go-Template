@@ -100,35 +100,6 @@ func (r *userRepository) FindById(userId int) (*db.User, error) {
 	return &user, nil
 }
 
-// Find user in database by email
-func (r *userRepository) FindByEmail(email string) (*db.User, error) {
-	// Create an empty ref object of type user
-	user := db.User{}
-	// Check if user exists in db
-	result := r.DB.Where("email = ?", email).First(&user)
-
-	// If error detected
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	// else
-	return &user, nil
-}
-
-func (r *userRepository) FindByVerificationCode(token string) (*db.User, error) {
-	// Create an empty ref object of type user
-	user := db.User{}
-	// Check if user exists in db
-	result := r.DB.Where("verification_code = ?", token).First(&user)
-
-	// If error detected
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	// else
-	return &user, nil
-}
-
 // Delete user in database
 func (r *userRepository) Delete(id int) error {
 	// Create an empty ref object of type user
@@ -167,6 +138,8 @@ func (r *userRepository) Update(id int, user *db.User) (*db.User, error) {
 		user.Password = string(hashedPassword)
 	}
 
+	fmt.Printf("Updating this user: %v with user: %v\n", *foundUser.Verified, *user.Verified)
+
 	// Update user using found user
 	updateResult := r.DB.Model(&foundUser).Updates(user)
 	if updateResult.Error != nil {
@@ -180,7 +153,37 @@ func (r *userRepository) Update(id int, user *db.User) (*db.User, error) {
 		fmt.Println("User to update not found: ", err)
 		return nil, err
 	}
+	fmt.Printf("Updated user: %v\n", *updatedUser.Verified)
 	return updatedUser, nil
+}
+
+// Find user in database by email
+func (r *userRepository) FindByEmail(email string) (*db.User, error) {
+	// Create an empty ref object of type user
+	user := db.User{}
+	// Check if user exists in db
+	result := r.DB.Where("email = ?", email).First(&user)
+
+	// If error detected
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	// else
+	return &user, nil
+}
+
+func (r *userRepository) FindByVerificationCode(token string) (*db.User, error) {
+	// Create an empty ref object of type user
+	user := db.User{}
+	// Check if user exists in db
+	result := r.DB.Where("verification_code = ?", token).First(&user)
+
+	// If error detected
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	// else
+	return &user, nil
 }
 
 // Takes limit, offset, and order parameters, builds a query and executes returning a list of users

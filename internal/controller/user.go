@@ -544,7 +544,7 @@ func (c userController) ResendVerificationEmail(w http.ResponseWriter, r *http.R
 	}
 
 	// If user is already verified
-	if foundUser.Verified {
+	if *foundUser.Verified {
 		http.Error(w, "Email already verified", http.StatusUnauthorized)
 		return
 	}

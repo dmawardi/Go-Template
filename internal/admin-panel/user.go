@@ -190,7 +190,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
 		}
-		fmt.Printf("%+v\n", userToValidate)
+		fmt.Printf("Edit user form extracted: %+v\n", userToValidate)
 
 		// Validate struct
 		pass, valErrors := helpers.GoValidateStruct(userToValidate)
@@ -225,7 +225,6 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
-	fmt.Printf("Found user: %+v\n", foundUser)
 	// Populate form field placeholders with data from database
 	err = populateUserPlaceholdersWithMap(*foundUser, &editUserForm)
 	if err != nil {
@@ -480,7 +479,6 @@ func populateUserPlaceholdersWithMap(user db.User, form *[]FormField) error {
 		// Get pointer to field
 		field := &(*form)[i]
 		if field.Type == "select" {
-			fmt.Printf("Field selectors: %+v\n", field.Selectors)
 			// Update selectors with default value
 			field.Selectors = addDefaultSelectedToSelector(field.Selectors, fieldMap[field.DbLabel])
 			// Else treat as ordinary input

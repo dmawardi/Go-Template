@@ -52,7 +52,7 @@ func (s *userService) Create(user *models.CreateUser) (*db.User, error) {
 		Name:     user.Name,
 		Email:    user.Email,
 		Role:     user.Role,
-		Verified: user.Verified,
+		Verified: &user.Verified,
 	}
 
 	// Create above user in database
@@ -76,7 +76,6 @@ func (s *userService) FindAll(limit int, offset int, order string, conditions []
 
 // Find user in database by ID
 func (s *userService) FindById(userId int) (*db.User, error) {
-	fmt.Printf("Finding user with id: %v\n", userId)
 	// Find user by id
 	user, err := s.repo.FindById(userId)
 	// If error detected
@@ -109,6 +108,20 @@ func (s *userService) Delete(id int) error {
 	}
 	// else
 	return nil
+}
+
+// Updates user in database
+func (s *userService) Update(id int, user *models.UpdateUser) (*db.User, error) {
+	// Create db User type of incoming DTO
+	dbUser := &db.User{Name: user.Name, Username: user.Username, Email: user.Email, Password: user.Password, Role: user.Role, Verified: &user.Verified}
+
+	// Update using repo
+	updatedUser, err := s.repo.Update(id, dbUser)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedUser, nil
 }
 
 // Takes an email and if the email is found in the database, will reset the password and send an email to the user with the new password
@@ -151,20 +164,6 @@ func (s *userService) ResetPasswordAndSendEmail(userEmail string) error {
 	return nil
 }
 
-// Updates user in database
-func (s *userService) Update(id int, user *models.UpdateUser) (*db.User, error) {
-	// Create db User type of incoming DTO
-	dbUser := &db.User{Name: user.Name, Username: user.Username, Email: user.Email, Password: user.Password, Role: user.Role, Verified: user.Verified}
-
-	// Update using repo
-	updatedUser, err := s.repo.Update(id, dbUser)
-	if err != nil {
-		return nil, err
-	}
-
-	return updatedUser, nil
-}
-
 // Verifies user email in database
 func (s *userService) VerifyEmailCode(token string) error {
 	// Find user by token
@@ -179,12 +178,12 @@ func (s *userService) VerifyEmailCode(token string) error {
 		return fmt.Errorf("verification code expired")
 	}
 
-	// if user.VerificationCodeExpiry.After(time.Now()) {
-	// 	return fmt.Errorf("verification code expired")
-	// }
 	// else
 	// Update user
-	user.Verified = true
+	// Set verified to true
+	trueVerified := true
+	user.Verified = &trueVerified
+	// Set verification code to empty string
 	user.VerificationCode = ""
 
 	// Update user in database
@@ -209,8 +208,9 @@ func (s *userService) ResendEmailVerification(id int) error {
 	if err != nil {
 		return err
 	}
-	// Update user to be verified
-	user.Verified = false
+	// Update user to be unverified
+	unVerified := false
+	user.Verified = &unVerified
 	// Store token in database
 	user.VerificationCode = tokenCode
 	// Set verification code expiry to 12 hours from now
