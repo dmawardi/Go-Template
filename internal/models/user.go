@@ -41,6 +41,7 @@ type PartialUser struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Role     string `json:"role"`
+	Verified bool   `json:"verified"`
 }
 
 // Update User structure for Data transfer.

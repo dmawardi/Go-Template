@@ -223,7 +223,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
-
+	fmt.Printf("Found user: %+v\n", foundUser)
 	// Populate form field placeholders with data from database
 	err = populateUserPlaceholdersWithMap(*foundUser, &editUserForm)
 	if err != nil {
@@ -480,7 +480,6 @@ func populateUserPlaceholdersWithMap(user db.User, form *[]FormField) error {
 		if field.Type == "select" {
 			// Update selectors with default value
 			field.Selectors = addDefaultSelectedToSelector(field.Selectors, fieldMap[field.DbLabel])
-			fmt.Printf("%+v\n", field.Selectors)
 			// Else treat as ordinary input
 		} else {
 			// If the field exists in the map, populate the placeholder
@@ -491,6 +490,7 @@ func populateUserPlaceholdersWithMap(user db.User, form *[]FormField) error {
 			}
 		}
 	}
+
 	return nil
 }
 
