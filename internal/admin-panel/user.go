@@ -261,14 +261,27 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
-	// Grab URL parameter
 	stringParameter := chi.URLParam(r, "id")
 	// Convert to int
-	_, err := strconv.Atoi(stringParameter)
+	idParameter, err := strconv.Atoi(stringParameter)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
+	// If form is being submitted (method = POST)
+	if r.Method == "POST" {
+		// Delete user
+		err = c.service.Delete(idParameter)
+		if err != nil {
+			http.Error(w, "Error deleting user", http.StatusInternalServerError)
+			return
+		}
+		// Redirect to success page
+		http.Redirect(w, r, "/admin/users/delete/success", http.StatusSeeOther)
+		return
+	}
+
+	// GET request
 	// Data to be injected into template
 	data := PageRenderData{
 		PageTitle:    "Delete User",
@@ -321,7 +334,6 @@ func (c adminUserController) CreateSuccess(w http.ResponseWriter, r *http.Reques
 		return
 	}
 }
-
 func (c adminUserController) EditSuccess(w http.ResponseWriter, r *http.Request) {
 	// Data to be injected into template
 	data := PageRenderData{

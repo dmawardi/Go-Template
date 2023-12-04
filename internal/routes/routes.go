@@ -117,6 +117,8 @@ func (a api) AddAdminRoutes(router *chi.Mux) *chi.Mux {
 		// Delete
 		mux.Get("/admin/users/delete/{id}", a.Admin.User.Delete)
 		mux.Post("/admin/users/delete/{id}", a.Admin.User.Delete)
+		mux.Get("/admin/users/delete/success", a.Admin.User.DeleteSuccess)
+
 		// Edit/Update (GET data in form / POST form)
 		mux.Get("/admin/users/{id}", a.Admin.User.Edit)
 		mux.Post("/admin/users/{id}", a.Admin.User.Edit)
