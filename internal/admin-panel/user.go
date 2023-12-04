@@ -15,10 +15,12 @@ import (
 )
 
 // For role selection in form
-var roleSelection = []FormFieldSelector{
-	{Value: "user", Label: "User"},
-	{Value: "admin", Label: "Admin"},
-	{Value: "moderator", Label: "Moderator"},
+func roleSelection() []FormFieldSelector {
+	return []FormFieldSelector{
+		{Value: "user", Label: "User", Selected: true},
+		{Value: "admin", Label: "Admin", Selected: false},
+		{Value: "moderator", Label: "Moderator", Selected: false},
+	}
 }
 
 var tableHeaders = []string{"ID", "Username", "Email"}
@@ -376,7 +378,7 @@ func (c adminUserController) generateCreateForm() []FormField {
 		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Email", Label: "Email", Name: "email", Placeholder: "Enter email", Value: "", Type: "email", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Password", Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: true, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: roleSelection},
+		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: roleSelection()},
 		{DbLabel: "Verified", Label: "Verified", Name: "verified", Placeholder: "", Value: "true", Type: "checkbox", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 	}
 }
@@ -389,7 +391,7 @@ func (c adminUserController) generateEditForm() []FormField {
 		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Email", Label: "Email", Name: "email", Placeholder: "Enter email", Value: "", Type: "email", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		// {DbLabel: "Password", Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: roleSelection},
+		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: roleSelection()},
 		{DbLabel: "Verified", Label: "Verified", Name: "verified", Placeholder: "", Value: "false", Type: "checkbox", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "VerificationCode", Label: "Verification Code", Name: "verification_code", Placeholder: "Enter verification code", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 		{DbLabel: "VerificationCodeExpiry", Label: "Verification Code Expiry", Name: "verification_code_expiry", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
@@ -478,6 +480,7 @@ func populateUserPlaceholdersWithMap(user db.User, form *[]FormField) error {
 		// Get pointer to field
 		field := &(*form)[i]
 		if field.Type == "select" {
+			fmt.Printf("Field selectors: %+v\n", field.Selectors)
 			// Update selectors with default value
 			field.Selectors = addDefaultSelectedToSelector(field.Selectors, fieldMap[field.DbLabel])
 			// Else treat as ordinary input

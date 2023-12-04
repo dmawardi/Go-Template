@@ -30,7 +30,7 @@
       {{
         range.Selectors
       }}
-      <option value="{{.Value}}" selected="{{.Selected}}">
+      <option value="{{.Value}}" {{if .Selected}}selected{{ end }}>
         {{.Label}}
       </option>
       {{
