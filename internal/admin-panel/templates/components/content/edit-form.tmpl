@@ -1,5 +1,10 @@
 {{define "form"}}
-<form class="admin-form" action="{{.FormDetails.FormAction}}" method="{{.FormDetails.FormMethod}}">
+<form
+  class="admin-form"
+  action="{{.FormDetails.FormAction}}"
+  method="{{.FormDetails.FormMethod}}"
+>
+  {{/* Form Fields */}}
   {{ range.FormFields }}
   <div class="form-group">
     <label for="{{.Name}}">
@@ -10,22 +15,30 @@
     </label>
     <br />
 
+    {{/* Types of Form Fields */}}
+    {{/* If a disabled value is found render without input */}}
     {{if .Disabled }}
     <div class="form-input-disabled">
       <span class="disabled-value">
         {{.Placeholder}}
       </span>
     </div>
+
+    {{/* Selector */}}
     {{else if eq .Type "select"}}
     <select name="{{.Name}}" id="{{.Name}}">
       {{
         range.Selectors
       }}
-      <option value="{{.Value}}">{{.Label}}</option>
+      <option value="{{.Value}}" selected="{{.Selected}}">
+        {{.Label}}
+      </option>
       {{
         end
       }}
     </select>
+
+    {{/* Checkbox */}}
     {{else if eq .Type "checkbox"}}
     <input
       class="form-checkbox"
@@ -40,6 +53,8 @@
       {{if
       .Disabled}}disabled{{end}}
     />
+
+    {{/* Text area */}}
     {{else if eq .Type "textarea"}}
     <textarea
       class="form-checkbox"
@@ -52,6 +67,8 @@
       {{if
       .Required}}required{{end}}
     ></textarea>
+
+    {{/* Normal input */}}
     {{else}}
     <input
       class="form-input"
@@ -77,6 +94,8 @@
     </div>
   </div>
   {{ end }}
+
+  {{/* Submission buttons */}}
   <button type="submit" class="submit-button">Submit</button>
 </form>
 

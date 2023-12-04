@@ -188,6 +188,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
 		}
+		fmt.Printf("%+v\n", userToValidate)
 
 		// Validate struct
 		pass, valErrors := helpers.GoValidateStruct(userToValidate)
@@ -243,7 +244,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{
-				FormAction: "/admin/users/edit/" + stringParameter,
+				FormAction: "/admin/users/" + stringParameter,
 				FormMethod: "post",
 			},
 			FormFields: editUserForm,
@@ -476,11 +477,18 @@ func populateUserPlaceholdersWithMap(user db.User, form *[]FormField) error {
 	for i := range *form {
 		// Get pointer to field
 		field := &(*form)[i]
-		// If the field exists in the map, populate the placeholder
-		if val, ok := fieldMap[field.DbLabel]; ok {
-			field.Placeholder = val
+		if field.Type == "select" {
+			// Update selectors with default value
+			field.Selectors = addDefaultSelectedToSelector(field.Selectors, fieldMap[field.DbLabel])
+			fmt.Printf("%+v\n", field.Selectors)
+			// Else treat as ordinary input
 		} else {
-			return fmt.Errorf("field: %s not found in map", field.DbLabel)
+			// If the field exists in the map, populate the placeholder
+			if val, ok := fieldMap[field.DbLabel]; ok {
+				field.Placeholder = val
+			} else {
+				return fmt.Errorf("field: %s not found in map", field.DbLabel)
+			}
 		}
 	}
 	return nil
@@ -516,12 +524,3 @@ func populateFormValuesWithRequestSubmission(r *http.Request, form *[]FormField)
 	}
 	return nil
 }
-
-// func (c adminUserController) convertDataToAdminPanelSchema(usersSlice []db.User) []db.AdminPanelSchema {
-// 	var schemaSlice []db.AdminPanelSchema
-// 	for _, user := range usersSlice {
-// 		schemaSlice = append(schemaSlice, user)
-// 	}
-
-// 	return schemaSlice
-// }

@@ -36,8 +36,9 @@ type FormField struct {
 }
 
 type FormFieldSelector struct {
-	Value string
-	Label string
+	Value    string
+	Label    string
+	Selected bool
 }
 
 // Display of errors in form
@@ -89,4 +90,21 @@ func addErrorToField(fields []FormField, fieldName string, newError ErrorMessage
 			break // assuming only one field can have the matching name
 		}
 	}
+}
+
+func addDefaultSelectedToSelector(selector []FormFieldSelector, currentValue string) []FormFieldSelector {
+	// Iterate through selector
+	for i := range selector {
+		// Check if value matches current value
+		if selector[i].Value == currentValue {
+			// If found, set selected to true
+			selector[i].Selected = true
+
+		} else {
+			// Else, set selected to false
+			selector[i].Selected = false
+		}
+	}
+	// Return completed selector
+	return selector
 }
