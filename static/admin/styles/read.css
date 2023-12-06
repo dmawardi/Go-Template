@@ -96,8 +96,9 @@
   text-align: center;
   margin-top: 1vh;
   display: flex;
-  align-items: end;
-  flex-direction: row-reverse;
+  align-items: center;
+  flex-direction: row;
+  justify-content: flex-end;
 }
 
 .records-per-page {
@@ -120,9 +121,10 @@
   flex-direction: column;
 }
 
-.page-of-section,
+.pagination-section,
 .showing-section {
-  margin: 0;
+  margin: 0.5vh 1vw;
+  text-align: end;
 }
 
 /* Large screens (desktops) */

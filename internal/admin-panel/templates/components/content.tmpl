@@ -14,50 +14,8 @@
     <div>
       <h1>{{.SectionTitle}}</h1>
       <!-- Search box -->
-      <div class="search-box">
-        <form class="search-form" action="">
-          <div class="search-form-row">
-            <div class="search-form-col">
-              <input
-                type="text"
-                id="search-input"
-                class="search-input"
-                name="search"
-                placeholder="Search Records"
-                value=""
-              />
-              <button type="submit" class="submit-button">Search</button>
-            </div>
-            <div class="search-form-col">
-              <div class="records-per-page">
-                <label for="recordsPerPage">Records per page:</label>
-                <select id="recordsPerPage" name="limit">
-                  <option value="10">10</option>
-                  <option value="20">20</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-              </div>
-              <div class="record-nav-buttons">
-                <button type="submit" name="page" value="previous">
-                  Previous
-                </button>
-                <div class="pagination-section">
-                  <span class="page-of-section">
-                    {{.TableData.MetaData.Current_Page}} of
-                    {{.TableData.MetaData.Total_Pages}}
-                  </span>
-                  <span class="showing-section"
-                    >Showing {{.TableData.MetaData.Currently_Showing}} of
-                    {{.TableData.MetaData.Total_Pages}}</span
-                  >
-                </div>
-                <button type="submit" name="page" value="next">Next</button>
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
+      {{template "search" .}}
+
       <!-- Data table (includes action box) -->
       {{ template "data-table" .TableData }}
     </div>

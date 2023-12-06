@@ -24,16 +24,18 @@ type SchemaMetaData interface {
 type schemaMetaData struct {
 	Total_Records    int64 `json:"total_records"`    // Total number of records in the entire dataset
 	Records_Per_Page int   `json:"records_per_page"` // Number of records displayed per page
+	Total_Pages      int   `json:"total_pages"`      // Total number of pages
 	Current_Page     int   `json:"current_page"`     // Current page number
 	Next_Page        *int  `json:"next_page"`        // Next page number (null if there is no next page)
 	Prev_Page        *int  `json:"prev_page"`        // Previous page number (null if there is no previous page)
 }
 
 // Constructor
-func NewSchemaMetaData(totalRecords int64, recordsPerPage int, currentPage int, nextPage *int, prevPage *int) SchemaMetaData {
+func NewSchemaMetaData(totalRecords int64, recordsPerPage int, totalPages int, currentPage int, nextPage *int, prevPage *int) SchemaMetaData {
 	return &schemaMetaData{
 		Total_Records:    totalRecords,
 		Records_Per_Page: recordsPerPage,
+		Total_Pages:      totalPages,
 		Current_Page:     currentPage,
 		Next_Page:        nextPage,
 		Prev_Page:        prevPage,
@@ -67,6 +69,7 @@ func (s *schemaMetaData) GetMetaData() schemaMetaData {
 	return schemaMetaData{
 		Total_Records:    s.Total_Records,
 		Records_Per_Page: s.Records_Per_Page,
+		Total_Pages:      s.Total_Pages,
 		Current_Page:     s.Current_Page,
 		Next_Page:        s.Next_Page,
 		Prev_Page:        s.Prev_Page,
@@ -89,7 +92,7 @@ type extendedSchemaMetaData struct {
 }
 
 // Constructor
-func NewExtendedSchemaMetaData(schemaMetaData SchemaMetaData, totalPages int, currentlyShowing int) ExtendedSchemaMetaData {
+func NewExtendedSchemaMetaData(schemaMetaData SchemaMetaData, currentlyShowing int) ExtendedSchemaMetaData {
 	metaData := schemaMetaData.GetMetaData()
 	return &extendedSchemaMetaData{
 		Total_Records:     metaData.Total_Records,
@@ -97,7 +100,7 @@ func NewExtendedSchemaMetaData(schemaMetaData SchemaMetaData, totalPages int, cu
 		Current_Page:      metaData.Current_Page,
 		Next_Page:         metaData.Next_Page,
 		Prev_Page:         metaData.Prev_Page,
-		Total_Pages:       totalPages,
+		Total_Pages:       metaData.Total_Pages,
 		Currently_Showing: currentlyShowing,
 	}
 }

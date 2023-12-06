@@ -46,6 +46,11 @@ func (r *postRepository) FindAll(limit int, offset int, order string, conditions
 	if err != nil {
 		return nil, err
 	}
+	// Find the total number of pages from total count and limit
+	totalPages := int(*totalCount) / limit
+	if int(*totalCount)%limit != 0 {
+		totalPages += 1
+	}
 	// Calculate next page
 	nextPage := offset + limit
 	// If next page is greater than total count, set to 0
@@ -59,7 +64,7 @@ func (r *postRepository) FindAll(limit int, offset int, order string, conditions
 	}
 
 	// Build metadata object
-	metaData := models.NewSchemaMetaData(*totalCount, limit, offset, &nextPage, &prevPage)
+	metaData := models.NewSchemaMetaData(*totalCount, limit, offset, totalPages, &nextPage, &prevPage)
 	// Query all post based on the received parameters
 	posts, err := QueryAllPostsBasedOnParams(limit, offset, order, conditions, r.DB)
 	if err != nil {

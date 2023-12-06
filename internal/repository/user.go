@@ -51,20 +51,27 @@ func (r *userRepository) FindAll(limit int, offset int, order string, conditions
 	if err != nil {
 		return nil, err
 	}
+	// Find the total number of pages from total count and limit
+	totalPages := int(*totalCount) / limit
+	if int(*totalCount)%limit != 0 {
+		totalPages += 1
+	}
+	// Calculate current page
+	currentPage := offset/limit + 1
 	// Calculate next page
-	nextPage := offset + limit
-	// If next page is greater than total count, set to 0
-	if nextPage > int(*totalCount) {
-		nextPage = 0
+	var nextPage *int // Using a pointer to represent the absence of a next page
+	if currentPage < totalPages {
+		next := currentPage + 1
+		nextPage = &next
 	}
-	prevPage := offset - limit
-	// If prev page is less than 0, set to 0
-	if prevPage < 0 {
-		prevPage = 0
+	// Calculate previous page
+	var prevPage *int // Using a pointer to represent the absence of a previous page
+	if currentPage > 1 {
+		prev := currentPage - 1
+		prevPage = &prev
 	}
-
 	// Build metadata object
-	metaData := models.NewSchemaMetaData(*totalCount, limit, offset, &nextPage, &prevPage)
+	metaData := models.NewSchemaMetaData(*totalCount, limit, totalPages, currentPage, nextPage, prevPage)
 	// Query all users based on the received parameters
 	users, err := QueryAllUsersBasedOnParams(limit, offset, order, conditions, r.DB)
 	if err != nil {

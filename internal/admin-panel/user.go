@@ -50,7 +50,7 @@ func NewUserAdminController(service service.UserService) AdminUserController {
 
 func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab all users from database
-	users, err := c.service.FindAll(25, 0, "", []string{})
+	users, err := c.service.FindAll(10, 0, "", []string{})
 	if err != nil {
 		http.Error(w, "Error finding users", http.StatusInternalServerError)
 		return

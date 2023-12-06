@@ -56,13 +56,16 @@ type EditInfo struct {
 // Form data
 // Function to build table data from slice of adminpanel schema objects, admin schema url (eg. /admin/users) and table headers
 func BuildTableData(listOfSchemaObjects []db.AdminPanelSchema, metaData models.SchemaMetaData, adminSchemaBaseUrl string, tableHeaders []string) TableData {
+	// Calculate currently showing records and total pages
+	currentlyShowing := metaData.CalculateCurrentlyShowingRecords()
+	fmt.Printf("Currently showing: %d\n", currentlyShowing)
 	// Init table data
 	tableData := TableData{
 		AdminSchemaUrl: adminSchemaBaseUrl,
 		TableHeaders:   tableHeaders,
 		TableRows:      []TableRow{},
 		// Build extended metadata
-		MetaData: models.NewExtendedSchemaMetaData(metaData, metaData.CalculateTotalPages(), metaData.CalculateCurrentlyShowingRecords()),
+		MetaData: models.NewExtendedSchemaMetaData(metaData, currentlyShowing),
 	}
 
 	// Loop through listOfSchemaObjects and build table rows
