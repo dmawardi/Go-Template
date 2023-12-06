@@ -26,7 +26,7 @@ func roleSelection() []FormFieldSelector {
 var tableHeaders = []string{"ID", "Username", "Email"}
 
 // Schema home used to return to the schema home page from delete
-var adminUserUrl = "/admin/users"
+var adminHomeUrl = "/admin/users"
 
 type AdminUserController interface {
 	FindAll(w http.ResponseWriter, r *http.Request)
@@ -49,17 +49,32 @@ func NewUserAdminController(service service.UserService) AdminUserController {
 }
 
 func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
-	// Grab all users from database
-	users, err := c.service.FindAll(10, 0, "", []string{})
+	// Grab query parameters
+	searchQuery := r.URL.Query().Get("search")
+	page, err := helpers.GrabIntQueryParamOrDefault(r, "page", 1)
 	if err != nil {
-		http.Error(w, "Error finding users", http.StatusInternalServerError)
+		http.Error(w, "Error parsing page", http.StatusBadRequest)
+		return
+	}
+	limit, err := helpers.GrabIntQueryParamOrDefault(r, "limit", 10)
+	if err != nil {
+		http.Error(w, "Error parsing limit", http.StatusBadRequest)
+		return
+	}
+	// Calculate offset using pages and limit
+	offset := (page - 1) * limit
+
+	// Grab all users from database
+	users, err := c.service.FindAll(limit, offset, "", []string{})
+	if err != nil {
+		http.Error(w, "Error finding data", http.StatusInternalServerError)
 		return
 	}
 	// Convert data to AdminPanelSchema
 	adminUserSlice := c.convertDataToAdminPanelSchema(*users.Data)
 
 	// Build the table data
-	tableData := BuildTableData(adminUserSlice, users.Meta, adminUserUrl, tableHeaders)
+	tableData := BuildTableData(adminUserSlice, users.Meta, adminHomeUrl, tableHeaders)
 
 	// Data to be injected into template
 	data := PageRenderData{
@@ -67,7 +82,8 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 		SectionTitle: "Select a user to edit",
 		SidebarList:  sidebarList,
 		TableData:    tableData,
-		SchemaHome:   adminUserUrl,
+		SchemaHome:   adminHomeUrl,
+		SearchTerm:   searchQuery,
 		PageType: PageType{
 			EditPage:   false,
 			ReadPage:   true,
@@ -76,8 +92,8 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{
-				FormAction: "/admin/users",
-				FormMethod: "POST",
+				FormAction: adminHomeUrl,
+				FormMethod: "get",
 			},
 			FormFields: []FormField{},
 		},
@@ -274,7 +290,7 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 		PageTitle:    "Delete User",
 		SectionTitle: "Are you sure you wish to delete user: " + stringParameter + "?",
 		SidebarList:  sidebarList,
-		SchemaHome:   adminUserUrl,
+		SchemaHome:   adminHomeUrl,
 		PageType: PageType{
 			EditPage:   false,
 			ReadPage:   false,

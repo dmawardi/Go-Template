@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
@@ -189,4 +190,30 @@ func LoadTemplate(templateFilePath string, data interface{}) (string, error) {
 	}
 
 	return tpl.String(), nil
+}
+
+// Grabs a query parameter from the request, if not present, returns default value
+func GrabQueryParamOrDefault(r *http.Request, param string, defaultValue string) string {
+	// Grab query parameters
+	queryParam := r.URL.Query().Get(param)
+	// Check if limit is available, if not, set to default
+	if queryParam == "" {
+		queryParam = defaultValue
+	}
+	return queryParam
+}
+
+func GrabIntQueryParamOrDefault(r *http.Request, param string, defaultValue int) (int, error) {
+	// Grab query parameters
+	queryParam := r.URL.Query().Get(param)
+	// Check if limit is available, if not, set to default
+	if queryParam == "" {
+		return defaultValue, nil
+	}
+	// Convert to int
+	intQuery, err := strconv.Atoi(queryParam)
+	if err != nil {
+		return 0, err
+	}
+	return intQuery, nil
 }

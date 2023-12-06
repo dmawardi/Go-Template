@@ -1,56 +1,108 @@
 {{define "search"}}
-    <div class="search-box">
-        <form class="search-form" action="">
-          <div class="search-form-row">
-            <div class="search-form-col">
-              <input
-                type="text"
-                id="search-input"
-                class="search-input"
-                name="search"
-                placeholder="Search Records"
-                value=""
-              />
-              <button type="submit" class="submit-button">Search</button>
-            </div>
-            <div class="search-form-col">
-              <div class="record-nav-buttons">
-                {{if .TableData.MetaData.Prev_Page}}
-                <button type="submit" name="page" value="previous">
-                  Pg ({{.TableData.MetaData.Prev_Page}})
-                </button>
-                {{ end }}
-                <div class="pagination-section">
-                  <span>Page</span>
-                  <span class="page-of-section">
-                    {{.TableData.MetaData.Current_Page}} of
-                    {{.TableData.MetaData.Total_Pages}}
-                  </span>
-                </div>
-                {{if .TableData.MetaData.Next_Page}}
-                <button type="submit" name="page" value="next">
-                  {{.TableData.MetaData.Next_Page}}
-                </button>
-                {{ end }}
-              </div>
-              <div class="showing-section">
-                <span
-                  >Showing {{.TableData.MetaData.Currently_Showing}} of
-                  {{.TableData.MetaData.Total_Records}}</span
-                >
-              </div>
-              <div class="records-per-page">
-                <label for="recordsPerPage">Records per page:</label>
-                <select id="recordsPerPage" name="limit">
-                  <option value="10">10</option>
-                  <option value="20">20</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </form>
+<div class="search-box">
+  <form
+    class="search-form"
+    action="{{.FormData.FormDetails.FormAction}}"
+    method="{{.FormData.FormDetails.FormMethod}}"
+  >
+    <div class="search-form-row">
+      <div class="search-form-col">
+        {{/* Search box */}}
+        <input
+          type="text"
+          id="search-input"
+          class="search-input"
+          name="search"
+          placeholder="Search Records"
+          value="{{.SearchTerm}}"
+        />
+        <button type="submit" class="submit-button">Search</button>
       </div>
-{{end}}
+      <div class="search-form-col">
+        {{/* Page navigation buttons */}}
+        <div class="record-nav-buttons">
+          {{if .TableData.MetaData.Prev_Page}}
+          <button
+            type="submit"
+            name="page"
+            value="{{.TableData.MetaData.Prev_Page}}"
+          >
+            <
+          </button>
+          {{ end }}
+          <div class="pagination-section">
+            <span>Page</span>
+            <span class="page-of-section">
+              {{.TableData.MetaData.Current_Page}} of
+              {{.TableData.MetaData.Total_Pages}}
+            </span>
+          </div>
+          {{if .TableData.MetaData.Next_Page}}
+          <button
+            type="submit"
+            name="page"
+            value="{{.TableData.MetaData.Next_Page}}"
+          >
+            >
+          </button>
+          {{ end }}
+        </div>
+
+        {{/* Records per page section */}}
+        <div class="showing-section">
+          <span
+            >Showing {{.TableData.MetaData.Currently_Showing}} of
+            {{.TableData.MetaData.Total_Records}}</span
+          >
+        </div>
+        <div class="records-per-page">
+          <label for="recordsPerPage">Records per page:</label>
+          <select
+            id="recordsPerPage"
+            name="limit"
+            onchange="this.form.submit()"
+          >
+            <option
+              value="10"
+              {{if
+              eq
+              .TableData.MetaData.Records_Per_Page
+              10}}selected{{end}}
+            >
+              10
+            </option>
+            <option
+              value="20"
+              {{if
+              eq
+              .TableData.MetaData.Records_Per_Page
+              20}}selected{{end}}
+            >
+              20
+            </option>
+            <option
+              value="50"
+              {{if
+              eq
+              .TableData.MetaData.Records_Per_Page
+              50}}selected{{end}}
+            >
+              50
+            </option>
+            <option
+              value="100"
+              {{if
+              eq
+              .TableData.MetaData.Records_Per_Page
+              100}}selected{{end}}
+            >
+              100
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{{ end }}
 `

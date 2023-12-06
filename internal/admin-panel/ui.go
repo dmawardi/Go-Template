@@ -22,6 +22,8 @@ type PageRenderData struct {
 	// Form
 	FormData  FormData
 	TableData TableData
+	// Search
+	SearchTerm string
 }
 
 // Page type (Used for content selection)
@@ -58,7 +60,6 @@ type EditInfo struct {
 func BuildTableData(listOfSchemaObjects []db.AdminPanelSchema, metaData models.SchemaMetaData, adminSchemaBaseUrl string, tableHeaders []string) TableData {
 	// Calculate currently showing records and total pages
 	currentlyShowing := metaData.CalculateCurrentlyShowingRecords()
-	fmt.Printf("Currently showing: %d\n", currentlyShowing)
 	// Init table data
 	tableData := TableData{
 		AdminSchemaUrl: adminSchemaBaseUrl,

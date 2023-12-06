@@ -92,7 +92,6 @@ func serveAdminError(w http.ResponseWriter, sectionTitle string) {
 		PageTitle:    "Error - Admin",
 		SectionTitle: sectionTitle,
 		SidebarList:  sidebarList,
-		SchemaHome:   adminUserUrl,
 		PageType: PageType{
 			EditPage:   false,
 			ReadPage:   false,
