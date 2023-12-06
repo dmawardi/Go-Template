@@ -59,7 +59,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	adminUserSlice := c.convertDataToAdminPanelSchema(*users.Data)
 
 	// Build the table data
-	tableData := BuildTableData(adminUserSlice, adminUserUrl, tableHeaders)
+	tableData := BuildTableData(adminUserSlice, users.Meta, adminUserUrl, tableHeaders)
 
 	// Data to be injected into template
 	data := PageRenderData{

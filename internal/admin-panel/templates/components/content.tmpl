@@ -31,7 +31,7 @@
             <div class="search-form-col">
               <div class="records-per-page">
                 <label for="recordsPerPage">Records per page:</label>
-                <select id="recordsPerPage" name="recordsPerPage">
+                <select id="recordsPerPage" name="limit">
                   <option value="10">10</option>
                   <option value="20">20</option>
                   <option value="50">50</option>
@@ -42,6 +42,16 @@
                 <button type="submit" name="page" value="previous">
                   Previous
                 </button>
+                <div class="pagination-section">
+                  <span class="page-of-section">
+                    {{.TableData.MetaData.Current_Page}} of
+                    {{.TableData.MetaData.Total_Pages}}
+                  </span>
+                  <span class="showing-section"
+                    >Showing {{.TableData.MetaData.Currently_Showing}} of
+                    {{.TableData.MetaData.Total_Pages}}</span
+                  >
+                </div>
                 <button type="submit" name="page" value="next">Next</button>
               </div>
             </div>

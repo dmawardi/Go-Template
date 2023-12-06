@@ -6,6 +6,7 @@
   border: 1px solid #ebebeb;
   border-radius: 5px;
   background-color: #c2c2c2;
+  color: black;
 }
 
 .search-input {
@@ -92,12 +93,14 @@
 
 /* Search box */
 .record-nav-buttons {
-  text-align: right;
+  text-align: center;
   margin-top: 1vh;
+  display: flex;
+  align-items: end;
+  flex-direction: row-reverse;
 }
 
 .records-per-page {
-  color: black;
   text-align: right;
 }
 
@@ -109,6 +112,17 @@
   display: flex;
   flex-direction: column; /* Stack columns vertically on small screens */
   gap: 10px; /* Space between columns */
+}
+
+/* Pagination */
+.pagination-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.page-of-section,
+.showing-section {
+  margin: 0;
 }
 
 /* Large screens (desktops) */

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/dmawardi/Go-Template/internal/db"
-	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"gorm.io/gorm"
 )
@@ -60,13 +59,7 @@ func (r *postRepository) FindAll(limit int, offset int, order string, conditions
 	}
 
 	// Build metadata object
-	metaData := models.SchemaMetaData{
-		Total_Records:    *totalCount,
-		Records_Per_Page: limit,
-		Current_Page:     offset,
-		Next_Page:        helpers.ReturnNilIfZero(nextPage),
-		Prev_Page:        helpers.ReturnNilIfZero(prevPage),
-	}
+	metaData := models.NewSchemaMetaData(*totalCount, limit, offset, &nextPage, &prevPage)
 	// Query all post based on the received parameters
 	posts, err := QueryAllPostsBasedOnParams(limit, offset, order, conditions, r.DB)
 	if err != nil {

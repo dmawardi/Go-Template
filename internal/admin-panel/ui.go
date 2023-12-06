@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/dmawardi/Go-Template/internal/models"
 )
 
 // Data used to render each page
@@ -37,6 +38,7 @@ type TableData struct {
 	AdminSchemaUrl string // eg. /users/
 	TableHeaders   []string
 	TableRows      []TableRow
+	MetaData       models.ExtendedSchemaMetaData
 }
 
 // Data to complete a table row
@@ -53,12 +55,14 @@ type EditInfo struct {
 
 // Form data
 // Function to build table data from slice of adminpanel schema objects, admin schema url (eg. /admin/users) and table headers
-func BuildTableData(listOfSchemaObjects []db.AdminPanelSchema, adminSchemaBaseUrl string, tableHeaders []string) TableData {
+func BuildTableData(listOfSchemaObjects []db.AdminPanelSchema, metaData models.SchemaMetaData, adminSchemaBaseUrl string, tableHeaders []string) TableData {
 	// Init table data
 	tableData := TableData{
 		AdminSchemaUrl: adminSchemaBaseUrl,
 		TableHeaders:   tableHeaders,
 		TableRows:      []TableRow{},
+		// Build extended metadata
+		MetaData: models.NewExtendedSchemaMetaData(metaData, metaData.CalculateTotalPages(), metaData.CalculateCurrentlyShowingRecords()),
 	}
 
 	// Loop through listOfSchemaObjects and build table rows
