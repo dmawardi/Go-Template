@@ -173,19 +173,19 @@ func ExtractConditionParams(r *http.Request, conditionsToExtract map[string]stri
 
 			// Detecting prefixes for operators
 			switch {
-			// If greater than
+			// If greater than ie. age=gt:20
 			case strings.HasPrefix(queryValue, "gt:"):
 				condition = param + " > ?"
 				value, err = parseValue(queryValue[3:], conditionType)
-			// If less than
+			// If less than ie. age=lt:20
 			case strings.HasPrefix(queryValue, "lt:"):
 				condition = param + " < ?"
 				value, err = parseValue(queryValue[3:], conditionType)
-			// If greater than or equal to
+			// If greater than or equal to ie. age=gte:20
 			case strings.HasPrefix(queryValue, "gte:"):
 				condition = param + " >= ?"
 				value, err = parseValue(queryValue[4:], conditionType)
-			// If less than or equal to
+			// If less than or equal to ie. age=lte:20
 			case strings.HasPrefix(queryValue, "lte:"):
 				condition = param + " <= ?"
 				value, err = parseValue(queryValue[4:], conditionType)

@@ -67,7 +67,6 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 	// Grab order
 	order := helpers.GrabQueryParamOrDefault(r, "order", "id")
-	fmt.Printf("Order: %s\n", order)
 	// Calculate offset using pages and limit
 	offset := (page - 1) * limit
 
