@@ -76,10 +76,14 @@
 }
 
 /* Style the "Edit" and "Delete" links */
-.data-table a {
+.data-table tr a {
   text-decoration: none;
-  color: #007bff;
+  color: #7bb9fa;
   margin-right: 10px;
+}
+
+.data-table th a {
+  color: #fff;
 }
 
 /* Style the "Edit" and "Delete" links on hover */

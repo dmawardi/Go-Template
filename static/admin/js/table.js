@@ -31,3 +31,25 @@ function updateSelectAll(checkbox) {
     selectAllCheckbox.checked = allRowCheckboxesChecked;
   }
 }
+
+// Sort the table by the given column
+function sortTable(orderBy) {
+  // Init value
+  let orderValue = "";
+  // Grab the url parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  // Check current order parameter
+  const currentOrderBy = urlParams.get("order");
+  // If the current order parameter is the same as the given column, then reverse the order
+  if (currentOrderBy === orderBy) {
+    // If the current order parameter is ascending, then set the order parameter to descending
+    orderValue = orderBy + "_desc";
+    urlParams.set("order", orderValue);
+  } else {
+    orderValue = orderBy;
+    // Otherwise, set the order parameter to the given column
+    urlParams.set("order", orderValue);
+  }
+  // Reload the page with the new url parameters
+  window.location.search = urlParams;
+}

@@ -29,7 +29,8 @@
             {{
               range.TableHeaders
             }}
-            <th>{{.}}</th>
+
+            <th><a href="#" onclick="sortTable('{{.ColumnSortLabel}}')">{{.Label}}</a></th>
             {{
               end
             }}

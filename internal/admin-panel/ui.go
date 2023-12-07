@@ -38,9 +38,14 @@ type PageType struct {
 // Data table
 type TableData struct {
 	AdminSchemaUrl string // eg. /users/
-	TableHeaders   []string
+	TableHeaders   []TableHeader
 	TableRows      []TableRow
 	MetaData       models.ExtendedSchemaMetaData
+}
+
+type TableHeader struct {
+	Label           string
+	ColumnSortLabel string
 }
 
 // Data to complete a table row
@@ -57,7 +62,7 @@ type EditInfo struct {
 
 // Form data
 // Function to build table data from slice of adminpanel schema objects, admin schema url (eg. /admin/users) and table headers
-func BuildTableData(listOfSchemaObjects []db.AdminPanelSchema, metaData models.SchemaMetaData, adminSchemaBaseUrl string, tableHeaders []string) TableData {
+func BuildTableData(listOfSchemaObjects []db.AdminPanelSchema, metaData models.SchemaMetaData, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
 	// Calculate currently showing records and total pages
 	currentlyShowing := metaData.CalculateCurrentlyShowingRecords()
 	// Init table data
@@ -84,7 +89,7 @@ func BuildTableData(listOfSchemaObjects []db.AdminPanelSchema, metaData models.S
 		// Iterate through tableheaders
 		for _, header := range tableHeaders {
 			// Use header string values to get values from schema object and append
-			row.Data = append(row.Data, object.ObtainValue(header))
+			row.Data = append(row.Data, object.ObtainValue(header.Label))
 		}
 
 		// Append row to table data

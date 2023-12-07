@@ -23,7 +23,11 @@ func roleSelection() []FormFieldSelector {
 	}
 }
 
-var tableHeaders = []string{"ID", "Username", "Email"}
+var tableHeaders = []TableHeader{
+	{Label: "ID", ColumnSortLabel: "id"},
+	{Label: "Name", ColumnSortLabel: "name"},
+	{Label: "Username", ColumnSortLabel: "username"},
+}
 
 // Schema home used to return to the schema home page from delete
 var adminHomeUrl = "/admin/users"
@@ -61,6 +65,9 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error parsing limit", http.StatusBadRequest)
 		return
 	}
+	// Grab order
+	order := helpers.GrabQueryParamOrDefault(r, "order", "id")
+	fmt.Printf("Order: %s\n", order)
 	// Calculate offset using pages and limit
 	offset := (page - 1) * limit
 
@@ -73,9 +80,9 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Can't find conditions", http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("Extracted query params: %+v\n", extractedQueryParams)
+
 	// Grab all users from database
-	users, err := c.service.FindAll(limit, offset, "", extractedQueryParams)
+	users, err := c.service.FindAll(limit, offset, order, extractedQueryParams)
 	if err != nil {
 		http.Error(w, "Error finding data", http.StatusInternalServerError)
 		return

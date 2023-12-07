@@ -200,8 +200,10 @@ func QueryAllUsersBasedOnParams(limit, offset int, order string, conditions []in
 		query = query.Offset(offset)
 	}
 	if order != "" {
+		// Add order to query
 		query = query.Order(order)
 	}
+
 	// Iterate through conditions (stop at second last element)
 	// Increment by 2 to account for condition and value
 	for i := 0; i < len(conditions); i += 2 {

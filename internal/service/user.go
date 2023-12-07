@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/dmawardi/Go-Template/internal/db"
@@ -66,8 +67,26 @@ func (s *userService) Create(user *models.CreateUser) (*db.User, error) {
 
 // Find a list of users in the database
 func (s *userService) FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedUsers, error) {
+	// Init parsed order
+	parsedOrder := ""
+	// If order is not empty
+	if order != "" {
+		// If order contains _
+		if strings.Contains(order, "_") {
+			// Split a string based off _
+			orderSlice := strings.Split(order, "_")
 
-	users, err := s.repo.FindAll(limit, offset, order, conditions)
+			// Make capital letters
+			orderSlice[1] = strings.ToUpper(orderSlice[1])
+			parsedOrder = fmt.Sprintf("%s %s", orderSlice[0], orderSlice[1])
+		} else {
+			// Default to ASC
+			parsedOrder = fmt.Sprintf("%s %s", order, "ASC")
+		}
+	}
+
+	// Query all users based on the received parameters
+	users, err := s.repo.FindAll(limit, offset, parsedOrder, conditions)
 	if err != nil {
 		return nil, err
 	}
