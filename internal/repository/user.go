@@ -11,7 +11,7 @@ import (
 
 type UserRepository interface {
 	// Find a list of all users in the Database
-	FindAll(limit int, offset int, order string, conditions []string) (*models.PaginatedUsers, error)
+	FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedUsers, error)
 	Create(user *db.User) (*db.User, error)
 	Update(int, *db.User) (*db.User, error)
 	Delete(int) error
@@ -42,7 +42,7 @@ func (r *userRepository) Create(user *db.User) (*db.User, error) {
 }
 
 // Find a list of users in the database
-func (r *userRepository) FindAll(limit int, offset int, order string, conditions []string) (*models.PaginatedUsers, error) {
+func (r *userRepository) FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedUsers, error) {
 	// Fetch metadata from database
 	var totalCount *int64
 
@@ -186,36 +186,41 @@ func (r *userRepository) FindByVerificationCode(token string) (*db.User, error) 
 	return &user, nil
 }
 
-// Takes limit, offset, and order parameters, builds a query and executes returning a list of users
-func QueryAllUsersBasedOnParams(limit int, offset int, order string, conditions []string, dbClient *gorm.DB) ([]db.User, error) {
+func QueryAllUsersBasedOnParams(limit, offset int, order string, conditions []interface{}, dbClient *gorm.DB) ([]db.User, error) {
 	// Build model to query database
-	users := []db.User{}
+	var users []db.User
 	// Build base query for users table
-	query := dbClient.Model(&users)
+	query := dbClient.Model(&db.User{})
 
 	// Add parameters into query as needed
-	if limit != 0 {
-		query.Limit(limit)
+	if limit > 0 {
+		query = query.Limit(limit)
 	}
-	if offset != 0 {
-		query.Offset(offset)
+	if offset > 0 {
+		query = query.Offset(offset)
 	}
-	// order format should be "column_name ASC/DESC" eg. "created_at ASC"
 	if order != "" {
-		query.Order(order)
+		query = query.Order(order)
 	}
-	// Add conditions to query
-	if len(conditions) > 0 {
-		for _, condition := range conditions {
+	// Iterate through conditions (stop at second last element)
+	// Increment by 2 to account for condition and value
+	for i := 0; i < len(conditions); i += 2 {
+		// Extract condition and value
+		condition, value := conditions[i].(string), conditions[i+1]
+		// For the first condition, use Where
+		if i == 0 {
 			// Add condition to query
-			query.Where(condition)
+			query = query.Where(condition, value)
+		} else {
+			// For subsequent conditions, use Or
+			query = query.Or(condition, value)
 		}
 	}
+
 	// Query database
-	result := query.Find(&users)
-	if result.Error != nil {
-		return nil, result.Error
+	if err := query.Find(&users).Error; err != nil {
+		return nil, err
 	}
-	// Return if no errors with result
+
 	return users, nil
 }

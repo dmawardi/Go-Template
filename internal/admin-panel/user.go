@@ -64,8 +64,18 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Calculate offset using pages and limit
 	offset := (page - 1) * limit
 
+	// Generate query params to extract
+	queryParamsToExtract := models.UserQueryParams()
+	// Extract query params
+	extractedQueryParams, err := helpers.ExtractConditionParams(r, queryParamsToExtract)
+	if err != nil {
+		fmt.Println("Error extracting conditions: ", err)
+		http.Error(w, "Can't find conditions", http.StatusBadRequest)
+		return
+	}
+	fmt.Printf("Extracted query params: %+v\n", extractedQueryParams)
 	// Grab all users from database
-	users, err := c.service.FindAll(limit, offset, "", []string{})
+	users, err := c.service.FindAll(limit, offset, "", extractedQueryParams)
 	if err != nil {
 		http.Error(w, "Error finding data", http.StatusInternalServerError)
 		return

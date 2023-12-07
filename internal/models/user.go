@@ -72,3 +72,15 @@ type PaginatedUsers struct {
 	Data *[]db.User     `json:"data"`
 	Meta SchemaMetaData `json:"meta"`
 }
+
+// Used to init the query params for easy extraction in controller
+// Returns: map[string]string{"age": "int", "name": "string", "active": "bool"}
+func UserQueryParams() map[string]string {
+	return map[string]string{
+		"email":    "string",
+		"name":     "string",
+		"username": "string",
+		"verified": "bool",
+		"role":     "string",
+	}
+}

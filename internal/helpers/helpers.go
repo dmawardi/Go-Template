@@ -129,28 +129,97 @@ func ReturnNilIfZero(i int) *int {
 	return &i
 }
 
-// Accepts request and a slice of conditions to extract from the request
-func ExtractConditionParams(r *http.Request, userConditions []string) ([]string, error) {
-	// Grab URL query parameters
+// Special handling for search query if found
+func addSearchQueryToConditions(r *http.Request, conditionsToExtract map[string]string, currentConditions []interface{}) []interface{} {
+	// Prepare URL query parameters
 	queryParams := r.URL.Query()
-
-	// extract conditions from query params
-	extractedConditions := []string{}
-	// Iterate through conditions
-	for _, condition := range userConditions {
-		// Check if condition is present in query params
-		if queryParams.Get(condition) != "" {
-			// Extract value from query params
-			queryValue := queryParams.Get(condition)
-			// Replace double quotes with single quotes
-			modQueryValue := strings.Replace(queryValue, `"`, "'", -1)
-			// Build string condition
-			stringCondition := fmt.Sprintf("%s = %s", condition, modQueryValue)
-			// If present, append to slice
-			extractedConditions = append(extractedConditions, stringCondition)
+	// Prepare search query
+	searchQuery := ""
+	if searchValue := queryParams.Get("search"); searchValue != "" {
+		searchQuery = "%" + searchValue + "%"
+		// Iterate through query list to add the search condition to each as a LIKE query
+		for param, conditionType := range conditionsToExtract {
+			// If query parameter is string
+			if conditionType == "string" {
+				// Add query to conditions with param name and make case insensitive
+				lowerCaseValue := strings.ToLower(fmt.Sprintf("%v", searchQuery))
+				currentConditions = append(currentConditions, fmt.Sprintf("LOWER(%s) LIKE ?", param), lowerCaseValue)
+			}
 		}
 	}
+
+	return currentConditions
+}
+
+// Accepts request and a slice of conditions to extract from the request
+// Extracts as a slice of interfaces that are structured as [condition, value]
+func ExtractConditionParams(r *http.Request, conditionsToExtract map[string]string) ([]interface{}, error) {
+	// Prepare URL query parameters
+	queryParams := r.URL.Query()
+	// Prepare slice of conditions
+	var extractedConditions []interface{}
+
+	// Special handling for search query if found
+	extractedConditions = addSearchQueryToConditions(r, conditionsToExtract, extractedConditions)
+
+	// Iterate through query list
+	for param, conditionType := range conditionsToExtract {
+		// If query parameter is present and not empty
+		if queryValue := queryParams.Get(param); queryValue != "" {
+			// Prepare variables
+			var condition string
+			var value interface{}
+			var err error
+
+			// Detecting prefixes for operators
+			switch {
+			// If greater than
+			case strings.HasPrefix(queryValue, "gt:"):
+				condition = param + " > ?"
+				value, err = parseValue(queryValue[3:], conditionType)
+			// If less than
+			case strings.HasPrefix(queryValue, "lt:"):
+				condition = param + " < ?"
+				value, err = parseValue(queryValue[3:], conditionType)
+			// If greater than or equal to
+			case strings.HasPrefix(queryValue, "gte:"):
+				condition = param + " >= ?"
+				value, err = parseValue(queryValue[4:], conditionType)
+			// If less than or equal to
+			case strings.HasPrefix(queryValue, "lte:"):
+				condition = param + " <= ?"
+				value, err = parseValue(queryValue[4:], conditionType)
+			// If default equal condition
+			default:
+				condition = param + " = ?"
+				value, err = parseValue(queryValue, conditionType)
+			}
+
+			// If an issue found, return error
+			if err != nil {
+				return nil, fmt.Errorf("invalid value for %s: %v", param, err)
+			}
+
+			// Append to slice
+			extractedConditions = append(extractedConditions, condition, value)
+		}
+	}
+
 	return extractedConditions, nil
+}
+
+// Helper function to parse the value based on type
+func parseValue(value, conditionType string) (interface{}, error) {
+	switch conditionType {
+	case "int":
+		return strconv.Atoi(value)
+	case "string":
+		return value, nil
+	case "bool":
+		return strconv.ParseBool(value)
+	default:
+		return nil, fmt.Errorf("unknown condition type: %s", conditionType)
+	}
 }
 
 // Generates random string with n characters
@@ -203,6 +272,7 @@ func GrabQueryParamOrDefault(r *http.Request, param string, defaultValue string)
 	return queryParam
 }
 
+// Grabs an INT type query parameter from the request, if not present, returns default value
 func GrabIntQueryParamOrDefault(r *http.Request, param string, defaultValue int) (int, error) {
 	// Grab query parameters
 	queryParam := r.URL.Query().Get(param)

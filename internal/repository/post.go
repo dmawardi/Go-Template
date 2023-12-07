@@ -10,7 +10,7 @@ import (
 
 type PostRepository interface {
 	// Find a list of all users in the Database
-	FindAll(limit int, offset int, order string, conditions []string) (*models.PaginatedPosts, error)
+	FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedPosts, error)
 	FindById(int) (*db.Post, error)
 	Create(post *db.Post) (*db.Post, error)
 	Update(int, *db.Post) (*db.Post, error)
@@ -37,7 +37,7 @@ func (r *postRepository) Create(post *db.Post) (*db.Post, error) {
 }
 
 // Find a list of posts in the database
-func (r *postRepository) FindAll(limit int, offset int, order string, conditions []string) (*models.PaginatedPosts, error) {
+func (r *postRepository) FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedPosts, error) {
 	// Fetch metadata from database
 	var totalCount *int64
 
@@ -137,7 +137,7 @@ func (r *postRepository) Update(id int, post *db.Post) (*db.Post, error) {
 }
 
 // Takes limit, offset, and order parameters, builds a query and executes returning a list of posts
-func QueryAllPostsBasedOnParams(limit int, offset int, order string, conditions []string, dbClient *gorm.DB) ([]db.Post, error) {
+func QueryAllPostsBasedOnParams(limit int, offset int, order string, conditions []interface{}, dbClient *gorm.DB) ([]db.Post, error) {
 	// Build model to query database
 	posts := []db.Post{}
 	// Build base query for posts table

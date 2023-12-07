@@ -52,7 +52,13 @@ func (c postController) FindAll(w http.ResponseWriter, r *http.Request) {
 	orderBy := queryParams.Get("order")
 
 	// Prepare to grab user conditions
-	userConditions := []string{"Name", "Username", "Email", "Role"}
+	// userConditions := []string{"Name", "Username", "Email", "Role"}
+	userConditions := map[string]string{
+		"name":     "string",
+		"username": "string",
+		"email":    "string",
+		"role":     "string",
+	}
 
 	extractedConditions, err := helpers.ExtractConditionParams(r, userConditions)
 	if err != nil {

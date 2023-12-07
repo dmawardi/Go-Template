@@ -64,7 +64,7 @@ func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 	orderBy := queryParams.Get("order")
 
 	// Prepare to grab user conditions
-	userConditions := []string{"Name", "Username", "Email", "Role"}
+	userConditions := models.UserQueryParams()
 
 	extractedConditions, err := helpers.ExtractConditionParams(r, userConditions)
 	if err != nil {

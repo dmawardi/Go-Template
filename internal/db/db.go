@@ -30,7 +30,7 @@ func DbConnect() *gorm.DB {
 }
 
 // Counts the number of records in a table based on conditions
-func CountBasedOnConditions(databaseSchema interface{}, conditions []string, dbClient *gorm.DB) (*int64, error) {
+func CountBasedOnConditions(databaseSchema interface{}, conditions []interface{}, dbClient *gorm.DB) (*int64, error) {
 	// Fetch metadata from database
 	var totalCount int64
 
@@ -39,11 +39,20 @@ func CountBasedOnConditions(databaseSchema interface{}, conditions []string, dbC
 
 	// Add conditions to query
 	if len(conditions) > 0 {
-		for _, condition := range conditions {
-			// Add condition to query
-			query.Where(condition)
+		// Iterate through conditions (stop at second last element)
+		// Increment by 2 to account for condition and value
+		for i := 0; i < len(conditions); i += 2 {
+			// Extract condition and value
+			condition, value := conditions[i].(string), conditions[i+1]
+			// For the first condition, use Where
+			if i == 0 {
+				// Add condition to query
+				query = query.Where(condition, value)
+			} else {
+				// For subsequent conditions, use Or
+				query = query.Or(condition, value)
+			}
 		}
-
 	}
 
 	// Execute query
