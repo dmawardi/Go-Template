@@ -82,3 +82,44 @@ func BulkDeleteByIds(databaseSchema interface{}, ids []int, dbClient *gorm.DB) e
 		return nil
 	}
 }
+
+// Query all records in a table based on conditions (results are populated into a slice of the schema type)
+func QueryAll(dbClient *gorm.DB, dbSchema interface{}, limit, offset int, order string, conditions []interface{}) error {
+	// Build base query for query schema
+	query := dbClient.Model(dbSchema)
+
+	// Add parameters into query as needed
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+	if offset > 0 {
+		query = query.Offset(offset)
+	}
+	if order != "" {
+		// Add order to query
+		query = query.Order(order)
+	}
+
+	// Iterate through conditions (stop at second last element)
+	// Increment by 2 to account for condition and value
+	for i := 0; i < len(conditions); i += 2 {
+		// Extract condition and value
+		condition, value := conditions[i].(string), conditions[i+1]
+		// For the first condition, use Where
+		if i == 0 {
+			// Add condition to query
+			query = query.Where(condition, value)
+		} else {
+			// For subsequent conditions, use Or
+			query = query.Or(condition, value)
+		}
+	}
+
+	// Query database
+	if err := query.Find(dbSchema).Error; err != nil {
+		fmt.Printf("Error in query all: %v\n", err)
+		return err
+	}
+
+	return nil
+}

@@ -74,7 +74,8 @@ func (r *userRepository) FindAll(limit int, offset int, order string, conditions
 	// Build metadata object
 	metaData := models.NewSchemaMetaData(*totalCount, limit, totalPages, currentPage, nextPage, prevPage)
 	// Query all users based on the received parameters
-	users, err := QueryAllUsersBasedOnParams(limit, offset, order, conditions, r.DB)
+	var users []db.User
+	err = db.QueryAll(r.DB, &users, limit, offset, order, conditions)
 	if err != nil {
 		fmt.Printf("Error querying db for list of users: %s", err)
 		return nil, err
@@ -197,45 +198,4 @@ func (r *userRepository) FindByVerificationCode(token string) (*db.User, error) 
 	}
 	// else
 	return &user, nil
-}
-
-func QueryAllUsersBasedOnParams(limit, offset int, order string, conditions []interface{}, dbClient *gorm.DB) ([]db.User, error) {
-	// Build model to query database
-	var users []db.User
-	// Build base query for users table
-	query := dbClient.Model(&db.User{})
-
-	// Add parameters into query as needed
-	if limit > 0 {
-		query = query.Limit(limit)
-	}
-	if offset > 0 {
-		query = query.Offset(offset)
-	}
-	if order != "" {
-		// Add order to query
-		query = query.Order(order)
-	}
-
-	// Iterate through conditions (stop at second last element)
-	// Increment by 2 to account for condition and value
-	for i := 0; i < len(conditions); i += 2 {
-		// Extract condition and value
-		condition, value := conditions[i].(string), conditions[i+1]
-		// For the first condition, use Where
-		if i == 0 {
-			// Add condition to query
-			query = query.Where(condition, value)
-		} else {
-			// For subsequent conditions, use Or
-			query = query.Or(condition, value)
-		}
-	}
-
-	// Query database
-	if err := query.Find(&users).Error; err != nil {
-		return nil, err
-	}
-
-	return users, nil
 }
