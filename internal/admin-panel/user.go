@@ -338,24 +338,40 @@ func (c adminUserController) BulkDelete(w http.ResponseWriter, r *http.Request) 
 	// Init
 	var listOfIds BulkDeleteRequest
 
+	// Prepare response
+	bulkResponse := models.BulkDeleteResponse{
+		// Set deleted records to length of selected items
+		DeletedRecords: len(listOfIds.SelectedItems),
+		Errors:         []error{},
+	}
+
 	// Decode request body as JSON and store in login
 	err := json.NewDecoder(r.Body).Decode(&listOfIds)
 	if err != nil {
 		fmt.Println("Decoding error: ", err)
 	}
 
+	// Convert string slice to int slice
 	intIdList, err := convertStringSliceToIntSlice(listOfIds.SelectedItems)
 	if err != nil {
-		fmt.Println("Error converting string slice to int slice: ", err)
-		http.Error(w, "Error bulk deletion", http.StatusInternalServerError)
+		bulkResponse.Errors = append(bulkResponse.Errors, err)
+		bulkResponse.Success = false
+		helpers.WriteAsJSON(w, bulkResponse)
 		return
 	}
-	fmt.Printf("Bulk delete request: %+v\n", intIdList)
 
 	// Bulk Delete users
-	// err = c.service.BulkDelete(intIdList)
+	err = c.service.BulkDelete(intIdList)
 	// If error detected send error response
-	// else refresh schema home page
+	if err != nil {
+		bulkResponse.Errors = append(bulkResponse.Errors, err)
+		bulkResponse.Success = false
+		helpers.WriteAsJSON(w, bulkResponse)
+		return
+	}
+	// else if successful
+	bulkResponse.Success = true
+	helpers.WriteAsJSON(w, bulkResponse)
 }
 
 // Success handlers

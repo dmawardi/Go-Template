@@ -15,6 +15,12 @@ type ValidationError struct {
 	Validation_errors map[string][]string `json:"validation_errors"`
 }
 
+type BulkDeleteResponse struct {
+	Success        bool    `json:"success"`
+	DeletedRecords int     `json:"deleted_records"`
+	Errors         []error `json:"errors"`
+}
+
 // Schema meta data (attached to find all requests)
 type SchemaMetaData interface {
 	CalculateCurrentlyShowingRecords() int

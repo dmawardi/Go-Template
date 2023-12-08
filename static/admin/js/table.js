@@ -1,5 +1,5 @@
-// Grab the checkbox action form and add an event listener: commitMultiAction
-// document.getElementById('deleteForm').addEventListener('submit', commitMultiAction);
+// Grab the action-submit button
+const actionSubmitButton = document.getElementById("action-submit");
 
 // Select all the rows in the table
 function selectAllRows(checkbox) {
@@ -57,27 +57,56 @@ function sortTable(orderBy) {
   window.location.search = urlParams;
 }
 
-async function commitMultiAction(event, schemaDeleteUrl) {
+async function commitMultiAction(event, schemaHomeUrl) {
   // Prevent default behavior of submission
   event.preventDefault();
+
+  // Grab the value of the bulk action select
+  bulkAction = document.getElementById("action-select").value;
 
   // Collect selected user IDs
   const selectedItems = [];
   // Select all the checkboxes that are checked and iterate through them
-  document
-    .querySelectorAll('input[name="selected_items"]:checked')
-    .forEach(function (item) {
-      // Push the value of the checkbox to the selectedItems array
-      selectedItems.push(item.value);
-    });
-  console.log("selectedItems: ", selectedItems);
-  console.log("schemaDeleteUrl: ", schemaDeleteUrl);
+  htmlSelectedCheckboxes = document.querySelectorAll(
+    'input[name="selected_items"]:checked'
+  );
 
+  htmlSelectedCheckboxes.forEach(function (item) {
+    // Push the value of the checkbox to the selectedItems array
+    selectedItems.push(item.value);
+  });
+
+  // If the bulk action is delete, then call the deleteSelectedItems function
+  if (bulkAction === "delete") {
+    response = await bulkDeleteSelectedItems(
+      selectedItems,
+      schemaHomeUrl + "/bulk-delete"
+    );
+    if (!response) {
+      alert("Bulk delete failed.");
+      // Change button status to failed
+      actionSubmitButton.value = "Failed";
+      actionSubmitButton.disabled = true;
+
+      // Uncheck checkboxes
+      uncheckCheckboxes(htmlSelectedCheckboxes);
+      return;
+    }
+  }
+
+  // Uncheck checkboxes
+  uncheckCheckboxes(htmlSelectedCheckboxes);
+  // Once complete, Reload the page
+  window.location.reload();
+}
+
+// Delete the selected items (returns fail)
+async function bulkDeleteSelectedItems(selectedItems, schemaDeleteUrl) {
   try {
+    // Convert the selectedItems array to JSON
     selectedItemsJson = JSON.stringify({ selected_items: selectedItems });
-    console.log("selectedItemsJson: ", selectedItemsJson);
     // Send a DELETE request to the server
-    const response = await fetch(schemaDeleteUrl + "/bulk-delete", {
+    const response = await fetch(schemaDeleteUrl, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -86,15 +115,25 @@ async function commitMultiAction(event, schemaDeleteUrl) {
       body: selectedItemsJson,
     });
 
+    // If the response is not ok, then throw an error
     if (!response.ok) {
-      throw new Error("Something went wrong");
+      return false;
     }
     console.log("success");
+    // Else convert json response to data
     const data = await response.json();
-    console.log(data);
-    // Handle success
+    return data;
   } catch (error) {
     console.error("Error:", error);
-    // Handle errors
+    return false;
   }
+}
+
+// Takes a NodeList of checkboxes and unchecks them all
+function uncheckCheckboxes(checkedBoxes) {
+  // Iterate through the NodeList of checked checkboxes
+  checkedBoxes.forEach(function (checkbox) {
+    // Uncheck each checkbox
+    checkbox.checked = false;
+  });
 }

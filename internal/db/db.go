@@ -63,6 +63,7 @@ func CountBasedOnConditions(databaseSchema interface{}, conditions []interface{}
 	return &totalCount, nil
 }
 
+// Bulk deletes all records within a table based on ids
 func BulkDeleteByIds(databaseSchema interface{}, ids []int, dbClient *gorm.DB) error {
 	// Start a transaction (to avoid partial deletion)
 	err := dbClient.Transaction(func(tx *gorm.DB) error {

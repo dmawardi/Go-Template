@@ -22,6 +22,7 @@ type UserService interface {
 	Create(user *models.CreateUser) (*db.User, error)
 	Update(int, *models.UpdateUser) (*db.User, error)
 	Delete(int) error
+	BulkDelete([]int) error
 	// Takes an email and if the email is found in the database, will reset the password and send an email to the user with the new password
 	ResetPasswordAndSendEmail(email string) error
 	// Verifies user email in database
@@ -123,6 +124,17 @@ func (s *userService) Delete(id int) error {
 	// If error detected
 	if err != nil {
 		fmt.Println("error in deleting user: ", err)
+		return err
+	}
+	// else
+	return nil
+}
+
+func (s *userService) BulkDelete(ids []int) error {
+	err := s.repo.BulkDelete(ids)
+	// If error detected
+	if err != nil {
+		fmt.Println("error in bulk deleting users: ", err)
 		return err
 	}
 	// else

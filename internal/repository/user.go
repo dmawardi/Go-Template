@@ -15,6 +15,7 @@ type UserRepository interface {
 	Create(user *db.User) (*db.User, error)
 	Update(int, *db.User) (*db.User, error)
 	Delete(int) error
+	BulkDelete([]int) error
 	// Find
 	FindById(int) (*db.User, error)
 	FindByEmail(string) (*db.User, error)
@@ -111,6 +112,18 @@ func (r *userRepository) Delete(id int) error {
 	if result.Error != nil {
 		fmt.Println("error in deleting user: ", result.Error)
 		return result.Error
+	}
+	// else
+	return nil
+}
+
+// Bulk delete users in database
+func (r *userRepository) BulkDelete(ids []int) error {
+	// Delete users with specified IDs
+	err := db.BulkDeleteByIds(db.User{}, ids, r.DB)
+	if err != nil {
+		fmt.Println("error in deleting user: ", err)
+		return err
 	}
 	// else
 	return nil
