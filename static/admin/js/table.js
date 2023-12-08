@@ -1,3 +1,6 @@
+// Grab the checkbox action form and add an event listener: commitMultiAction
+// document.getElementById('deleteForm').addEventListener('submit', commitMultiAction);
+
 // Select all the rows in the table
 function selectAllRows(checkbox) {
   // Grab all the checkboxes
@@ -52,4 +55,46 @@ function sortTable(orderBy) {
   }
   // Reload the page with the new url parameters
   window.location.search = urlParams;
+}
+
+async function commitMultiAction(event, schemaDeleteUrl) {
+  // Prevent default behavior of submission
+  event.preventDefault();
+
+  // Collect selected user IDs
+  const selectedItems = [];
+  // Select all the checkboxes that are checked and iterate through them
+  document
+    .querySelectorAll('input[name="selected_items"]:checked')
+    .forEach(function (item) {
+      // Push the value of the checkbox to the selectedItems array
+      selectedItems.push(item.value);
+    });
+  console.log("selectedItems: ", selectedItems);
+  console.log("schemaDeleteUrl: ", schemaDeleteUrl);
+
+  try {
+    selectedItemsJson = JSON.stringify({ selected_items: selectedItems });
+    console.log("selectedItemsJson: ", selectedItemsJson);
+    // Send a DELETE request to the server
+    const response = await fetch(schemaDeleteUrl + "/bulk-delete", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      // Convert the selectedItems array to JSON and send it in the body of the request
+      body: selectedItemsJson,
+    });
+
+    if (!response.ok) {
+      throw new Error("Something went wrong");
+    }
+    console.log("success");
+    const data = await response.json();
+    console.log(data);
+    // Handle success
+  } catch (error) {
+    console.error("Error:", error);
+    // Handle errors
+  }
 }

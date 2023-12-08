@@ -1,6 +1,6 @@
 {{define "data-table"}}
 <div>
-  <form class="action-form" action="">
+  <form class="action-form" id="action-form" action="">
     <div class="action-box">
       <div id="action-box" class="actions">
         <label for="action-select" class="action-label">Action:</label>
@@ -9,7 +9,7 @@
           <option value="delete">Delete selected items</option>
           <!-- Add more action options as needed -->
         </select>
-        <input type="submit" value="Go" class="action-submit" />
+        <input type="submit" value="Go" class="action-submit" onclick="commitMultiAction(event, '{{.SchemaHome}}')" />
       </div>
     </div>
     <!-- Table -->
@@ -27,7 +27,7 @@
               <label for="select-all"></label>
             </th>
             {{
-              range.TableHeaders
+              range.TableData.TableHeaders
             }}
 
             <th><a href="#" onclick="sortTable('{{.ColumnSortLabel}}')">{{.Label}}</a></th>
@@ -40,7 +40,7 @@
         <!-- Table Body -->
         <tbody>
           {{
-            range.TableRows
+            range.TableData.TableRows
           }}
           <tr>
             <!-- For each row -->

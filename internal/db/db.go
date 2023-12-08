@@ -62,3 +62,22 @@ func CountBasedOnConditions(databaseSchema interface{}, conditions []interface{}
 	}
 	return &totalCount, nil
 }
+
+func BulkDeleteByIds(databaseSchema interface{}, ids []int, dbClient *gorm.DB) error {
+	// Start a transaction (to avoid partial deletion)
+	err := dbClient.Transaction(func(tx *gorm.DB) error {
+		// In the transaction, delete users with specified IDs
+		if err := tx.Where("id IN ?", ids).Delete(&databaseSchema).Error; err != nil {
+			return err // Return any error to rollback the transaction
+		}
+
+		return nil // Return nil to commit the transaction
+	})
+
+	// Check if the transaction was successful
+	if err != nil {
+		return err
+	} else {
+		return nil
+	}
+}

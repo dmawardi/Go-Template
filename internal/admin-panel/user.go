@@ -1,6 +1,7 @@
 package adminpanel
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -38,6 +39,8 @@ type AdminUserController interface {
 	// Edit is also used to view the record details
 	Edit(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
+	// Bulk delete (from table)
+	BulkDelete(w http.ResponseWriter, r *http.Request)
 	// Success pages
 	CreateSuccess(w http.ResponseWriter, r *http.Request)
 	EditSuccess(w http.ResponseWriter, r *http.Request)
@@ -328,6 +331,31 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err.Error())
 		return
 	}
+}
+
+func (c adminUserController) BulkDelete(w http.ResponseWriter, r *http.Request) {
+	// Grab body of request
+	// Init
+	var listOfIds BulkDeleteRequest
+
+	// Decode request body as JSON and store in login
+	err := json.NewDecoder(r.Body).Decode(&listOfIds)
+	if err != nil {
+		fmt.Println("Decoding error: ", err)
+	}
+
+	intIdList, err := convertStringSliceToIntSlice(listOfIds.SelectedItems)
+	if err != nil {
+		fmt.Println("Error converting string slice to int slice: ", err)
+		http.Error(w, "Error bulk deletion", http.StatusInternalServerError)
+		return
+	}
+	fmt.Printf("Bulk delete request: %+v\n", intIdList)
+
+	// Bulk Delete users
+	// err = c.service.BulkDelete(intIdList)
+	// If error detected send error response
+	// else refresh schema home page
 }
 
 // Success handlers

@@ -98,3 +98,7 @@ func BuildTableData(listOfSchemaObjects []db.AdminPanelSchema, metaData models.S
 
 	return tableData
 }
+
+type BulkDeleteRequest struct {
+	SelectedItems []string `json:"selected_items"`
+}
