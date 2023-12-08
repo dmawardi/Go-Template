@@ -15,15 +15,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// For role selection in form
-func roleSelection() []FormFieldSelector {
-	return []FormFieldSelector{
-		{Value: "user", Label: "User", Selected: true},
-		{Value: "admin", Label: "Admin", Selected: false},
-		{Value: "moderator", Label: "Moderator", Selected: false},
-	}
-}
-
 var tableHeaders = []TableHeader{
 	{Label: "ID", ColumnSortLabel: "id"},
 	{Label: "Name", ColumnSortLabel: "name"},
@@ -32,6 +23,7 @@ var tableHeaders = []TableHeader{
 
 // Schema home used to return to the schema home page from delete
 var adminHomeUrl = "/admin/users"
+var schemaName = "Users"
 
 type AdminUserController interface {
 	FindAll(w http.ResponseWriter, r *http.Request)
@@ -48,35 +40,35 @@ type AdminUserController interface {
 }
 
 type adminUserController struct {
-	service service.UserService
+	service      service.UserService
+	adminHomeUrl string
+	schemaName   string
+	tableHeaders []TableHeader
 }
 
 func NewUserAdminController(service service.UserService) AdminUserController {
-	return &adminUserController{service: service}
+	return &adminUserController{
+		service: service,
+		// Use values from above
+		adminHomeUrl: adminHomeUrl,
+		schemaName:   schemaName,
+		tableHeaders: tableHeaders}
 }
 
 func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab query parameters
 	searchQuery := r.URL.Query().Get("search")
-	page, err := helpers.GrabIntQueryParamOrDefault(r, "page", 1)
+	// Grab basic query params
+	baseQueryParams, err := helpers.ExtractBasicFindAllQueryParams(r)
 	if err != nil {
-		http.Error(w, "Error parsing page", http.StatusBadRequest)
+		http.Error(w, "Error extracting query params", http.StatusBadRequest)
 		return
 	}
-	limit, err := helpers.GrabIntQueryParamOrDefault(r, "limit", 10)
-	if err != nil {
-		http.Error(w, "Error parsing limit", http.StatusBadRequest)
-		return
-	}
-	// Grab order
-	order := helpers.GrabQueryParamOrDefault(r, "order", "id")
-	// Calculate offset using pages and limit
-	offset := (page - 1) * limit
 
 	// Generate query params to extract
 	queryParamsToExtract := models.UserQueryParams()
 	// Extract query params
-	extractedQueryParams, err := helpers.ExtractConditionParams(r, queryParamsToExtract)
+	extractedConditionParams, err := helpers.ExtractSearchAndConditionParams(r, queryParamsToExtract)
 	if err != nil {
 		fmt.Println("Error extracting conditions: ", err)
 		http.Error(w, "Can't find conditions", http.StatusBadRequest)
@@ -84,7 +76,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Grab all users from database
-	users, err := c.service.FindAll(limit, offset, order, extractedQueryParams)
+	users, err := c.service.FindAll(baseQueryParams.Limit, baseQueryParams.Offset, baseQueryParams.Order, extractedConditionParams)
 	if err != nil {
 		http.Error(w, "Error finding data", http.StatusInternalServerError)
 		return
@@ -613,4 +605,14 @@ func (c adminUserController) convertDataToAdminPanelSchema(slice []db.User) []db
 	}
 
 	return schemaSlice
+}
+
+// Form Selectors
+// For role selection in form
+func roleSelection() []FormFieldSelector {
+	return []FormFieldSelector{
+		{Value: "user", Label: "User", Selected: true},
+		{Value: "admin", Label: "Admin", Selected: false},
+		{Value: "moderator", Label: "Moderator", Selected: false},
+	}
 }

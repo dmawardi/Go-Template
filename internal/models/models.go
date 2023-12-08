@@ -15,6 +15,14 @@ type ValidationError struct {
 	Validation_errors map[string][]string `json:"validation_errors"`
 }
 
+type BaseFindAllQueryParams struct {
+	Page       int
+	Limit      int
+	Offset     int
+	Order      string
+	Conditions map[string]interface{}
+}
+
 type BulkDeleteResponse struct {
 	Success        bool    `json:"success"`
 	DeletedRecords int     `json:"deleted_records"`

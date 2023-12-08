@@ -66,7 +66,7 @@ func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Prepare to grab user conditions
 	userConditions := models.UserQueryParams()
 
-	extractedConditions, err := helpers.ExtractConditionParams(r, userConditions)
+	extractedConditions, err := helpers.ExtractSearchAndConditionParams(r, userConditions)
 	if err != nil {
 		fmt.Println("Error extracting conditions: ", err)
 		http.Error(w, "Can't find conditions", http.StatusBadRequest)

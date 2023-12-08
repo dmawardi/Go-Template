@@ -153,7 +153,7 @@ func addSearchQueryToConditions(r *http.Request, conditionsToExtract map[string]
 
 // Accepts request and a slice of conditions to extract from the request
 // Extracts as a slice of interfaces that are structured as [condition, value]
-func ExtractConditionParams(r *http.Request, conditionsToExtract map[string]string) ([]interface{}, error) {
+func ExtractSearchAndConditionParams(r *http.Request, conditionsToExtract map[string]string) ([]interface{}, error) {
 	// Prepare URL query parameters
 	queryParams := r.URL.Query()
 	// Prepare slice of conditions
@@ -206,6 +206,30 @@ func ExtractConditionParams(r *http.Request, conditionsToExtract map[string]stri
 	}
 
 	return extractedConditions, nil
+}
+
+// Extracts basic pagination query parameters from request
+func ExtractBasicFindAllQueryParams(r *http.Request) (models.BaseFindAllQueryParams, error) {
+	// Grab query parameters
+	page, err := GrabIntQueryParamOrDefault(r, "page", 1)
+	if err != nil {
+		return models.BaseFindAllQueryParams{}, err
+	}
+	limit, err := GrabIntQueryParamOrDefault(r, "limit", 10)
+	if err != nil {
+		return models.BaseFindAllQueryParams{}, err
+	}
+	// Grab order
+	order := GrabQueryParamOrDefault(r, "order", "id")
+	// Calculate offset using pages and limit
+	offset := (page - 1) * limit
+
+	return models.BaseFindAllQueryParams{
+		Page:   page,
+		Limit:  limit,
+		Offset: offset,
+		Order:  order,
+	}, nil
 }
 
 // Helper function to parse the value based on type

@@ -60,7 +60,7 @@ func (c postController) FindAll(w http.ResponseWriter, r *http.Request) {
 		"role":     "string",
 	}
 
-	extractedConditions, err := helpers.ExtractConditionParams(r, userConditions)
+	extractedConditions, err := helpers.ExtractSearchAndConditionParams(r, userConditions)
 	if err != nil {
 		fmt.Println("Error extracting conditions: ", err)
 		http.Error(w, "Can't find conditions", http.StatusBadRequest)
