@@ -3,7 +3,6 @@ package adminpanel
 import (
 	"fmt"
 
-	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
@@ -44,8 +43,13 @@ type TableData struct {
 }
 
 type TableHeader struct {
-	Label           string
+	Label string
+	// label used in db
 	ColumnSortLabel string
+	// Is data type a pointer
+	Pointer bool
+	// Used for pointer to string extraction
+	DataType string
 }
 
 // Data to complete a table row
@@ -62,7 +66,7 @@ type EditInfo struct {
 
 // Form data
 // Function to build table data from slice of adminpanel schema objects, admin schema url (eg. /admin/users) and table headers
-func BuildTableData(listOfSchemaObjects []db.AdminPanelSchema, metaData models.SchemaMetaData, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
+func BuildTableData(listOfSchemaObjects []AdminPanelSchema, metaData models.SchemaMetaData, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
 	// Calculate currently showing records and total pages
 	currentlyShowing := metaData.CalculateCurrentlyShowingRecords()
 	// Init table data
@@ -88,8 +92,15 @@ func BuildTableData(listOfSchemaObjects []db.AdminPanelSchema, metaData models.S
 
 		// Iterate through tableheaders
 		for _, header := range tableHeaders {
+			// Grab data from the schema object
+			fieldData := object.ObtainValue(header.Label)
+			fmt.Printf("header: %v \nField data: %v\n", header.Label, fieldData)
+
+			// convert fieldData to string
+			stringFieldData := fmt.Sprint(fieldData)
+
 			// Use header string values to get values from schema object and append
-			row.Data = append(row.Data, object.ObtainValue(header.Label))
+			row.Data = append(row.Data, stringFieldData)
 		}
 
 		// Append row to table data

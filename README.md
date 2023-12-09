@@ -52,7 +52,7 @@ go run ./cmd
 
 Follow these steps to add a feature to the API. This template uses the clean architecture pattern
 
-1. Build schema and auto migrate in ./internal/db using ORM instructions below.
+1. Build schema and auto migrate in ./internal/db using ORM instructions below. (Be sure to build the receiver functions getID() and ObtainValue() for the admin panel)
 2. Build repository in ./internal/repository which is the interaction between the DB and the application. This should use a struct with receiver functions.
 3. Build incoming DTO models for Create and Update JSON requests in ./internal/models
 4. Build service in ./internal/service that uses the repository and applies business logic.
@@ -71,6 +71,7 @@ Follow these steps to add a feature to the API. This template uses the clean arc
 
 11. Add the routes in the AddAdminRoutes function in ./internal/routes/routes.go
 12. Add the route to the RBAC authorization policy file (./internal/auth/rbac_policy.go)
+
 13. (Testing) For e2e testing, you will need to update the controllers_test.go file in ./internal/controller. Updates are required in the testDbRepo struct, buildAPI, setupDatabase & setupDBAuthAppModels functions
 
 ---

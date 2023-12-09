@@ -7,12 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// Interface for all schemas (used for Admin panel)
-type AdminPanelSchema interface {
-	GetID() string
-	ObtainValue(keyValue string) string
-}
-
 // Schemas
 type User struct {
 	// gorm.Model `json:"-"`
@@ -35,8 +29,7 @@ type User struct {
 
 // DB Schema interface implementation
 // Mapping of field names to values to allow for dynamic access
-func (schemaObject User) ObtainValue(keyValue string) string {
-	// Map of user fields
+func (schemaObject User) ObtainValue(keyValue string) interface{} {
 	fieldMap := map[string]string{
 		"ID":                     fmt.Sprint(schemaObject.ID),
 		"CreatedAt":              schemaObject.CreatedAt.Format(time.RFC3339),
@@ -45,7 +38,7 @@ func (schemaObject User) ObtainValue(keyValue string) string {
 		"Username":               schemaObject.Username,
 		"Email":                  schemaObject.Email,
 		"Role":                   schemaObject.Role,
-		"Verified":               fmt.Sprint(schemaObject.Verified),
+		"Verified":               fmt.Sprint(PointerToStringWithType(schemaObject.Verified, "bool")),
 		"VerificationCode":       schemaObject.VerificationCode,
 		"VerificationCodeExpiry": schemaObject.VerificationCodeExpiry.Format(time.RFC3339),
 	}
@@ -71,9 +64,9 @@ type Post struct {
 
 // DB Schema interface implementation
 // Mapping of field names to values to allow for dynamic access
-func (schemaObject Post) ObtainValue(keyValue string) string {
+func (schemaObject Post) ObtainValue(keyValue string, fieldMap map[string]string) string {
 	// Map of post fields
-	fieldMap := map[string]string{
+	fieldMap2 := map[string]string{
 		"ID":        fmt.Sprint(schemaObject.ID),
 		"CreatedAt": schemaObject.CreatedAt.Format(time.RFC3339),
 		"UpdatedAt": schemaObject.UpdatedAt.Format(time.RFC3339),
@@ -82,7 +75,7 @@ func (schemaObject Post) ObtainValue(keyValue string) string {
 		"UserID":    fmt.Sprint(schemaObject.UserID),
 	}
 	// Return value of key
-	return fieldMap[keyValue]
+	return fieldMap2[keyValue]
 }
 
 // Grabs the ID of the schema object as string

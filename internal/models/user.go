@@ -75,7 +75,7 @@ type PaginatedUsers struct {
 
 // Used to init the query params for easy extraction in controller
 // Returns: map[string]string{"age": "int", "name": "string", "active": "bool"}
-func UserQueryParams() map[string]string {
+func UserConditionQueryParams() map[string]string {
 	return map[string]string{
 		"email":    "string",
 		"name":     "string",

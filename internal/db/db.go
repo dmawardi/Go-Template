@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"os"
+	"reflect"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -122,4 +123,42 @@ func QueryAll(dbClient *gorm.DB, dbSchema interface{}, limit, offset int, order 
 	}
 
 	return nil
+}
+
+// Extract pointer value as string using data type (used in ObtainValue)
+func PointerToStringWithType(ptr interface{}, dataType string) string {
+	// Print type of ptr
+	fmt.Println("the type of input ptr is: ", reflect.TypeOf(ptr))
+	switch dataType {
+	case "bool":
+		if val, ok := ptr.(*bool); ok {
+			if val == nil {
+				return "nil"
+			}
+			return fmt.Sprintf("%t", *val)
+		}
+	case "int":
+		if val, ok := ptr.(*int); ok {
+			if val == nil {
+				return "nil"
+			}
+			return fmt.Sprintf("%d", *val)
+		}
+	case "float64":
+		if val, ok := ptr.(*float64); ok {
+			if val == nil {
+				return "nil"
+			}
+			return fmt.Sprintf("%f", *val)
+		}
+	case "string":
+		if val, ok := ptr.(*string); ok {
+			if val == nil {
+				return "nil"
+			}
+			return *val
+		}
+	}
+
+	return ""
 }

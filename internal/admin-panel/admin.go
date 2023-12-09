@@ -115,3 +115,12 @@ type sidebarItem struct {
 	FindAllLink string
 	AddLink     string
 }
+
+// Interface for all schemas (used for Admin panel) (Add for every schema)
+type AdminPanelSchema interface {
+	GetID() string
+	ObtainValue(keyValue string) interface{}
+}
+
+// Map used to group form selectors for a schema (eg. FormSelector["field_name"])
+type FormSelectors map[string]func() []FormFieldSelector

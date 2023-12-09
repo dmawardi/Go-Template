@@ -15,15 +15,37 @@ import (
 	"github.com/pkg/errors"
 )
 
-var tableHeaders = []TableHeader{
-	{Label: "ID", ColumnSortLabel: "id"},
-	{Label: "Name", ColumnSortLabel: "name"},
-	{Label: "Username", ColumnSortLabel: "username"},
+// Table headers to show on find all page
+var userTableHeaders = []TableHeader{
+	{Label: "ID", ColumnSortLabel: "id", Pointer: false, DataType: "int"},
+	{Label: "Username", ColumnSortLabel: "username", Pointer: false, DataType: "string"},
+	{Label: "Email", ColumnSortLabel: "email", Pointer: false, DataType: "string"},
+	{Label: "Verified", ColumnSortLabel: "verified", Pointer: true, DataType: "bool"},
 }
 
-// Schema home used to return to the schema home page from delete
-var adminHomeUrl = "/admin/users"
-var schemaName = "Users"
+func NewUserAdminController(service service.UserService) AdminUserController {
+	return &adminUserController{
+		service: service,
+		// Use values from above
+		adminHomeUrl: "/admin/users",
+		schemaName:   "Users",
+		tableHeaders: userTableHeaders,
+		formSelectors: FormSelectors{
+			"role": roleSelection,
+		},
+	}
+}
+
+type adminUserController struct {
+	service service.UserService
+	// For links
+	adminHomeUrl string
+	// For HTML text rendering
+	schemaName string
+	// Custom table headers
+	tableHeaders  []TableHeader
+	formSelectors FormSelectors
+}
 
 type AdminUserController interface {
 	FindAll(w http.ResponseWriter, r *http.Request)
@@ -39,22 +61,6 @@ type AdminUserController interface {
 	DeleteSuccess(w http.ResponseWriter, r *http.Request)
 }
 
-type adminUserController struct {
-	service      service.UserService
-	adminHomeUrl string
-	schemaName   string
-	tableHeaders []TableHeader
-}
-
-func NewUserAdminController(service service.UserService) AdminUserController {
-	return &adminUserController{
-		service: service,
-		// Use values from above
-		adminHomeUrl: adminHomeUrl,
-		schemaName:   schemaName,
-		tableHeaders: tableHeaders}
-}
-
 func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab query parameters
 	searchQuery := r.URL.Query().Get("search")
@@ -66,7 +72,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate query params to extract
-	queryParamsToExtract := models.UserQueryParams()
+	queryParamsToExtract := models.UserConditionQueryParams()
 	// Extract query params
 	extractedConditionParams, err := helpers.ExtractSearchAndConditionParams(r, queryParamsToExtract)
 	if err != nil {
@@ -85,7 +91,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	adminUserSlice := c.convertDataToAdminPanelSchema(*users.Data)
 
 	// Build the table data
-	tableData := BuildTableData(adminUserSlice, users.Meta, adminHomeUrl, tableHeaders)
+	tableData := BuildTableData(adminUserSlice, users.Meta, c.adminHomeUrl, c.tableHeaders)
 
 	// Data to be injected into template
 	data := PageRenderData{
@@ -93,7 +99,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 		SectionTitle: "Select a user to edit",
 		SidebarList:  sidebarList,
 		TableData:    tableData,
-		SchemaHome:   adminHomeUrl,
+		SchemaHome:   c.adminHomeUrl,
 		SearchTerm:   searchQuery,
 		PageType: PageType{
 			EditPage:   false,
@@ -103,7 +109,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{
-				FormAction: adminHomeUrl,
+				FormAction: c.adminHomeUrl,
 				FormMethod: "get",
 			},
 			FormFields: []FormField{},
@@ -301,7 +307,7 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 		PageTitle:    "Delete User",
 		SectionTitle: "Are you sure you wish to delete user: " + stringParameter + "?",
 		SidebarList:  sidebarList,
-		SchemaHome:   adminHomeUrl,
+		SchemaHome:   c.adminHomeUrl,
 		PageType: PageType{
 			EditPage:   false,
 			ReadPage:   false,
@@ -437,7 +443,7 @@ func (c adminUserController) DeleteSuccess(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-// Form Helper functions
+// Forms
 // Used to build Create user form
 func (c adminUserController) generateCreateForm() []FormField {
 	return []FormField{
@@ -458,7 +464,7 @@ func (c adminUserController) generateEditForm() []FormField {
 		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Email", Label: "Email", Name: "email", Placeholder: "Enter email", Value: "", Type: "email", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		// {DbLabel: "Password", Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: roleSelection()},
+		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors["role"]()},
 		{DbLabel: "Verified", Label: "Verified", Name: "verified", Placeholder: "", Value: "false", Type: "checkbox", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "VerificationCode", Label: "Verification Code", Name: "verification_code", Placeholder: "Enter verification code", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 		{DbLabel: "VerificationCodeExpiry", Label: "Verification Code Expiry", Name: "verification_code_expiry", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
@@ -529,18 +535,7 @@ func (c adminUserController) extractUpdateFormSubmission(r *http.Request) (model
 // Used to populate form field placeholders with data from database
 func (c adminUserController) populatePlaceholders(user db.User, form *[]FormField) error {
 	// Map of user fields
-	fieldMap := map[string]string{
-		"ID":                     fmt.Sprint(user.ID),
-		"CreatedAt":              user.CreatedAt.Format(time.RFC3339),
-		"UpdatedAt":              user.UpdatedAt.Format(time.RFC3339),
-		"Name":                   user.Name,
-		"Username":               user.Username,
-		"Email":                  user.Email,
-		"Role":                   user.Role,
-		"Verified":               fmt.Sprint(user.Verified),
-		"VerificationCode":       user.VerificationCode,
-		"VerificationCodeExpiry": user.VerificationCodeExpiry.Format(time.RFC3339),
-	}
+	fieldMap := c.getValuesUsingFieldMap(user)
 
 	// Loop through fields and populate placeholders
 	for i := range *form {
@@ -594,10 +589,27 @@ func (c adminUserController) populateValuesWithForm(r *http.Request, form *[]For
 	return nil
 }
 
-// Convert data to AdminPanelSchema
-func (c adminUserController) convertDataToAdminPanelSchema(slice []db.User) []db.AdminPanelSchema {
+func (c adminUserController) getValuesUsingFieldMap(user db.User) map[string]string {
+	// Map of user fields
+	fieldMap := map[string]string{
+		"ID":                     fmt.Sprint(user.ID),
+		"CreatedAt":              user.CreatedAt.Format(time.RFC3339),
+		"UpdatedAt":              user.UpdatedAt.Format(time.RFC3339),
+		"Name":                   user.Name,
+		"Username":               user.Username,
+		"Email":                  user.Email,
+		"Role":                   user.Role,
+		"Verified":               fmt.Sprint(user.Verified),
+		"VerificationCode":       user.VerificationCode,
+		"VerificationCodeExpiry": user.VerificationCodeExpiry.Format(time.RFC3339),
+	}
+	return fieldMap
+}
+
+// Convert data to AdminPanelSchema through appending to new slice of AdminPanelSchema
+func (c adminUserController) convertDataToAdminPanelSchema(slice []db.User) []AdminPanelSchema {
 	// Init AdminPanelSchema
-	var schemaSlice []db.AdminPanelSchema
+	var schemaSlice []AdminPanelSchema
 	// Loop through users and append to schemaSlice
 	for _, user := range slice {
 		// Append user to schemaSlice
@@ -608,6 +620,12 @@ func (c adminUserController) convertDataToAdminPanelSchema(slice []db.User) []db
 }
 
 // Form Selectors
+// Takes a form field name and returns a slice of FormFieldSelectors for enum/category fields
+func (c adminUserController) getFormSelector(field string) []FormFieldSelector {
+	// Return the result of function stored in map with field as key
+	return c.formSelectors[field]()
+}
+
 // For role selection in form
 func roleSelection() []FormFieldSelector {
 	return []FormFieldSelector{
