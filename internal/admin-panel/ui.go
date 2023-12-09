@@ -2,6 +2,7 @@ package adminpanel
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/dmawardi/Go-Template/internal/models"
 )
@@ -42,6 +43,7 @@ type TableData struct {
 	MetaData       models.ExtendedSchemaMetaData
 }
 
+// Used for table header information. Also holds information for sorting and pointer + data type
 type TableHeader struct {
 	Label string
 	// label used in db
@@ -94,7 +96,6 @@ func BuildTableData(listOfSchemaObjects []AdminPanelSchema, metaData models.Sche
 		for _, header := range tableHeaders {
 			// Grab data from the schema object
 			fieldData := object.ObtainValue(header.Label)
-			fmt.Printf("header: %v \nField data: %v\n", header.Label, fieldData)
 
 			// convert fieldData to string
 			stringFieldData := fmt.Sprint(fieldData)
@@ -110,6 +111,26 @@ func BuildTableData(listOfSchemaObjects []AdminPanelSchema, metaData models.Sche
 	return tableData
 }
 
-type BulkDeleteRequest struct {
-	SelectedItems []string `json:"selected_items"`
+// Function to render the Admin error page to the response
+func serveAdminError(w http.ResponseWriter, sectionTitle string) {
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    "Error - Admin",
+		SectionTitle: sectionTitle,
+		SidebarList:  sidebarList,
+		PageType: PageType{
+			EditPage:   false,
+			ReadPage:   false,
+			CreatePage: false,
+			DeletePage: true,
+		},
+		FormData: FormData{},
+	}
+
+	// Execute the template with data and write to response
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 }

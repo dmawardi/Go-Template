@@ -3,7 +3,6 @@ package db
 import (
 	"fmt"
 	"os"
-	"reflect"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -127,8 +126,6 @@ func QueryAll(dbClient *gorm.DB, dbSchema interface{}, limit, offset int, order 
 
 // Extract pointer value as string using data type (used in ObtainValue)
 func PointerToStringWithType(ptr interface{}, dataType string) string {
-	// Print type of ptr
-	fmt.Println("the type of input ptr is: ", reflect.TypeOf(ptr))
 	switch dataType {
 	case "bool":
 		if val, ok := ptr.(*bool); ok {

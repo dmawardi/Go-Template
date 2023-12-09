@@ -1,6 +1,9 @@
 package adminpanel
 
 import (
+	"html/template"
+	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -25,4 +28,33 @@ func convertStringSliceToIntSlice(stringSlice []string) ([]int, error) {
 		intSlice = append(intSlice, num) // Append the converted int to the slice
 	}
 	return intSlice, nil
+}
+
+// Parses all the template files in the templates directory
+func ParseAdminTemplates() (*template.Template, error) {
+	// Parse the base template
+	tmpl := template.New("/internal/admin-panel/templates/layout.tmpl")
+
+	// Walk through all files in the templates directory
+	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		// If the file is not a directory and has the .html extension
+		if !info.IsDir() && filepath.Ext(path) == ".tmpl" {
+			// Parse the file
+			_, err = tmpl.ParseFiles(path)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	// Return error if there is filepath walk issue
+	if err != nil {
+		return nil, err
+	}
+
+	return tmpl, nil
 }

@@ -1,16 +1,20 @@
 package adminpanel
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
-// Go Template components
-
+// Used to build form in Go Templates
+// Primary form data used in PagerenderData
 type FormData struct {
-	FormFields  []FormField
+	// Form title
+	FormFields []FormField
+	// Contains form action and method
 	FormDetails FormDetails
 }
 
@@ -35,6 +39,7 @@ type FormField struct {
 	Selectors   []FormFieldSelector
 }
 
+// Used to store data to render form selectors in Go Templates
 type FormFieldSelector struct {
 	Value    string
 	Label    string
@@ -44,16 +49,15 @@ type FormFieldSelector struct {
 // Display of errors in form
 type ErrorMessage string
 
-type UserEditForm struct {
-	Title  string
-	Fields []FormField
-}
-
 // Form Details
 type FormDetails struct {
 	FormAction string
 	FormMethod string
 }
+
+// Map used to group form selectors for a schema (eg. FormSelector["field_name"])
+// Form selectors are used to index the form selectors as functions that return map[string]string
+type FormSelectors map[string]func() []FormFieldSelector
 
 // Sets the Errors field in each field of a form
 func SetValidationErrorsInForm(form []FormField, validationErrors models.ValidationError) {
@@ -79,19 +83,7 @@ func SetValidationErrorsInForm(form []FormField, validationErrors models.Validat
 	}
 }
 
-// Adds an error to a specific field in a form
-func addErrorToField(fields []FormField, fieldName string, newError ErrorMessage) {
-	// Iterate through fields
-	for i, field := range fields {
-		// Check if field name matches
-		if field.Name == fieldName {
-			// If found, append error message to field
-			fields[i].Errors = append(fields[i].Errors, newError)
-			break // assuming only one field can have the matching name
-		}
-	}
-}
-
+// Function to build selector for form. Takes current value to set as selected
 func addDefaultSelectedToSelector(selector []FormFieldSelector, currentValue string) []FormFieldSelector {
 	// Iterate through selector
 	for i := range selector {
@@ -107,4 +99,50 @@ func addDefaultSelectedToSelector(selector []FormFieldSelector, currentValue str
 	}
 	// Return completed selector
 	return selector
+}
+
+// Used to populate FormField with placeholder values found from request
+func populateValuesWithForm(r *http.Request, form *[]FormField, fieldMap map[string]string) error {
+	// Parse the form
+	err := r.ParseForm()
+	if err != nil {
+		return errors.New("Error parsing form")
+	}
+
+	// Loop through fields and populate placeholders
+	for i := range *form {
+		// Get pointer to field
+		field := &(*form)[i]
+		// If the field exists in the map, populate the placeholder
+		if val, ok := fieldMap[field.DbLabel]; ok {
+			field.Value = val
+		} else {
+			return fmt.Errorf("field: %s not found in map", field.DbLabel)
+		}
+	}
+	return nil
+}
+
+// Used to populate form field placeholders with data from database
+func populatePlaceholdersWithDBData(form *[]FormField, fieldMap map[string]string) error {
+	// Loop through fields and populate placeholders
+	for i := range *form {
+		// Get pointer to field
+		field := &(*form)[i]
+		if field.Type == "select" {
+			// Update selectors with default value
+			field.Selectors = addDefaultSelectedToSelector(field.Selectors, fieldMap[field.DbLabel])
+			// Else treat as ordinary input
+		} else {
+			// If the field exists in the map, populate the placeholder
+			if val, ok := fieldMap[field.DbLabel]; ok {
+				// Populate placeholder as value from field map
+				field.Placeholder = val
+			} else {
+				return fmt.Errorf("field: %s not found in map", field.DbLabel)
+			}
+		}
+	}
+
+	return nil
 }

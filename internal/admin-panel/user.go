@@ -123,7 +123,6 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
 func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 	// Init new User Create form
 	createUserForm := c.generateCreateForm()
@@ -156,8 +155,15 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 		// If validation fails
 		// Populate form field errors
 		SetValidationErrorsInForm(createUserForm, *valErrors)
+
+		// Extract form submission from request and build into map[string]string
+		formFieldMap, err := c.extractFormFromRequest(r)
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
 		// Populate previouisly entered values (Avoids password)
-		c.populateValuesWithForm(r, &createUserForm)
+		populateValuesWithForm(r, &createUserForm, formFieldMap)
 	}
 
 	// Render preparation
@@ -188,7 +194,6 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
 func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 	// Init new User Edit form
 	editUserForm := c.generateEditForm()
@@ -210,7 +215,6 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
 		}
-		fmt.Printf("Edit user form extracted: %+v\n", userToValidate)
 
 		// Validate struct
 		pass, valErrors := helpers.GoValidateStruct(userToValidate)
@@ -231,8 +235,19 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		// If validation fails
 		// Populate form field errors
 		SetValidationErrorsInForm(editUserForm, *valErrors)
-		// Populate previouisly entered values (Avoids password)
-		c.populateValuesWithForm(r, &editUserForm)
+
+		// Extract form submission from request and build into map[string]string
+		fieldMap, err := c.extractFormFromRequest(r)
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+		// Populate previously entered values (Avoids password)
+		err = populateValuesWithForm(r, &editUserForm, fieldMap)
+		if err != nil {
+			http.Error(w, "Error populating form", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// If not POST, ie. GET
@@ -245,8 +260,11 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
+
 	// Populate form field placeholders with data from database
-	err = c.populatePlaceholders(*foundUser, &editUserForm)
+	userData := c.getValuesUsingFieldMap(*foundUser)
+	// Populate form field placeholders with data from database
+	err = populatePlaceholdersWithDBData(&editUserForm, userData)
 	if err != nil {
 		http.Error(w, "Error generating form", http.StatusInternalServerError)
 		return
@@ -279,7 +297,6 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
 func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 	stringParameter := chi.URLParam(r, "id")
 	// Convert to int
@@ -330,7 +347,6 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
 func (c adminUserController) BulkDelete(w http.ResponseWriter, r *http.Request) {
 	// Grab body of request
 	// Init
@@ -443,7 +459,7 @@ func (c adminUserController) DeleteSuccess(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-// Forms
+// Form generation
 // Used to build Create user form
 func (c adminUserController) generateCreateForm() []FormField {
 	return []FormField{
@@ -473,7 +489,8 @@ func (c adminUserController) generateEditForm() []FormField {
 	}
 }
 
-// Used to extract form submission from request
+// Extract forms
+// Used to extract form submission from request and build into models.CreateUser
 func (c adminUserController) extractCreateFormSubmission(r *http.Request) (models.CreateUser, error) {
 	// Parse the form
 	err := r.ParseForm()
@@ -502,7 +519,7 @@ func (c adminUserController) extractCreateFormSubmission(r *http.Request) (model
 	return userToValidate, nil
 }
 
-// Used to extract form submission from request
+// Used to extract form submission from request and build into models.UpdateUser
 func (c adminUserController) extractUpdateFormSubmission(r *http.Request) (models.UpdateUser, error) {
 	// Parse the form
 	err := r.ParseForm()
@@ -532,40 +549,13 @@ func (c adminUserController) extractUpdateFormSubmission(r *http.Request) (model
 }
 
 // Basic helper functions
-// Used to populate form field placeholders with data from database
-func (c adminUserController) populatePlaceholders(user db.User, form *[]FormField) error {
-	// Map of user fields
-	fieldMap := c.getValuesUsingFieldMap(user)
-
-	// Loop through fields and populate placeholders
-	for i := range *form {
-		// Get pointer to field
-		field := &(*form)[i]
-		if field.Type == "select" {
-			// Update selectors with default value
-			field.Selectors = addDefaultSelectedToSelector(field.Selectors, fieldMap[field.DbLabel])
-			// Else treat as ordinary input
-		} else {
-			// If the field exists in the map, populate the placeholder
-			if val, ok := fieldMap[field.DbLabel]; ok {
-				field.Placeholder = val
-			} else {
-				return fmt.Errorf("field: %s not found in map", field.DbLabel)
-			}
-		}
-	}
-
-	return nil
-}
-
-// Used to populate form field placeholders with data from database
-func (c adminUserController) populateValuesWithForm(r *http.Request, form *[]FormField) error {
+// Used to extract form submission from request and build into map[string]string (Used in populateValuesWithForm)
+func (c adminUserController) extractFormFromRequest(r *http.Request) (map[string]string, error) {
 	// Parse the form
 	err := r.ParseForm()
 	if err != nil {
-		return errors.New("Error parsing form")
+		return nil, errors.New(fmt.Sprintf("Error parsing form: %s", err.Error()))
 	}
-
 	// Map of user fields
 	fieldMap := map[string]string{
 		"Name":     r.FormValue("name"),
@@ -574,21 +564,10 @@ func (c adminUserController) populateValuesWithForm(r *http.Request, form *[]For
 		"Role":     r.FormValue("role"),
 		"Verified": r.FormValue("verified"),
 	}
-
-	// Loop through fields and populate placeholders
-	for i := range *form {
-		// Get pointer to field
-		field := &(*form)[i]
-		// If the field exists in the map, populate the placeholder
-		if val, ok := fieldMap[field.DbLabel]; ok {
-			field.Value = val
-		} else {
-			return fmt.Errorf("field: %s not found in map", field.DbLabel)
-		}
-	}
-	return nil
+	return fieldMap, nil
 }
 
+// For dynamic data iteration: takes a user and returns a map for easier dynamic access
 func (c adminUserController) getValuesUsingFieldMap(user db.User) map[string]string {
 	// Map of user fields
 	fieldMap := map[string]string{
@@ -606,7 +585,7 @@ func (c adminUserController) getValuesUsingFieldMap(user db.User) map[string]str
 	return fieldMap
 }
 
-// Convert data to AdminPanelSchema through appending to new slice of AdminPanelSchema
+// Convert schema slice to AdminPanelSchema through appending to new slice of AdminPanelSchema for standardization
 func (c adminUserController) convertDataToAdminPanelSchema(slice []db.User) []AdminPanelSchema {
 	// Init AdminPanelSchema
 	var schemaSlice []AdminPanelSchema
@@ -620,12 +599,6 @@ func (c adminUserController) convertDataToAdminPanelSchema(slice []db.User) []Ad
 }
 
 // Form Selectors
-// Takes a form field name and returns a slice of FormFieldSelectors for enum/category fields
-func (c adminUserController) getFormSelector(field string) []FormFieldSelector {
-	// Return the result of function stored in map with field as key
-	return c.formSelectors[field]()
-}
-
 // For role selection in form
 func roleSelection() []FormFieldSelector {
 	return []FormFieldSelector{
