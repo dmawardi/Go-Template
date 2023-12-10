@@ -43,48 +43,46 @@ func NewUserController(service service.UserService) UserController {
 // API/USERS
 // Find a list of users
 // @Summary      Find a list of users
-// @Description  Accepts limit, offset, and order params and returns list of users
+// @Description  Accepts limit, offset, order, search and field_name query parameters to find a list of users. Search is applied to all string fields.
 // @Tags         User
 // @Accept       json
 // @Produce      json
 // @Param        limit   query      int  true  "limit"
 // @Param        offset   query      int  false  "offset"
-// @Param        order   query      int  false  "order by"
+// @Param        order   query      int  false  "order by eg. (asc) "id" (desc) "id_desc" )"
+// @Param        search   query      int  false  "search (added to all string conditions as LIKE SQL search)"
+// @Param        field_name   query      int  false  "Add any field name currently in the queried table with a value to add specific condition"
 // @Success      200 {object} []models.PaginatedUsers
 // @Failure      400 {string} string "Can't find users"
 // @Failure      400 {string} string "Must include limit parameter with a max value of 50"
+// @Failure      400 {string} string "Error extracting query params"
 // @Router       /users/{id} [get]
 // @Security BearerToken
 func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
-	// Grab URL query parameters
-	queryParams := r.URL.Query()
-	// Separate params
-	limitParam := queryParams.Get("limit")
-	offsetParam := queryParams.Get("offset")
-	orderBy := queryParams.Get("order")
-
-	// Prepare to grab user conditions
-	userConditions := models.UserConditionQueryParams()
-
-	extractedConditions, err := helpers.ExtractSearchAndConditionParams(r, userConditions)
+	// Grab basic query params
+	baseQueryParams, err := helpers.ExtractBasicFindAllQueryParams(r)
 	if err != nil {
-		fmt.Println("Error extracting conditions: ", err)
-		http.Error(w, "Can't find conditions", http.StatusBadRequest)
+		http.Error(w, "Error extracting query params", http.StatusBadRequest)
 		return
 	}
 
-	// Convert to int
-	limit, _ := strconv.Atoi(limitParam)
-	offset, _ := strconv.Atoi(offsetParam)
+	// Generate query params to extract
+	queryParamsToExtract := models.UserConditionQueryParams()
+	// Extract query params
+	extractedConditionParams, err := helpers.ExtractSearchAndConditionParams(r, queryParamsToExtract)
+	if err != nil {
+		http.Error(w, "Error extracting query params", http.StatusBadRequest)
+		return
+	}
 
 	// Check that limit is present as requirement
-	if (limit == 0) || (limit > 50) {
+	if (baseQueryParams.Limit == 0) || (baseQueryParams.Limit > 50) {
 		http.Error(w, "Must include limit parameter with a max value of 50", http.StatusBadRequest)
 		return
 	}
 
 	// Query database for all users using query params
-	foundUsers, err := c.service.FindAll(limit, offset, orderBy, extractedConditions)
+	foundUsers, err := c.service.FindAll(baseQueryParams.Limit, baseQueryParams.Offset, baseQueryParams.Order, extractedConditionParams)
 	if err != nil {
 		http.Error(w, "Can't find users", http.StatusBadRequest)
 		return

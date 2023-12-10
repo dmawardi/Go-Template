@@ -186,6 +186,7 @@ func (r *userRepository) FindByEmail(email string) (*db.User, error) {
 	return &user, nil
 }
 
+// Find a user by the verification code associated with the user
 func (r *userRepository) FindByVerificationCode(token string) (*db.User, error) {
 	// Create an empty ref object of type user
 	user := db.User{}

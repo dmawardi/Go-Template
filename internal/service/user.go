@@ -36,6 +36,7 @@ type userService struct {
 	mail email.Email
 }
 
+// Builds a new service with injected repository. Includes email service
 func NewUserService(repo repository.UserRepository) UserService {
 	return &userService{repo: repo, mail: email.NewSMTPEmail()}
 }
@@ -130,6 +131,7 @@ func (s *userService) Delete(id int) error {
 	return nil
 }
 
+// Deletes multiple users in database
 func (s *userService) BulkDelete(ids []int) error {
 	err := s.repo.BulkDelete(ids)
 	// If error detected

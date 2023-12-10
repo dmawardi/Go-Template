@@ -101,7 +101,7 @@ func addDefaultSelectedToSelector(selector []FormFieldSelector, currentValue str
 	return selector
 }
 
-// Used to populate FormField with placeholder values found from request
+// Used to populate FormField values with placeholder values found from form in request
 func populateValuesWithForm(r *http.Request, form *[]FormField, fieldMap map[string]string) error {
 	// Parse the form
 	err := r.ParseForm()
@@ -123,7 +123,7 @@ func populateValuesWithForm(r *http.Request, form *[]FormField, fieldMap map[str
 	return nil
 }
 
-// Used to populate form field placeholders with data from database
+// Used to populate form field placeholders with data from database (that has been converted to map[string]string)
 func populatePlaceholdersWithDBData(form *[]FormField, fieldMap map[string]string) error {
 	// Loop through fields and populate placeholders
 	for i := range *form {

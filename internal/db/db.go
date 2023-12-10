@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Connects to database and returns client
 func DbConnect() *gorm.DB {
 	// Grab environment variables for connection
 	var DB_USER string = os.Getenv("DB_USER")
