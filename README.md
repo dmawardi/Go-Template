@@ -129,6 +129,8 @@ The schemas are Structs based off of gorm.Model.
 
 After creating the schema in schemas.go, go to db.go and add to automigrate.
 
+For the admin panel, you will need to add two receiver functions to your schema struct in order for it to adhere to the db.AdminPanelSchema interface.
+
 Note for creating and updating using GORM: Relationship data that does not yet exist will be created as a new entry. However, if you try to edit an existing record, it will not allow you to.
 
 ## Role based access control (RBAC) settings

@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -27,30 +26,6 @@ type User struct {
 	Posts []Post `json:"posts,omitempty" gorm:"foreignKey:UserID"`
 }
 
-// DB Schema interface implementation
-// Mapping of field names to values to allow for dynamic access
-func (schemaObject User) ObtainValue(keyValue string) interface{} {
-	fieldMap := map[string]string{
-		"ID":                     fmt.Sprint(schemaObject.ID),
-		"CreatedAt":              schemaObject.CreatedAt.Format(time.RFC3339),
-		"UpdatedAt":              schemaObject.UpdatedAt.Format(time.RFC3339),
-		"Name":                   schemaObject.Name,
-		"Username":               schemaObject.Username,
-		"Email":                  schemaObject.Email,
-		"Role":                   schemaObject.Role,
-		"Verified":               fmt.Sprint(PointerToStringWithType(schemaObject.Verified, "bool")),
-		"VerificationCode":       schemaObject.VerificationCode,
-		"VerificationCodeExpiry": schemaObject.VerificationCodeExpiry.Format(time.RFC3339),
-	}
-	// Return value of key
-	return fieldMap[keyValue]
-}
-
-// Grabs the ID of the schema object as string
-func (schemaObject User) GetID() string {
-	return fmt.Sprint(schemaObject.ID)
-}
-
 type Post struct {
 	ID        uint           `json:"id" gorm:"primaryKey"`
 	CreatedAt time.Time      `swaggertype:"string" json:"created_at,omitempty"`
@@ -60,25 +35,4 @@ type Post struct {
 	Body      string         `json:"body,omitempty"`
 	UserID    uint           `json:"user_id,omitempty"`
 	User      User           `json:"user,omitempty" gorm:"foreignKey:UserID"`
-}
-
-// DB Schema interface implementation
-// Mapping of field names to values to allow for dynamic access
-func (schemaObject Post) ObtainValue(keyValue string, fieldMap map[string]string) string {
-	// Map of post fields
-	fieldMap2 := map[string]string{
-		"ID":        fmt.Sprint(schemaObject.ID),
-		"CreatedAt": schemaObject.CreatedAt.Format(time.RFC3339),
-		"UpdatedAt": schemaObject.UpdatedAt.Format(time.RFC3339),
-		"Title":     schemaObject.Title,
-		"Body":      schemaObject.Body,
-		"UserID":    fmt.Sprint(schemaObject.UserID),
-	}
-	// Return value of key
-	return fieldMap2[keyValue]
-}
-
-// Grabs the ID of the schema object as string
-func (schemaObject Post) GetID() string {
-	return fmt.Sprint(schemaObject.ID)
 }
