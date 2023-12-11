@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html/template"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/dmawardi/Go-Template/internal/db"
@@ -49,7 +48,7 @@ func (s *userService) Create(user *models.CreateUser) (*db.User, error) {
 		return nil, fmt.Errorf("failed to encrypt password: %w", err)
 	}
 	// Create a new user of type db User
-	userToCreate := db.User{
+	toCreate := db.User{
 		Username: user.Username,
 		Password: string(hashedPassword),
 		Name:     user.Name,
@@ -59,36 +58,18 @@ func (s *userService) Create(user *models.CreateUser) (*db.User, error) {
 	}
 
 	// Create above user in database
-	createdUser, err := s.repo.Create(&userToCreate)
+	created, err := s.repo.Create(&toCreate)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating user: %w", err)
 	}
 
-	return createdUser, nil
+	return created, nil
 }
 
 // Find a list of users in the database
 func (s *userService) FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedUsers, error) {
-	// Init parsed order
-	parsedOrder := ""
-	// If order is not empty
-	if order != "" {
-		// If order contains _
-		if strings.Contains(order, "_") {
-			// Split a string based off _
-			orderSlice := strings.Split(order, "_")
-
-			// Make capital letters
-			orderSlice[1] = strings.ToUpper(orderSlice[1])
-			parsedOrder = fmt.Sprintf("%s %s", orderSlice[0], orderSlice[1])
-		} else {
-			// Default to ASC
-			parsedOrder = fmt.Sprintf("%s %s", order, "ASC")
-		}
-	}
-
 	// Query all users based on the received parameters
-	users, err := s.repo.FindAll(limit, offset, parsedOrder, conditions)
+	users, err := s.repo.FindAll(limit, offset, order, conditions)
 	if err != nil {
 		return nil, err
 	}
@@ -145,16 +126,16 @@ func (s *userService) BulkDelete(ids []int) error {
 
 // Updates user in database
 func (s *userService) Update(id int, user *models.UpdateUser) (*db.User, error) {
-	// Create db User type of incoming DTO
-	dbUser := &db.User{Name: user.Name, Username: user.Username, Email: user.Email, Password: user.Password, Role: user.Role, Verified: &user.Verified}
+	// Create db User type from incoming DTO
+	toUpdate := &db.User{Name: user.Name, Username: user.Username, Email: user.Email, Password: user.Password, Role: user.Role, Verified: &user.Verified}
 
 	// Update using repo
-	updatedUser, err := s.repo.Update(id, dbUser)
+	updated, err := s.repo.Update(id, toUpdate)
 	if err != nil {
 		return nil, err
 	}
 
-	return updatedUser, nil
+	return updated, nil
 }
 
 // Takes an email and if the email is found in the database, will reset the password and send an email to the user with the new password

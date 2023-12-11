@@ -101,7 +101,7 @@ func (r *userRepository) BulkDelete(ids []int) error {
 	// Delete users with specified IDs
 	err := db.BulkDeleteByIds(db.User{}, ids, r.DB)
 	if err != nil {
-		fmt.Println("error in deleting user: ", err)
+		fmt.Println("error in deleting users: ", err)
 		return err
 	}
 	// else

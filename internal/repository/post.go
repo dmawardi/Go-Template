@@ -15,6 +15,7 @@ type PostRepository interface {
 	Create(post *db.Post) (*db.Post, error)
 	Update(int, *db.Post) (*db.Post, error)
 	Delete(int) error
+	BulkDelete([]int) error
 }
 
 type postRepository struct {
@@ -90,63 +91,41 @@ func (r *postRepository) Delete(id int) error {
 	return nil
 }
 
+// Bulk delete posts in database
+func (r *postRepository) BulkDelete(ids []int) error {
+	// Delete users with specified IDs
+	err := db.BulkDeleteByIds(db.Post{}, ids, r.DB)
+	if err != nil {
+		fmt.Println("error in deleting posts: ", err)
+		return err
+	}
+	// else
+	return nil
+}
+
 // Updates post in database
 func (r *postRepository) Update(id int, post *db.Post) (*db.Post, error) {
 	// Init
 	var err error
 	// Find post by id
-	foundPost, err := r.FindById(id)
+	found, err := r.FindById(id)
 	if err != nil {
 		fmt.Println("Post to update not found: ", err)
 		return nil, err
 	}
 
 	// Update post using found post
-	updateResult := r.DB.Model(&foundPost).Updates(post)
+	updateResult := r.DB.Model(&found).Updates(post)
 	if updateResult.Error != nil {
 		fmt.Println("Post update failed: ", updateResult.Error)
 		return nil, updateResult.Error
 	}
 
 	// Retrieve changed post by id
-	updatedPost, err := r.FindById(id)
+	updated, err := r.FindById(id)
 	if err != nil {
 		fmt.Println("Post to update not found: ", err)
 		return nil, err
 	}
-	return updatedPost, nil
+	return updated, nil
 }
-
-// Takes limit, offset, and order parameters, builds a query and executes returning a list of posts
-// func QueryAllPostsBasedOnParams(limit int, offset int, order string, conditions []interface{}, dbClient *gorm.DB) ([]db.Post, error) {
-// 	// Build model to query database
-// 	posts := []db.Post{}
-// 	// Build base query for posts table
-// 	query := dbClient.Model(&posts)
-
-// 	// Add parameters into query as needed
-// 	if limit != 0 {
-// 		query.Limit(limit)
-// 	}
-// 	if offset != 0 {
-// 		query.Offset(offset)
-// 	}
-// 	// order format should be "column_name ASC/DESC" eg. "created_at ASC"
-// 	if order != "" {
-// 		query.Order(order)
-// 	}
-// 	// Add conditions to query
-// 	if len(conditions) > 0 {
-// 		for _, condition := range conditions {
-// 			// Add condition to query
-// 			query.Where(condition)
-// 		}
-// 	}
-// 	// Query database
-// 	result := query.Find(&posts)
-// 	if result.Error != nil {
-// 		return nil, result.Error
-// 	}
-// 	// Return if no errors with result
-// 	return posts, nil
-// }

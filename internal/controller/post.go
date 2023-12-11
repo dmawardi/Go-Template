@@ -76,12 +76,12 @@ func (c postController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Query database for all users using query params
-	posts, err := c.service.FindAll(baseQueryParams.Limit, baseQueryParams.Offset, baseQueryParams.Order, extractedConditionParams)
+	found, err := c.service.FindAll(baseQueryParams.Limit, baseQueryParams.Offset, baseQueryParams.Order, extractedConditionParams)
 	if err != nil {
 		http.Error(w, "Can't find posts", http.StatusBadRequest)
 		return
 	}
-	err = helpers.WriteAsJSON(w, posts)
+	err = helpers.WriteAsJSON(w, found)
 	if err != nil {
 		http.Error(w, "Can't find posts", http.StatusBadRequest)
 		fmt.Println("error writing users to response: ", err)
@@ -105,18 +105,17 @@ func (c postController) Find(w http.ResponseWriter, r *http.Request) {
 	stringParameter := chi.URLParam(r, "id")
 	// Convert to int
 	idParameter, err := strconv.Atoi(stringParameter)
-	fmt.Println("id parameter from request: ", stringParameter)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
 
-	foundPost, err := c.service.FindById(idParameter)
+	found, err := c.service.FindById(idParameter)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Can't find post with ID: %v\n", idParameter), http.StatusBadRequest)
 		return
 	}
-	err = helpers.WriteAsJSON(w, foundPost)
+	err = helpers.WriteAsJSON(w, found)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Can't find post with ID: %v\n", idParameter), http.StatusBadRequest)
 		return
@@ -135,15 +134,15 @@ func (c postController) Find(w http.ResponseWriter, r *http.Request) {
 // @Router       /posts [post]
 func (c postController) Create(w http.ResponseWriter, r *http.Request) {
 	// Init
-	var post models.CreatePost
+	var toCreate models.CreatePost
 	// Decode request body as JSON and store in login
-	err := json.NewDecoder(r.Body).Decode(&post)
+	err := json.NewDecoder(r.Body).Decode(&toCreate)
 	if err != nil {
 		fmt.Println("Decoding error: ", err)
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&post)
+	pass, valErrors := helpers.GoValidateStruct(&toCreate)
 	// If failure detected
 	if !pass {
 		// Write bad request header
@@ -155,7 +154,7 @@ func (c postController) Create(w http.ResponseWriter, r *http.Request) {
 	// else, validation passes and allow through
 
 	// Create post
-	_, createErr := c.service.Create(&post)
+	_, createErr := c.service.Create(&toCreate)
 	if createErr != nil {
 		http.Error(w, "Post creation failed.", http.StatusBadRequest)
 		return
@@ -182,15 +181,15 @@ func (c postController) Create(w http.ResponseWriter, r *http.Request) {
 // @Security BearerToken
 func (c postController) Update(w http.ResponseWriter, r *http.Request) {
 	// grab id parameter
-	var post models.UpdatePost
+	var toUpdate models.UpdatePost
 	// Decode request body as JSON and store in login
-	err := json.NewDecoder(r.Body).Decode(&post)
+	err := json.NewDecoder(r.Body).Decode(&toUpdate)
 	if err != nil {
 		fmt.Println("Decoding error: ", err)
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&post)
+	pass, valErrors := helpers.GoValidateStruct(&toUpdate)
 	// If failure detected
 	if !pass {
 		// Write bad request header
@@ -207,13 +206,13 @@ func (c postController) Update(w http.ResponseWriter, r *http.Request) {
 	idParameter, _ := strconv.Atoi(stringParameter)
 
 	// Update post
-	updatedPost, createErr := c.service.Update(idParameter, &post)
+	updated, createErr := c.service.Update(idParameter, &toUpdate)
 	if createErr != nil {
 		http.Error(w, fmt.Sprintf("Failed post update: %s", createErr), http.StatusBadRequest)
 		return
 	}
 	// Write post to output
-	err = helpers.WriteAsJSON(w, updatedPost)
+	err = helpers.WriteAsJSON(w, updated)
 	if err != nil {
 		fmt.Printf("Error encountered when writing to JSON. Err: %s", err)
 	}

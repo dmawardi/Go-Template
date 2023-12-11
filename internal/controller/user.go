@@ -94,12 +94,12 @@ func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Query database for all users using query params
-	foundUsers, err := c.service.FindAll(baseQueryParams.Limit, baseQueryParams.Offset, baseQueryParams.Order, extractedConditionParams)
+	found, err := c.service.FindAll(baseQueryParams.Limit, baseQueryParams.Offset, baseQueryParams.Order, extractedConditionParams)
 	if err != nil {
 		http.Error(w, "Can't find users", http.StatusBadRequest)
 		return
 	}
-	err = helpers.WriteAsJSON(w, foundUsers)
+	err = helpers.WriteAsJSON(w, found)
 	if err != nil {
 		http.Error(w, "Can't find users", http.StatusBadRequest)
 		fmt.Println("error writing users to response: ", err)
@@ -128,12 +128,12 @@ func (c userController) Find(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	foundUser, err := c.service.FindById(idParameter)
+	found, err := c.service.FindById(idParameter)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Can't find user with ID: %v\n", idParameter), http.StatusBadRequest)
 		return
 	}
-	err = helpers.WriteAsJSON(w, foundUser)
+	err = helpers.WriteAsJSON(w, found)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Can't find user with ID: %v\n", idParameter), http.StatusBadRequest)
 		return
@@ -152,15 +152,15 @@ func (c userController) Find(w http.ResponseWriter, r *http.Request) {
 // @Router       /users [post]
 func (c userController) Create(w http.ResponseWriter, r *http.Request) {
 	// Init
-	var user models.CreateUser
+	var toCreate models.CreateUser
 	// Decode request body as JSON and store in login
-	err := json.NewDecoder(r.Body).Decode(&user)
+	err := json.NewDecoder(r.Body).Decode(&toCreate)
 	if err != nil {
 		fmt.Println("Decoding error: ", err)
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&user)
+	pass, valErrors := helpers.GoValidateStruct(&toCreate)
 	// If failure detected
 	if !pass {
 		// Write bad request header
@@ -172,7 +172,7 @@ func (c userController) Create(w http.ResponseWriter, r *http.Request) {
 	// else, validation passes and allow through
 
 	// Create user
-	_, createErr := c.service.Create(&user)
+	_, createErr := c.service.Create(&toCreate)
 	if createErr != nil {
 		http.Error(w, "User creation failed.", http.StatusBadRequest)
 		return
@@ -199,15 +199,15 @@ func (c userController) Create(w http.ResponseWriter, r *http.Request) {
 // @Security BearerToken
 func (c userController) Update(w http.ResponseWriter, r *http.Request) {
 	// grab id parameter
-	var user models.UpdateUser
+	var toUpdate models.UpdateUser
 	// Decode request body as JSON and store in login
-	err := json.NewDecoder(r.Body).Decode(&user)
+	err := json.NewDecoder(r.Body).Decode(&toUpdate)
 	if err != nil {
 		fmt.Println("Decoding error: ", err)
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&user)
+	pass, valErrors := helpers.GoValidateStruct(&toUpdate)
 	// If failure detected
 	if !pass {
 		// Write bad request header
@@ -224,13 +224,13 @@ func (c userController) Update(w http.ResponseWriter, r *http.Request) {
 	idParameter, _ := strconv.Atoi(stringParameter)
 
 	// Update user
-	updatedUser, createErr := c.service.Update(idParameter, &user)
+	updated, createErr := c.service.Update(idParameter, &toUpdate)
 	if createErr != nil {
 		http.Error(w, fmt.Sprintf("Failed user update: %s", createErr), http.StatusBadRequest)
 		return
 	}
 	// Write user to output
-	err = helpers.WriteAsJSON(w, updatedUser)
+	err = helpers.WriteAsJSON(w, updated)
 	if err != nil {
 		fmt.Printf("Error encountered when writing to JSON. Err: %s", err)
 	}

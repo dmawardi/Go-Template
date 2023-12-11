@@ -27,24 +27,23 @@ func NewPostService(repo repository.PostRepository) PostService {
 // Creates a post in the database
 func (s *postService) Create(post *models.CreatePost) (*db.Post, error) {
 	// Create a new user of type db User
-	postToCreate := db.Post{
+	toCreate := db.Post{
 		Title: post.Title,
 		Body:  post.Body,
 		User:  post.User,
 	}
 
 	// Create above post in database
-	createdPost, err := s.repo.Create(&postToCreate)
+	created, err := s.repo.Create(&toCreate)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating post: %w", err)
 	}
 
-	return createdPost, nil
+	return created, nil
 }
 
 // Find a list of posts in the database
 func (s *postService) FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedPosts, error) {
-
 	posts, err := s.repo.FindAll(limit, offset, order, conditions)
 	if err != nil {
 		return nil, err
@@ -76,20 +75,32 @@ func (s *postService) Delete(id int) error {
 	return nil
 }
 
+// Deletes multiple users in database
+func (s *postService) BulkDelete(ids []int) error {
+	err := s.repo.BulkDelete(ids)
+	// If error detected
+	if err != nil {
+		fmt.Println("error in bulk deleting users: ", err)
+		return err
+	}
+	// else
+	return nil
+}
+
 // Updates post in database
 func (s *postService) Update(id int, post *models.UpdatePost) (*db.Post, error) {
 	// Create db Post type from incoming DTO
-	postToUpdate := &db.Post{
+	toUpdate := &db.Post{
 		Title: post.Title,
 		Body:  post.Body,
 		User:  post.User,
 	}
 
 	// Update using repo
-	updatedPost, err := s.repo.Update(id, postToUpdate)
+	updated, err := s.repo.Update(id, toUpdate)
 	if err != nil {
 		return nil, err
 	}
 
-	return updatedPost, nil
+	return updated, nil
 }
