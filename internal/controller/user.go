@@ -283,16 +283,16 @@ func (c userController) Delete(w http.ResponseWriter, r *http.Request) {
 // @Security BearerToken
 func (c userController) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	// grab id parameter
-	var user models.UpdateUser
+	var toUpdate models.UpdateUser
 	// Decode request body as JSON and store in login
-	err := json.NewDecoder(r.Body).Decode(&user)
+	err := json.NewDecoder(r.Body).Decode(&toUpdate)
 	if err != nil {
 		fmt.Println("Decoding error: ", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&user)
+	pass, valErrors := helpers.GoValidateStruct(&toUpdate)
 	// If failure detected
 	if !pass {
 		// Write bad request header
@@ -310,13 +310,13 @@ func (c userController) UpdateMyProfile(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Update user
-	updatedUser, createErr := c.service.Update(*userId, &user)
+	updated, createErr := c.service.Update(*userId, &toUpdate)
 	if createErr != nil {
 		http.Error(w, fmt.Sprintf("Failed user update: %s", createErr), http.StatusBadRequest)
 		return
 	}
 	// Write updated user to output
-	err = helpers.WriteAsJSON(w, updatedUser)
+	err = helpers.WriteAsJSON(w, updated)
 	if err != nil {
 		fmt.Println("Error writing to JSON", err)
 		return
@@ -352,14 +352,14 @@ func (c userController) GetMyUserDetails(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Find user by id from cookie
-	foundUser, err := c.service.FindById(idParameter)
+	found, err := c.service.FindById(idParameter)
 	if err != nil {
 		http.Error(w, "Can't find user details", http.StatusBadRequest)
 		return
 	}
 
 	// Write found user data to Response
-	err = helpers.WriteAsJSON(w, foundUser)
+	err = helpers.WriteAsJSON(w, found)
 	if err != nil {
 		http.Error(w, "Can't find user details", http.StatusBadRequest)
 		return
@@ -405,7 +405,7 @@ func (c userController) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	// else, validation passes and allow through
 	// Check if user exists in db
-	foundUser, err := c.service.FindByEmail(login.Email)
+	found, err := c.service.FindByEmail(login.Email)
 	if err != nil {
 		fmt.Println("Invalid credentials detected")
 		http.Error(w, "Invalid Credentials", http.StatusUnauthorized)
@@ -414,7 +414,7 @@ func (c userController) Login(w http.ResponseWriter, r *http.Request) {
 
 	// If user is found
 	// Compare stored (hashed) password with input password
-	err = bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(login.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(found.Password), []byte(login.Password))
 	if err != nil {
 		http.Error(w, "Incorrect username/password", http.StatusUnauthorized)
 		return
@@ -422,9 +422,9 @@ func (c userController) Login(w http.ResponseWriter, r *http.Request) {
 
 	// If match found (no errors)
 	if err == nil {
-		fmt.Println("User logging in: ", foundUser.Email)
+		fmt.Println("User logging in: ", found.Email)
 		// Set login status to true
-		tokenString, err := auth.GenerateJWT(int(foundUser.ID), foundUser.Email, foundUser.Role)
+		tokenString, err := auth.GenerateJWT(int(found.ID), found.Email, found.Role)
 		if err != nil {
 			fmt.Println("Failed to create JWT")
 		}
@@ -547,20 +547,20 @@ func (c userController) ResendVerificationEmail(w http.ResponseWriter, r *http.R
 	}
 
 	// If validation passes
-	foundUser, err := c.service.FindByEmail(verifyEmail.Email)
+	found, err := c.service.FindByEmail(verifyEmail.Email)
 	if err != nil {
 		http.Error(w, "Invalid email", http.StatusUnauthorized)
 		return
 	}
 
 	// If user is already verified
-	if *foundUser.Verified {
+	if *found.Verified {
 		http.Error(w, "Email already verified", http.StatusUnauthorized)
 		return
 	}
 
 	// Call the service to resend a verification email for the associated user
-	err = c.service.ResendEmailVerification(int(foundUser.ID))
+	err = c.service.ResendEmailVerification(int(found.ID))
 	if err != nil {
 		// Handle the error
 		http.Error(w, "Error sending verification email", http.StatusUnauthorized)
