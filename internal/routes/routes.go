@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 
 	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
@@ -35,8 +36,31 @@ func (a api) Routes() http.Handler {
 	mux.Use(middleware.Logger)
 	mux.Use(corsMiddleware)
 
+	// User schema
+	a.AddUserRoutes(mux)
+	// Other schemas
+	a.AddBasicCrudApiRoutes(mux, "posts", a.Post)
+
+	// Serve API Swagger docs
+	mux.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8080/static/docs/swagger.json"), //The url pointing to API definition
+	))
+
+	// Build fileserver using static directory
+	fileServer := http.FileServer(http.Dir("./static"))
+	// Handle all calls to /static/* by stripping prefix and sending to file server
+	mux.Handle("/static/*", http.StripPrefix("/static/", fileServer))
+
+	// // Add admin routes
+	mux = a.AddAdminRoutes(mux)
+
+	return mux
+}
+
+// Adds User routes to a Chi mux router (includes login, forgot password, etc)
+func (a api) AddUserRoutes(router *chi.Mux) *chi.Mux {
 	// Public routes
-	mux.Group(func(mux chi.Router) {
+	router.Group(func(mux chi.Router) {
 		// @tag.name Public Routes
 		// @tag.description Unprotected routes
 		mux.Get("/", controller.GetJobs)
@@ -67,31 +91,34 @@ func (a api) Routes() http.Handler {
 			mux.Get("/api/me", a.User.GetMyUserDetails)
 			mux.Post("/api/me", controller.HealthCheck)
 			mux.Put("/api/me", a.User.UpdateMyProfile)
-
-			// Posts
-			mux.Get("/api/posts", a.Post.FindAll)
-			mux.Get("/api/posts/{id}", a.Post.Find)
-			mux.Put("/api/posts/{id}", a.Post.Update)
-			mux.Post("/api/posts", a.Post.Create)
-			mux.Delete("/api/posts/{id}", a.Post.Delete)
 		})
 
 	})
+	return router
+}
 
-	// Serve API Swagger docs
-	mux.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/static/docs/swagger.json"), //The url pointing to API definition
-	))
+// Adds a basic fully authorized CRUD route set to a Chi mux router
+func (a api) AddBasicCrudApiRoutes(router *chi.Mux, urlExtension string, controller controller.BasicController) *chi.Mux {
+	// Public routes
+	router.Group(func(mux chi.Router) {
+		// @tag.name Public Routes
+		// @tag.description Unprotected routes
+	})
 
-	// Build fileserver using static directory
-	fileServer := http.FileServer(http.Dir("./static"))
-	// Handle all calls to /static/* by stripping prefix and sending to file server
-	mux.Handle("/static/*", http.StripPrefix("/static/", fileServer))
+	// Private routes
+	router.Group(func(mux chi.Router) {
+		mux.Use(auth.AuthenticateJWT)
+		// @tag.name Private routes
+		// @tag.description Protected routes
+		// Route set
+		mux.Get(fmt.Sprintf("/api/%s", urlExtension), controller.FindAll)
+		mux.Get(fmt.Sprintf("/api/%s/{id}", urlExtension), controller.Find)
+		mux.Put(fmt.Sprintf("/api/%s/{id}", urlExtension), controller.Update)
+		mux.Post(fmt.Sprintf("/api/%s", urlExtension), controller.Create)
+		mux.Delete(fmt.Sprintf("/api/%s/{id}", urlExtension), controller.Delete)
+	})
 
-	// // Add admin routes
-	mux = a.AddAdminRoutes(mux)
-
-	return mux
+	return router
 }
 
 // Function to add new routes to an existing Chi mux router
