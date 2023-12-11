@@ -44,35 +44,13 @@ func (r *userRepository) Create(user *db.User) (*db.User, error) {
 
 // Find a list of users in the database
 func (r *userRepository) FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedUsers, error) {
-	// Fetch metadata from database
-	var totalCount *int64
-
-	// Count the total number of records
-	totalCount, err := db.CountBasedOnConditions(db.User{}, conditions, r.DB)
+	// Build meta data for posts
+	metaData, err := models.BuildMetaData(r.DB, db.Post{}, limit, offset, order, conditions)
 	if err != nil {
+		fmt.Printf("Error building meta data: %s", err)
 		return nil, err
 	}
-	// Find the total number of pages from total count and limit
-	totalPages := int(*totalCount) / limit
-	if int(*totalCount)%limit != 0 {
-		totalPages += 1
-	}
-	// Calculate current page
-	currentPage := offset/limit + 1
-	// Calculate next page
-	var nextPage *int // Using a pointer to represent the absence of a next page
-	if currentPage < totalPages {
-		next := currentPage + 1
-		nextPage = &next
-	}
-	// Calculate previous page
-	var prevPage *int // Using a pointer to represent the absence of a previous page
-	if currentPage > 1 {
-		prev := currentPage - 1
-		prevPage = &prev
-	}
-	// Build metadata object
-	metaData := models.NewSchemaMetaData(*totalCount, limit, totalPages, currentPage, nextPage, prevPage)
+
 	// Query all users based on the received parameters
 	var users []db.User
 	err = db.QueryAll(r.DB, &users, limit, offset, order, conditions)
@@ -83,7 +61,7 @@ func (r *userRepository) FindAll(limit int, offset int, order string, conditions
 
 	return &models.PaginatedUsers{
 		Data: &users,
-		Meta: metaData,
+		Meta: *metaData,
 	}, nil
 }
 

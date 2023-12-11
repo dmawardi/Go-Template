@@ -1,5 +1,10 @@
 package models
 
+import (
+	"github.com/dmawardi/Go-Template/internal/db"
+	"gorm.io/gorm"
+)
+
 type Job struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
@@ -32,7 +37,7 @@ type BulkDeleteResponse struct {
 // Schema meta data (attached to find all requests)
 type SchemaMetaData interface {
 	CalculateCurrentlyShowingRecords() int
-	CalculateTotalPages() int
+	// CalculateTotalPages() int
 	GetMetaData() schemaMetaData
 }
 type schemaMetaData struct {
@@ -71,14 +76,7 @@ func (s *schemaMetaData) CalculateCurrentlyShowingRecords() int {
 	return int(remainder)
 }
 
-func (s *schemaMetaData) CalculateTotalPages() int {
-	totalPages := s.Total_Records / int64(s.Records_Per_Page)
-	if s.Total_Records%int64(s.Records_Per_Page) != 0 {
-		totalPages++ // Add an extra page for the remainder
-	}
-	return int(totalPages)
-}
-
+// Returns a copy of the schema meta data
 func (s *schemaMetaData) GetMetaData() schemaMetaData {
 	return schemaMetaData{
 		Total_Records:    s.Total_Records,
@@ -90,6 +88,44 @@ func (s *schemaMetaData) GetMetaData() schemaMetaData {
 	}
 }
 
+// Build Meta data for QueryAll requests
+func BuildMetaData(dbClient *gorm.DB, dbSchema interface{}, limit int, offset int, order string, conditions []interface{}) (*SchemaMetaData, error) {
+	// Fetch metadata from database
+	var totalCount *int64
+
+	// Count the total number of records
+	totalCount, err := db.CountBasedOnConditions(db.User{}, conditions, dbClient)
+	if err != nil {
+		return nil, err
+	}
+	// Find the total number of pages from total count and limit
+	totalPages := int(*totalCount) / limit
+	if int(*totalCount)%limit != 0 {
+		totalPages += 1
+	}
+	// Calculate current page
+	currentPage := offset/limit + 1
+	// Calculate next page
+	var nextPage *int // Using a pointer to represent the absence of a next page
+	if currentPage < totalPages {
+		next := currentPage + 1
+		nextPage = &next
+	}
+	// Calculate previous page
+	var prevPage *int // Using a pointer to represent the absence of a previous page
+	if currentPage > 1 {
+		prev := currentPage - 1
+		prevPage = &prev
+	}
+	// Build metadata object
+	metaData := NewSchemaMetaData(*totalCount, limit, totalPages, currentPage, nextPage, prevPage)
+
+	// Return meta data
+	return &metaData, nil
+}
+
+// Extended Schema Meta Data
+// Not used in application Only used in admin panel for rendering pagination
 type ExtendedSchemaMetaData interface {
 }
 

@@ -38,35 +38,16 @@ func (r *postRepository) Create(post *db.Post) (*db.Post, error) {
 
 // Find a list of posts in the database
 func (r *postRepository) FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedPosts, error) {
-	// Fetch metadata from database
-	var totalCount *int64
-
-	// Count the total number of records
-	totalCount, err := db.CountBasedOnConditions(db.Post{}, conditions, r.DB)
+	// Build meta data for posts
+	metaData, err := models.BuildMetaData(r.DB, db.Post{}, limit, offset, order, conditions)
 	if err != nil {
+		fmt.Printf("Error building meta data: %s", err)
 		return nil, err
 	}
-	// Find the total number of pages from total count and limit
-	totalPages := int(*totalCount) / limit
-	if int(*totalCount)%limit != 0 {
-		totalPages += 1
-	}
-	// Calculate next page
-	nextPage := offset + limit
-	// If next page is greater than total count, set to 0
-	if nextPage > int(*totalCount) {
-		nextPage = 0
-	}
-	prevPage := offset - limit
-	// If prev page is less than 0, set to 0
-	if prevPage < 0 {
-		prevPage = 0
-	}
 
-	// Build metadata object
-	metaData := models.NewSchemaMetaData(*totalCount, limit, offset, totalPages, &nextPage, &prevPage)
-	// Query all post based on the received parameters
-	posts, err := QueryAllPostsBasedOnParams(limit, offset, order, conditions, r.DB)
+	// Query all posts based on the received parameters
+	var posts []db.Post
+	err = db.QueryAll(r.DB, &posts, limit, offset, order, conditions)
 	if err != nil {
 		fmt.Printf("Error querying db for list of posts: %s", err)
 		return nil, err
@@ -74,7 +55,7 @@ func (r *postRepository) FindAll(limit int, offset int, order string, conditions
 
 	return &models.PaginatedPosts{
 		Data: &posts,
-		Meta: metaData,
+		Meta: *metaData,
 	}, nil
 }
 
@@ -137,35 +118,35 @@ func (r *postRepository) Update(id int, post *db.Post) (*db.Post, error) {
 }
 
 // Takes limit, offset, and order parameters, builds a query and executes returning a list of posts
-func QueryAllPostsBasedOnParams(limit int, offset int, order string, conditions []interface{}, dbClient *gorm.DB) ([]db.Post, error) {
-	// Build model to query database
-	posts := []db.Post{}
-	// Build base query for posts table
-	query := dbClient.Model(&posts)
+// func QueryAllPostsBasedOnParams(limit int, offset int, order string, conditions []interface{}, dbClient *gorm.DB) ([]db.Post, error) {
+// 	// Build model to query database
+// 	posts := []db.Post{}
+// 	// Build base query for posts table
+// 	query := dbClient.Model(&posts)
 
-	// Add parameters into query as needed
-	if limit != 0 {
-		query.Limit(limit)
-	}
-	if offset != 0 {
-		query.Offset(offset)
-	}
-	// order format should be "column_name ASC/DESC" eg. "created_at ASC"
-	if order != "" {
-		query.Order(order)
-	}
-	// Add conditions to query
-	if len(conditions) > 0 {
-		for _, condition := range conditions {
-			// Add condition to query
-			query.Where(condition)
-		}
-	}
-	// Query database
-	result := query.Find(&posts)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	// Return if no errors with result
-	return posts, nil
-}
+// 	// Add parameters into query as needed
+// 	if limit != 0 {
+// 		query.Limit(limit)
+// 	}
+// 	if offset != 0 {
+// 		query.Offset(offset)
+// 	}
+// 	// order format should be "column_name ASC/DESC" eg. "created_at ASC"
+// 	if order != "" {
+// 		query.Order(order)
+// 	}
+// 	// Add conditions to query
+// 	if len(conditions) > 0 {
+// 		for _, condition := range conditions {
+// 			// Add condition to query
+// 			query.Where(condition)
+// 		}
+// 	}
+// 	// Query database
+// 	result := query.Find(&posts)
+// 	if result.Error != nil {
+// 		return nil, result.Error
+// 	}
+// 	// Return if no errors with result
+// 	return posts, nil
+// }

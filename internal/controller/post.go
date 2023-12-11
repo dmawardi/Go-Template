@@ -28,6 +28,15 @@ func NewPostController(service service.PostService) PostController {
 	return &postController{service}
 }
 
+// Used to init the query params for easy extraction in controller
+// Returns: map[string]string{"age": "int", "name": "string", "active": "bool"}
+func PostConditionQueryParams() map[string]string {
+	return map[string]string{
+		"title": "string",
+		"body":  "string",
+	}
+}
+
 // API/POSTS
 // Find a list of posts
 // @Summary      Find a list of posts
@@ -44,48 +53,37 @@ func NewPostController(service service.PostService) PostController {
 // @Router       /posts/{id} [get]
 // @Security BearerToken
 func (c postController) FindAll(w http.ResponseWriter, r *http.Request) {
-	// Grab URL query parameters
-	queryParams := r.URL.Query()
-	// Separate params
-	limitParam := queryParams.Get("limit")
-	offsetParam := queryParams.Get("offset")
-	orderBy := queryParams.Get("order")
-
-	// Prepare to grab user conditions
-	// userConditions := []string{"Name", "Username", "Email", "Role"}
-	userConditions := map[string]string{
-		"name":     "string",
-		"username": "string",
-		"email":    "string",
-		"role":     "string",
-	}
-
-	extractedConditions, err := helpers.ExtractSearchAndConditionParams(r, userConditions)
+	// Grab basic query params
+	baseQueryParams, err := helpers.ExtractBasicFindAllQueryParams(r)
 	if err != nil {
-		fmt.Println("Error extracting conditions: ", err)
-		http.Error(w, "Can't find conditions", http.StatusBadRequest)
+		http.Error(w, "Error extracting query params", http.StatusBadRequest)
 		return
 	}
 
-	// Convert to int
-	limit, _ := strconv.Atoi(limitParam)
-	offset, _ := strconv.Atoi(offsetParam)
+	// Generate query params to extract
+	queryParamsToExtract := PostConditionQueryParams()
+	// Extract query params
+	extractedConditionParams, err := helpers.ExtractSearchAndConditionParams(r, queryParamsToExtract)
+	if err != nil {
+		http.Error(w, "Error extracting query params", http.StatusBadRequest)
+		return
+	}
 
 	// Check that limit is present as requirement
-	if (limit == 0) || (limit > 50) {
+	if (baseQueryParams.Limit == 0) || (baseQueryParams.Limit > 50) {
 		http.Error(w, "Must include limit parameter with a max value of 50", http.StatusBadRequest)
 		return
 	}
 
 	// Query database for all users using query params
-	foundUsers, err := c.service.FindAll(limit, offset, orderBy, extractedConditions)
+	posts, err := c.service.FindAll(baseQueryParams.Limit, baseQueryParams.Offset, baseQueryParams.Order, extractedConditionParams)
 	if err != nil {
-		http.Error(w, "Can't find users", http.StatusBadRequest)
+		http.Error(w, "Can't find posts", http.StatusBadRequest)
 		return
 	}
-	err = helpers.WriteAsJSON(w, foundUsers)
+	err = helpers.WriteAsJSON(w, posts)
 	if err != nil {
-		http.Error(w, "Can't find users", http.StatusBadRequest)
+		http.Error(w, "Can't find posts", http.StatusBadRequest)
 		fmt.Println("error writing users to response: ", err)
 		return
 	}

@@ -221,6 +221,10 @@ func ExtractBasicFindAllQueryParams(r *http.Request) (models.BaseFindAllQueryPar
 	}
 	// Grab order
 	order := GrabQueryParamOrDefault(r, "order", "id")
+	sqlOrder, err := convertToSQLOrderBy(order)
+	if err != nil {
+		return models.BaseFindAllQueryParams{}, err
+	}
 	// Calculate offset using pages and limit
 	offset := (page - 1) * limit
 
@@ -228,8 +232,24 @@ func ExtractBasicFindAllQueryParams(r *http.Request) (models.BaseFindAllQueryPar
 		Page:   page,
 		Limit:  limit,
 		Offset: offset,
-		Order:  order,
+		Order:  sqlOrder,
 	}, nil
+}
+
+// Converts orderby paramter to SQL format
+func convertToSQLOrderBy(orderBy string) (string, error) {
+	parts := strings.Split(orderBy, "_")
+	// Assign first item as column name
+	columnName := parts[0]
+
+	if len(parts) == 2 {
+		order := parts[1]
+		// else, return
+		return fmt.Sprintf("%s %s", columnName, strings.ToUpper(order)), nil
+	}
+
+	// else, return
+	return columnName, nil
 }
 
 // Helper function to parse the value based on type

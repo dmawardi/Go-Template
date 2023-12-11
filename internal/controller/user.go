@@ -40,6 +40,18 @@ func NewUserController(service service.UserService) UserController {
 	return &userController{service}
 }
 
+// Used to init the query params for easy extraction in controller
+// Returns: map[string]string{"age": "int", "name": "string", "active": "bool"}
+func UserConditionQueryParams() map[string]string {
+	return map[string]string{
+		"email":    "string",
+		"name":     "string",
+		"username": "string",
+		"verified": "bool",
+		"role":     "string",
+	}
+}
+
 // API/USERS
 // Find a list of users
 // @Summary      Find a list of users
@@ -67,7 +79,7 @@ func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate query params to extract
-	queryParamsToExtract := models.UserConditionQueryParams()
+	queryParamsToExtract := UserConditionQueryParams()
 	// Extract query params
 	extractedConditionParams, err := helpers.ExtractSearchAndConditionParams(r, queryParamsToExtract)
 	if err != nil {
