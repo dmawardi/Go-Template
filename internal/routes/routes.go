@@ -14,10 +14,17 @@ import (
 )
 
 type Api interface {
+	// Total route builder for API
 	Routes() http.Handler
-	AddAdminRoutes(router *chi.Mux) *chi.Mux
+	// Api routes
+	AddUserApiRoutes(router *chi.Mux) *chi.Mux
+	AddBasicCrudApiRoutes(router *chi.Mux, urlExtension string, controller controller.BasicController) *chi.Mux
+	// Admin routes
+	AddBasicAdminRoutes(router *chi.Mux) *chi.Mux
+	AddAdminRouteSet(router *chi.Mux, protected bool, urlExtension string, controller controller.BasicAdminController) *chi.Mux
 }
 
+// Api that contains all controllers for route creation
 type api struct {
 	Admin adminpanel.AdminController
 	User  controller.UserController
@@ -28,6 +35,7 @@ func NewApi(admin adminpanel.AdminController, user controller.UserController, po
 	return &api{Admin: admin, User: user, Post: post}
 }
 
+// Overall Routes builder for server
 func (a api) Routes() http.Handler {
 	// Create new router
 	mux := chi.NewRouter()
@@ -37,9 +45,14 @@ func (a api) Routes() http.Handler {
 	mux.Use(corsMiddleware)
 
 	// User schema
-	a.AddUserRoutes(mux)
+	mux = a.AddUserApiRoutes(mux)
 	// Other schemas
-	a.AddBasicCrudApiRoutes(mux, "posts", a.Post)
+	mux = a.AddBasicCrudApiRoutes(mux, "posts", a.Post)
+
+	// // Add basic admin routes
+	mux = a.AddBasicAdminRoutes(mux)
+	// mux = a.AddAdminCrudRoutes(mux, true, "users", a.Admin.User)
+	mux = a.AddAdminRouteSet(mux, false, "users", a.Admin.User)
 
 	// Serve API Swagger docs
 	mux.Get("/swagger/*", httpSwagger.Handler(
@@ -51,14 +64,11 @@ func (a api) Routes() http.Handler {
 	// Handle all calls to /static/* by stripping prefix and sending to file server
 	mux.Handle("/static/*", http.StripPrefix("/static/", fileServer))
 
-	// // Add admin routes
-	mux = a.AddAdminRoutes(mux)
-
 	return mux
 }
 
 // Adds User routes to a Chi mux router (includes login, forgot password, etc)
-func (a api) AddUserRoutes(router *chi.Mux) *chi.Mux {
+func (a api) AddUserApiRoutes(router *chi.Mux) *chi.Mux {
 	// Public routes
 	router.Group(func(mux chi.Router) {
 		// @tag.name Public Routes
@@ -121,12 +131,39 @@ func (a api) AddBasicCrudApiRoutes(router *chi.Mux, urlExtension string, control
 	return router
 }
 
+// Adds a basic Admin CRUD route set to a Chi mux router
+func (a api) AddAdminRouteSet(router *chi.Mux, protected bool, urlExtension string, controller controller.BasicAdminController) *chi.Mux {
+	// Reassign for consistency
+	r := router
+	// Set to use JWT authentication if protected
+
+	r.Group(func(mux chi.Router) {
+		if protected {
+			mux.Use(auth.AuthenticateJWT)
+		}
+		// Read (all users)
+		mux.Get(fmt.Sprintf("/admin/%s", urlExtension), controller.FindAll)
+		// Create (GET form / POST form)
+		mux.Get(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)
+		mux.Post(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)
+		mux.Get(fmt.Sprintf("/admin/%s/create/success", urlExtension), controller.CreateSuccess)
+		// Delete
+		mux.Get(fmt.Sprintf("/admin/%s/delete/{id}", urlExtension), controller.Delete)
+		mux.Post(fmt.Sprintf("/admin/%s/delete/{id}", urlExtension), controller.Delete)
+		mux.Get(fmt.Sprintf("/admin/%s/delete/success", urlExtension), controller.DeleteSuccess)
+		// Bulk delete (from table)
+		mux.Delete(fmt.Sprintf("/admin/%s/bulk-delete", urlExtension), controller.BulkDelete)
+
+		// Edit/Update (GET data in form / POST form)
+		mux.Get(fmt.Sprintf("/admin/%s/{id}", urlExtension), controller.Edit)
+		mux.Post(fmt.Sprintf("/admin/%s/{id}", urlExtension), controller.Edit)
+		mux.Get(fmt.Sprintf("/admin/%s/edit/success", urlExtension), controller.EditSuccess)
+	})
+	return router
+}
+
 // Function to add new routes to an existing Chi mux router
-func (a api) AddAdminRoutes(router *chi.Mux) *chi.Mux {
-	// Admin routes
-	// router.Get("/admin", func(w http.ResponseWriter, r *http.Request) {
-	// 	w.Write([]byte("This is the admin login page"))
-	// })
+func (a api) AddBasicAdminRoutes(router *chi.Mux) *chi.Mux {
 	// Public routes
 	router.Group(func(mux chi.Router) {
 		// @tag.name Public Routes
@@ -134,24 +171,6 @@ func (a api) AddAdminRoutes(router *chi.Mux) *chi.Mux {
 		mux.Get("/admin", func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("This is the admin login page sailor"))
 		})
-		// admin users
-		// Read (all users)
-		mux.Get("/admin/users", a.Admin.User.FindAll)
-		// Create (GET form / POST form)
-		mux.Get("/admin/users/create", a.Admin.User.Create)
-		mux.Post("/admin/users/create", a.Admin.User.Create)
-		mux.Get("/admin/users/create/success", a.Admin.User.CreateSuccess)
-		// Delete
-		mux.Get("/admin/users/delete/{id}", a.Admin.User.Delete)
-		mux.Post("/admin/users/delete/{id}", a.Admin.User.Delete)
-		mux.Get("/admin/users/delete/success", a.Admin.User.DeleteSuccess)
-		// Bulk delete (from table)
-		mux.Delete("/admin/users/bulk-delete", a.Admin.User.BulkDelete)
-
-		// Edit/Update (GET data in form / POST form)
-		mux.Get("/admin/users/{id}", a.Admin.User.Edit)
-		mux.Post("/admin/users/{id}", a.Admin.User.Edit)
-		mux.Get("/admin/users/edit/success", a.Admin.User.EditSuccess)
 
 		// Private routes
 		mux.Group(func(mux chi.Router) {
