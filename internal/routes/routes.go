@@ -111,12 +111,7 @@ func (a api) AddUserApiRoutes(router *chi.Mux) *chi.Mux {
 func (a api) AddBasicCrudApiRoutes(router *chi.Mux, urlExtension string, controller controller.BasicController) *chi.Mux {
 	// Public routes
 	router.Group(func(mux chi.Router) {
-		// @tag.name Public Routes
-		// @tag.description Unprotected routes
-	})
-
-	// Private routes
-	router.Group(func(mux chi.Router) {
+		// Private routes
 		mux.Use(auth.AuthenticateJWT)
 		// @tag.name Private routes
 		// @tag.description Protected routes
@@ -135,9 +130,8 @@ func (a api) AddBasicCrudApiRoutes(router *chi.Mux, urlExtension string, control
 func (a api) AddAdminRouteSet(router *chi.Mux, protected bool, urlExtension string, controller controller.BasicAdminController) *chi.Mux {
 	// Reassign for consistency
 	r := router
-	// Set to use JWT authentication if protected
-
 	r.Group(func(mux chi.Router) {
+		// Set to use JWT authentication if protected
 		if protected {
 			mux.Use(auth.AuthenticateJWT)
 		}
