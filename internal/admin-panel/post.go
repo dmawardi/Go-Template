@@ -17,26 +17,26 @@ import (
 )
 
 // Table headers to show on find all page
-var userTableHeaders = []TableHeader{
+var postTableHeaders = []TableHeader{
 	{Label: "ID", ColumnSortLabel: "id", Pointer: false, DataType: "int"},
-	{Label: "Username", ColumnSortLabel: "username", Pointer: false, DataType: "string"},
-	{Label: "Email", ColumnSortLabel: "email", Pointer: false, DataType: "string"},
-	{Label: "Verified", ColumnSortLabel: "verified", Pointer: true, DataType: "bool"},
+	{Label: "Title", ColumnSortLabel: "title", Pointer: false, DataType: "string"},
+	{Label: "Content", ColumnSortLabel: "content", Pointer: false, DataType: "string"},
+	{Label: "User", ColumnSortLabel: "user", Pointer: false, DataType: "foreign"},
 }
 
-func NewAdminUserController(service service.UserService, selectorService SelectorService) AdminUserController {
-	return &adminUserController{
+func NewAdminPostController(service service.PostService, selectorService SelectorService) AdminPostController {
+	return &adminPostController{
 		service: service,
 		// Use values from above
-		adminHomeUrl:  "/admin/users",
-		schemaName:    "Users",
-		tableHeaders:  userTableHeaders,
+		adminHomeUrl:  "/admin/posts",
+		schemaName:    "Posts",
+		tableHeaders:  postTableHeaders,
 		formSelectors: selectorService,
 	}
 }
 
-type adminUserController struct {
-	service service.UserService
+type adminPostController struct {
+	service service.PostService
 	// For links
 	adminHomeUrl string
 	// For HTML text rendering
@@ -47,7 +47,7 @@ type adminUserController struct {
 	formSelectors SelectorService
 }
 
-type AdminUserController interface {
+type AdminPostController interface {
 	FindAll(w http.ResponseWriter, r *http.Request)
 	Create(w http.ResponseWriter, r *http.Request)
 	// Edit is also used to view the record details
@@ -63,7 +63,7 @@ type AdminUserController interface {
 	ObtainFields() BasicAdminController
 }
 
-func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
+func (c adminPostController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab query parameters
 	searchQuery := r.URL.Query().Get("search")
 	// Grab basic query params
@@ -74,7 +74,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate query params to extract
-	queryParamsToExtract := controller.UserConditionQueryParams()
+	queryParamsToExtract := controller.PostConditionQueryParams()
 	// Extract query params
 	extractedConditionParams, err := helpers.ExtractSearchAndConditionParams(r, queryParamsToExtract)
 	if err != nil {
@@ -83,22 +83,22 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Grab all users from database
-	users, err := c.service.FindAll(baseQueryParams.Limit, baseQueryParams.Offset, baseQueryParams.Order, extractedConditionParams)
+	// Find all with options from database
+	found, err := c.service.FindAll(baseQueryParams.Limit, baseQueryParams.Offset, baseQueryParams.Order, extractedConditionParams)
 	if err != nil {
 		http.Error(w, "Error finding data", http.StatusInternalServerError)
 		return
 	}
 	// Convert data to AdminPanelSchema
-	adminUserSlice := c.convertDataToAdminPanelSchema(*users.Data)
+	adminSchemaSlice := c.convertDataToAdminPanelSchema(*found.Data)
 
 	// Build the table data
-	tableData := BuildTableData(adminUserSlice, users.Meta, c.adminHomeUrl, c.tableHeaders)
+	tableData := BuildTableData(adminSchemaSlice, found.Meta, c.adminHomeUrl, c.tableHeaders)
 
 	// Data to be injected into template
 	data := PageRenderData{
 		PageTitle:    "Admin: " + c.pluralSchemaName,
-		SectionTitle: "Select a user to edit",
+		SectionTitle: fmt.Sprintf("Select a %s to edit", c.schemaName),
 		SidebarList:  sidebarList,
 		TableData:    tableData,
 		SchemaHome:   c.adminHomeUrl,
@@ -125,7 +125,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
+func (c adminPostController) Create(w http.ResponseWriter, r *http.Request) {
 	// Init new User Create form
 	createForm := c.generateCreateForm()
 
@@ -196,7 +196,7 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
+func (c adminPostController) Edit(w http.ResponseWriter, r *http.Request) {
 	// Init new User Edit form
 	editForm := c.generateEditForm()
 
@@ -255,7 +255,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 	// If not POST, ie. GET
 	// Find current details to use as placeholder values
 	// Init a new db struct
-	found := &db.User{}
+	found := &db.Post{}
 	// Search for by ID and store in found
 	found, err = c.service.FindById(idParameter)
 	if err != nil {
@@ -299,7 +299,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
+func (c adminPostController) Delete(w http.ResponseWriter, r *http.Request) {
 	stringParameter := chi.URLParam(r, "id")
 	// Convert to int
 	idParameter, err := strconv.Atoi(stringParameter)
@@ -349,7 +349,7 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (c adminUserController) BulkDelete(w http.ResponseWriter, r *http.Request) {
+func (c adminPostController) BulkDelete(w http.ResponseWriter, r *http.Request) {
 	// Grab body of request
 	// Init
 	var listOfIds BulkDeleteRequest
@@ -391,7 +391,7 @@ func (c adminUserController) BulkDelete(w http.ResponseWriter, r *http.Request) 
 }
 
 // Success handlers
-func (c adminUserController) CreateSuccess(w http.ResponseWriter, r *http.Request) {
+func (c adminPostController) CreateSuccess(w http.ResponseWriter, r *http.Request) {
 	// Data to be injected into template
 	data := PageRenderData{
 		PageTitle:    fmt.Sprintf("%s Creation form submitted", c.schemaName),
@@ -414,7 +414,7 @@ func (c adminUserController) CreateSuccess(w http.ResponseWriter, r *http.Reques
 		return
 	}
 }
-func (c adminUserController) EditSuccess(w http.ResponseWriter, r *http.Request) {
+func (c adminPostController) EditSuccess(w http.ResponseWriter, r *http.Request) {
 	// Data to be injected into template
 	data := PageRenderData{
 		PageTitle:    fmt.Sprintf("%s Edit form submitted", c.schemaName),
@@ -437,7 +437,7 @@ func (c adminUserController) EditSuccess(w http.ResponseWriter, r *http.Request)
 		return
 	}
 }
-func (c adminUserController) DeleteSuccess(w http.ResponseWriter, r *http.Request) {
+func (c adminPostController) DeleteSuccess(w http.ResponseWriter, r *http.Request) {
 	// Data to be injected into template
 	data := PageRenderData{
 		PageTitle:    fmt.Sprintf("%s Delete form submitted", c.schemaName),
@@ -463,96 +463,77 @@ func (c adminUserController) DeleteSuccess(w http.ResponseWriter, r *http.Reques
 
 // Form generation
 // Used to build Create user form
-func (c adminUserController) generateCreateForm() []FormField {
+func (c adminPostController) generateCreateForm() []FormField {
 	return []FormField{
-		{DbLabel: "Name", Label: "Name", Name: "name", Placeholder: "Enter name", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Email", Label: "Email", Name: "email", Placeholder: "Enter email", Value: "", Type: "email", Required: true, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Password", Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: true, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.RoleSelection()},
-		{DbLabel: "Verified", Label: "Verified", Name: "verified", Placeholder: "", Value: "true", Type: "checkbox", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "Title", Label: "Title", Name: "title", Placeholder: "", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "Body", Label: "Body", Name: "body", Placeholder: "", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "User", Label: "User", Name: "user", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.UserSelection()},
 	}
 }
 
 // Used to build Edit user form
-func (c adminUserController) generateEditForm() []FormField {
+func (c adminPostController) generateEditForm() []FormField {
 	return []FormField{
-		{DbLabel: "ID", Label: "ID", Name: "id", Placeholder: "", Value: "", Type: "number", Required: false, Disabled: true, Errors: []ErrorMessage{}},
-		{DbLabel: "Name", Label: "Name", Name: "name", Placeholder: "Enter name", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Email", Label: "Email", Name: "email", Placeholder: "Enter email", Value: "", Type: "email", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		// {DbLabel: "Password", Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.RoleSelection()},
-		{DbLabel: "Verified", Label: "Verified", Name: "verified", Placeholder: "", Value: "false", Type: "checkbox", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "VerificationCode", Label: "Verification Code", Name: "verification_code", Placeholder: "Enter verification code", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
-		{DbLabel: "VerificationCodeExpiry", Label: "Verification Code Expiry", Name: "verification_code_expiry", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
-		{DbLabel: "CreatedAt", Label: "Created At", Name: "created_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
-		{DbLabel: "UpdatedAt", Label: "Updated At", Name: "updated_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+		{DbLabel: "Title", Label: "Title", Name: "title", Placeholder: "", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "Body", Label: "Body", Name: "body", Placeholder: "", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "User", Label: "User", Name: "user", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.UserSelection()},
 	}
 }
 
 // Extract forms
-// Used to extract form submission from request and build into models.CreateUser
-func (c adminUserController) extractCreateFormSubmission(r *http.Request) (models.CreateUser, error) {
+// Used to extract form submission from request and build into models.CreatePost
+func (c adminPostController) extractCreateFormSubmission(r *http.Request) (models.CreatePost, error) {
 	// Parse the form
 	err := r.ParseForm()
 	if err != nil {
-		return models.CreateUser{}, errors.New("Error parsing form")
+		return models.CreatePost{}, errors.New("Error parsing form")
 	}
 
-	// Preparation for validation
-	// Parse the verified attribute from the form
-	verified := false
-	// If the verified attribute is present in the form (ie. true)
-	if r.FormValue("verified") != "" {
-		// Set verified to true
-		verified = true
+	user := r.FormValue("user")
+	// Convert to int
+	userId, err := strconv.Atoi(user)
+	if err != nil {
+		return models.CreatePost{}, errors.New("Error parsing form")
 	}
+
 	// Build struct for validation
-	userToValidate := models.CreateUser{
-		Name:     r.FormValue("name"),
-		Username: r.FormValue("username"),
-		Email:    r.FormValue("email"),
-		Password: r.FormValue("password"),
-		Role:     r.FormValue("role"),
-		Verified: verified,
+	toValidate := models.CreatePost{
+		Title: r.FormValue("title"),
+		Body:  r.FormValue("body"),
+		User:  db.User{ID: uint(userId)},
 	}
 
-	return userToValidate, nil
+	return toValidate, nil
 }
 
 // Used to extract form submission from request and build into models.UpdateUser
-func (c adminUserController) extractUpdateFormSubmission(r *http.Request) (models.UpdateUser, error) {
+func (c adminPostController) extractUpdateFormSubmission(r *http.Request) (models.UpdatePost, error) {
 	// Parse the form
 	err := r.ParseForm()
 	if err != nil {
-		return models.UpdateUser{}, errors.New("Error parsing form")
+		return models.UpdatePost{}, errors.New("Error parsing form")
 	}
 
-	// Preparation for validation
-	// Parse the verified attribute from the form
-	verified := false
-	// If the verified attribute is present in the form (ie. true)
-	if r.FormValue("verified") != "" {
-		// Set verified to true
-		verified = true
+	// Extract user
+	user := r.FormValue("user")
+	// Convert to int
+	userId, err := strconv.Atoi(user)
+	if err != nil {
+		return models.UpdatePost{}, errors.New("Error parsing form")
 	}
 	// Build struct for validation
-	userToValidate := models.UpdateUser{
-		Name:     r.FormValue("name"),
-		Username: r.FormValue("username"),
-		Email:    r.FormValue("email"),
-		Password: r.FormValue("password"),
-		Role:     r.FormValue("role"),
-		Verified: verified,
+	toValidate := models.UpdatePost{
+		Title: r.FormValue("title"),
+		Body:  r.FormValue("body"),
+		User:  db.User{ID: uint(userId)},
 	}
 
-	return userToValidate, nil
+	return toValidate, nil
 }
 
 // Basic helper functions
 // Used to extract form submission from request and build into map[string]string (Used in populateValuesWithForm)
-func (c adminUserController) extractFormFromRequest(r *http.Request) (map[string]string, error) {
+func (c adminPostController) extractFormFromRequest(r *http.Request) (map[string]string, error) {
 	// Parse the form
 	err := r.ParseForm()
 	if err != nil {
@@ -570,38 +551,35 @@ func (c adminUserController) extractFormFromRequest(r *http.Request) (map[string
 }
 
 // For dynamic data iteration: takes a user and returns a map for easier dynamic access
-func (c adminUserController) getValuesUsingFieldMap(user db.User) map[string]string {
+func (c adminPostController) getValuesUsingFieldMap(post db.Post) map[string]string {
 	// Map of user fields
 	fieldMap := map[string]string{
-		"ID":                     fmt.Sprint(user.ID),
-		"CreatedAt":              user.CreatedAt.Format(time.RFC3339),
-		"UpdatedAt":              user.UpdatedAt.Format(time.RFC3339),
-		"Name":                   user.Name,
-		"Username":               user.Username,
-		"Email":                  user.Email,
-		"Role":                   user.Role,
-		"Verified":               fmt.Sprint(user.Verified),
-		"VerificationCode":       user.VerificationCode,
-		"VerificationCodeExpiry": user.VerificationCodeExpiry.Format(time.RFC3339),
+		"ID":        fmt.Sprint(post.ID),
+		"CreatedAt": post.CreatedAt.Format(time.RFC3339),
+		"UpdatedAt": post.UpdatedAt.Format(time.RFC3339),
+		"Title":     post.Title,
+		"Body":      post.Body,
+		// Foreign key: uses username
+		"UserID": fmt.Sprint(post.UserID),
 	}
 	return fieldMap
 }
 
 // Convert schema slice to AdminPanelSchema through appending to new slice of AdminPanelSchema for standardization
-func (c adminUserController) convertDataToAdminPanelSchema(slice []db.User) []AdminPanelSchema {
+func (c adminPostController) convertDataToAdminPanelSchema(slice []db.Post) []AdminPanelSchema {
 	// Init AdminPanelSchema
 	var schemaSlice []AdminPanelSchema
 	// Loop through users and append to schemaSlice
-	for _, user := range slice {
+	for _, post := range slice {
 		// Append user to schemaSlice
-		schemaSlice = append(schemaSlice, user)
+		schemaSlice = append(schemaSlice, post)
 	}
 
 	return schemaSlice
 }
 
 // Used to build standardize controller fields for admin panel sidebar generation
-func (c adminUserController) ObtainFields() BasicAdminController {
+func (c adminPostController) ObtainFields() BasicAdminController {
 	return basicAdminController{
 		AdminHomeUrl:     c.adminHomeUrl,
 		SchemaName:       c.schemaName,

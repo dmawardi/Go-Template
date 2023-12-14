@@ -7,7 +7,7 @@ import (
 
 // DB Schema interface implementation
 // Mapping of field names to values to allow for dynamic access
-func (schemaObject User) ObtainValue(keyValue string) interface{} {
+func (schemaObject User) ObtainValue(keyValue string) string {
 	fieldMap := map[string]string{
 		"ID":                     fmt.Sprint(schemaObject.ID),
 		"CreatedAt":              schemaObject.CreatedAt.Format(time.RFC3339),

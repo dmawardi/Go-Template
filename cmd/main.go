@@ -117,8 +117,15 @@ func ApiSetup(client *gorm.DB) routes.Api {
 	postService := service.NewPostService(postRepo)
 	postController := controller.NewPostController(postService)
 
+	selectorService := adminpanel.NewSelectorService(client)
 	// Admin panel
-	adminController := adminpanel.NewAdminController(adminpanel.NewAdminBaseController(), adminpanel.NewUserAdminController(userService))
+	adminController := adminpanel.NewAdminController(
+		adminpanel.NewAdminBaseController(),
+		adminpanel.NewAdminUserController(userService, selectorService),
+		adminpanel.NewAdminPostController(postService, selectorService))
+
+	// Generate admin sidebar list from admin controller
+	adminpanel.GenerateAndSetAdminSidebar(adminController)
 
 	// Build API using controllers
 	api := routes.NewApi(adminController, userController, postController)

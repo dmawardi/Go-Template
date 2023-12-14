@@ -14,6 +14,7 @@ type PostService interface {
 	Create(post *models.CreatePost) (*db.Post, error)
 	Update(int, *models.UpdatePost) (*db.Post, error)
 	Delete(int) error
+	BulkDelete([]int) error
 }
 
 type postService struct {
