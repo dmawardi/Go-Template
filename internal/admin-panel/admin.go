@@ -17,41 +17,8 @@ func SetStateInAdminPanel(a *config.AppConfig) {
 
 // Build item list for sidebar (Add for every module)
 var sidebarList = []sidebarItem{
+	{Name: "Groups", FindAllLink: "/admin/groups", AddLink: "/admin/groups/create"},
 	// This list is filled upon runtime by GenerateAndSetAdminSidebar
-}
-
-// Accepts current Admin controller and generates sidebar list based on controllers
-func GenerateAndSetAdminSidebar(adminCont AdminController) {
-	// Iterate through all controllers and add to sidebar list
-	// Get the reflect.Value of the struct.
-	valueOfCont := reflect.ValueOf(adminCont)
-
-	// Iterate through the struct fields.
-	for i := 0; i < valueOfCont.NumField(); i++ {
-		// Get the field name and value.
-		fieldName := valueOfCont.Type().Field(i).Name
-		fieldValue := valueOfCont.Field(i).Interface()
-
-		// Print the field name and value.
-		fmt.Printf("Field: %s\n", fieldName)
-
-		// If not base controller, add to sidebar list
-		if fieldName != "Base" {
-			fmt.Printf("Not base\n")
-			currentController := ObtainFieldsForAnyType(fieldValue)
-			fmt.Printf("Current Controller: %v\n", currentController.AdminHomeUrl)
-			// Create sidebar item
-			item := sidebarItem{
-				Name:        currentController.SchemaName,
-				AddLink:     fmt.Sprintf("%s/create", currentController.AdminHomeUrl),
-				FindAllLink: currentController.AdminHomeUrl,
-			}
-
-			fmt.Printf("Name: %v, Add link: %v, Find all link: %v", item.Name, item.AddLink, item.FindAllLink)
-			// append to sidebar list
-			sidebarList = append(sidebarList, item)
-		}
-	}
 }
 
 // Default Records Displayed on find all pages
@@ -117,15 +84,11 @@ func ObtainFieldsForAnyType(input interface{}) basicAdminController {
 
 	// Call ObtainFields method
 	result := method.Call(nil)
-	fmt.Printf("Result: %v\n", result)
 	// Check if result is valid
 	if len(result) == 1 {
-		// fmt.Printf("Result length is 1\n")
-		// resultType := result[0].Type()
 
 		resultFields := result[0].Interface()
-		// fmt.Printf("Result type: %v\n", resultType)
-		// fmt.Printf("Result fields: %v\n", resultFields.(basicAdminController).AdminHomeUrl)
+
 		controllerFields := basicAdminController{
 			AdminHomeUrl:     resultFields.(basicAdminController).AdminHomeUrl,
 			SchemaName:       resultFields.(basicAdminController).SchemaName,
@@ -135,4 +98,33 @@ func ObtainFieldsForAnyType(input interface{}) basicAdminController {
 	}
 
 	return basicAdminController{}
+}
+
+// Generate and set sidebar list
+// Accepts current Admin controller and generates sidebar list based on controllers
+func GenerateAndSetAdminSidebar(adminCont AdminController) {
+	// Iterate through all controllers and add to sidebar list
+	// Get the reflect.Value of the struct.
+	valueOfCont := reflect.ValueOf(adminCont)
+
+	// Iterate through the struct fields.
+	for i := 0; i < valueOfCont.NumField(); i++ {
+		// Get the field name and value.
+		fieldName := valueOfCont.Type().Field(i).Name
+		fieldValue := valueOfCont.Field(i).Interface()
+
+		// If not base controller, add to sidebar list
+		if fieldName != "Base" {
+			currentController := ObtainFieldsForAnyType(fieldValue)
+			// Create sidebar item
+			item := sidebarItem{
+				Name:        currentController.SchemaName,
+				AddLink:     fmt.Sprintf("%s/create", currentController.AdminHomeUrl),
+				FindAllLink: currentController.AdminHomeUrl,
+			}
+
+			// append to sidebar list
+			sidebarList = append(sidebarList, item)
+		}
+	}
 }

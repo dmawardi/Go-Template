@@ -89,8 +89,14 @@ func (c adminPostController) FindAll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error finding data", http.StatusInternalServerError)
 		return
 	}
+
 	// Convert data to AdminPanelSchema
-	adminSchemaSlice := c.convertDataToAdminPanelSchema(*found.Data)
+	schemaSlice := *found.Data
+	var adminSchemaSlice []AdminPanelSchema
+	for _, post := range schemaSlice {
+		// Append to schemaSlice
+		adminSchemaSlice = append(adminSchemaSlice, post)
+	}
 
 	// Build the table data
 	tableData := BuildTableData(adminSchemaSlice, found.Meta, c.adminHomeUrl, c.tableHeaders)
@@ -563,19 +569,6 @@ func (c adminPostController) getValuesUsingFieldMap(post db.Post) map[string]str
 		"UserID": fmt.Sprint(post.UserID),
 	}
 	return fieldMap
-}
-
-// Convert schema slice to AdminPanelSchema through appending to new slice of AdminPanelSchema for standardization
-func (c adminPostController) convertDataToAdminPanelSchema(slice []db.Post) []AdminPanelSchema {
-	// Init AdminPanelSchema
-	var schemaSlice []AdminPanelSchema
-	// Loop through users and append to schemaSlice
-	for _, post := range slice {
-		// Append user to schemaSlice
-		schemaSlice = append(schemaSlice, post)
-	}
-
-	return schemaSlice
 }
 
 // Used to build standardize controller fields for admin panel sidebar generation

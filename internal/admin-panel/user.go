@@ -84,16 +84,23 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Grab all users from database
-	users, err := c.service.FindAll(baseQueryParams.Limit, baseQueryParams.Offset, baseQueryParams.Order, extractedConditionParams)
+	found, err := c.service.FindAll(baseQueryParams.Limit, baseQueryParams.Offset, baseQueryParams.Order, extractedConditionParams)
 	if err != nil {
 		http.Error(w, "Error finding data", http.StatusInternalServerError)
 		return
 	}
 	// Convert data to AdminPanelSchema
-	adminUserSlice := c.convertDataToAdminPanelSchema(*users.Data)
+	// adminUserSlice := c.convertDataToAdminPanelSchema(*found.Data)
+
+	schemaSlice := *found.Data
+	var adminSchemaSlice []AdminPanelSchema
+	for _, item := range schemaSlice {
+		// Append to schemaSlice
+		adminSchemaSlice = append(adminSchemaSlice, item)
+	}
 
 	// Build the table data
-	tableData := BuildTableData(adminUserSlice, users.Meta, c.adminHomeUrl, c.tableHeaders)
+	tableData := BuildTableData(adminSchemaSlice, found.Meta, c.adminHomeUrl, c.tableHeaders)
 
 	// Data to be injected into template
 	data := PageRenderData{
@@ -585,19 +592,6 @@ func (c adminUserController) getValuesUsingFieldMap(user db.User) map[string]str
 		"VerificationCodeExpiry": user.VerificationCodeExpiry.Format(time.RFC3339),
 	}
 	return fieldMap
-}
-
-// Convert schema slice to AdminPanelSchema through appending to new slice of AdminPanelSchema for standardization
-func (c adminUserController) convertDataToAdminPanelSchema(slice []db.User) []AdminPanelSchema {
-	// Init AdminPanelSchema
-	var schemaSlice []AdminPanelSchema
-	// Loop through users and append to schemaSlice
-	for _, user := range slice {
-		// Append user to schemaSlice
-		schemaSlice = append(schemaSlice, user)
-	}
-
-	return schemaSlice
 }
 
 // Used to build standardize controller fields for admin panel sidebar generation
