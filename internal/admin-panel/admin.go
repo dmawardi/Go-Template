@@ -92,7 +92,7 @@ func ObtainFieldsForAnyType(input interface{}) basicAdminController {
 		controllerFields := basicAdminController{
 			AdminHomeUrl:     resultFields.(basicAdminController).AdminHomeUrl,
 			SchemaName:       resultFields.(basicAdminController).SchemaName,
-			PluralSchemaName: resultFields.(basicAdminController).AdminHomeUrl,
+			PluralSchemaName: resultFields.(basicAdminController).PluralSchemaName,
 		}
 		return controllerFields
 	}
@@ -118,7 +118,7 @@ func GenerateAndSetAdminSidebar(adminCont AdminController) {
 			currentController := ObtainFieldsForAnyType(fieldValue)
 			// Create sidebar item
 			item := sidebarItem{
-				Name:        currentController.SchemaName,
+				Name:        currentController.PluralSchemaName,
 				AddLink:     fmt.Sprintf("%s/create", currentController.AdminHomeUrl),
 				FindAllLink: currentController.AdminHomeUrl,
 			}

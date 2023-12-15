@@ -1,7 +1,9 @@
 package adminpanel
 
 import (
+	"fmt"
 	"html/template"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -57,4 +59,53 @@ func ParseAdminTemplates() (*template.Template, error) {
 	}
 
 	return tmpl, nil
+}
+
+// Function to render the Admin error page to the response
+func serveAdminError(w http.ResponseWriter, sectionTitle string) {
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    "Error - Admin",
+		SectionTitle: sectionTitle,
+		SidebarList:  sidebarList,
+		PageType: PageType{
+			EditPage:   false,
+			ReadPage:   false,
+			CreatePage: false,
+			DeletePage: true,
+		},
+		FormData: FormData{},
+	}
+
+	// Execute the template with data and write to response
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+
+// Function to render the Admin success page to the response
+func serveAdminSuccess(w http.ResponseWriter, pageTitle string, sectionTitle string) {
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    pageTitle,
+		SectionTitle: sectionTitle,
+		SidebarList:  sidebarList,
+		PageType: PageType{
+			EditPage:    false,
+			ReadPage:    false,
+			CreatePage:  false,
+			DeletePage:  false,
+			SuccessPage: true,
+		},
+		FormData: FormData{},
+	}
+
+	// Execute the template with data and write to response
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 }

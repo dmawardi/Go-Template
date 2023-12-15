@@ -28,10 +28,11 @@ func NewAdminPostController(service service.PostService, selectorService Selecto
 	return &adminPostController{
 		service: service,
 		// Use values from above
-		adminHomeUrl:  "/admin/posts",
-		schemaName:    "Posts",
-		tableHeaders:  postTableHeaders,
-		formSelectors: selectorService,
+		adminHomeUrl:     "/admin/posts",
+		schemaName:       "Post",
+		pluralSchemaName: "Posts",
+		tableHeaders:     postTableHeaders,
+		formSelectors:    selectorService,
 	}
 }
 
@@ -398,73 +399,16 @@ func (c adminPostController) BulkDelete(w http.ResponseWriter, r *http.Request) 
 
 // Success handlers
 func (c adminPostController) CreateSuccess(w http.ResponseWriter, r *http.Request) {
-	// Data to be injected into template
-	data := PageRenderData{
-		PageTitle:    fmt.Sprintf("%s Creation form submitted", c.schemaName),
-		SectionTitle: fmt.Sprintf("%s Created Successfully!", c.schemaName),
-		SidebarList:  sidebarList,
-		PageType: PageType{
-			EditPage:    false,
-			ReadPage:    false,
-			CreatePage:  false,
-			DeletePage:  false,
-			SuccessPage: true,
-		},
-		FormData: FormData{},
-	}
-
-	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	// Serve admin success page
+	serveAdminSuccess(w, fmt.Sprintf("Create %s", c.schemaName), fmt.Sprintf("%s Created Successfully!", c.schemaName))
 }
 func (c adminPostController) EditSuccess(w http.ResponseWriter, r *http.Request) {
-	// Data to be injected into template
-	data := PageRenderData{
-		PageTitle:    fmt.Sprintf("%s Edit form submitted", c.schemaName),
-		SectionTitle: fmt.Sprintf("%s Updated Successfully!", c.schemaName),
-		SidebarList:  sidebarList,
-		PageType: PageType{
-			EditPage:    false,
-			ReadPage:    false,
-			CreatePage:  false,
-			DeletePage:  false,
-			SuccessPage: true,
-		},
-		FormData: FormData{},
-	}
-
-	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	// Serve admin success page
+	serveAdminSuccess(w, fmt.Sprintf("Edit %s", c.schemaName), fmt.Sprintf("%s Updated Successfully!", c.schemaName))
 }
 func (c adminPostController) DeleteSuccess(w http.ResponseWriter, r *http.Request) {
-	// Data to be injected into template
-	data := PageRenderData{
-		PageTitle:    fmt.Sprintf("%s Delete form submitted", c.schemaName),
-		SectionTitle: fmt.Sprintf("%s Deleted Successfully!", c.schemaName),
-		SidebarList:  sidebarList,
-		PageType: PageType{
-			EditPage:    false,
-			ReadPage:    false,
-			CreatePage:  false,
-			DeletePage:  false,
-			SuccessPage: true,
-		},
-		FormData: FormData{},
-	}
-
-	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	// Serve admin success page
+	serveAdminSuccess(w, fmt.Sprintf("Delete %s", c.schemaName), fmt.Sprintf("%s Deleted Successfully!", c.schemaName))
 }
 
 // Form generation
