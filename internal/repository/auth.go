@@ -1,101 +1,127 @@
 package repository
 
-// import (
-//     "github.com/casbin/casbin/v2"
-//     "gorm.io/gorm"
-// )
+import (
+	"errors"
+	"fmt"
 
-// // CasbinPolicyRepository represents a repository for Casbin policies.
-// type CasbinPolicyRepository interface {
-//     FindAll() ([]casbin.Policy, error)
-//     FindByUserID(userID string) ([]casbin.Policy, error)
-//     Create(policy casbin.Policy) error
-//     Update(oldPolicy, newPolicy casbin.Policy) error
-//     Delete(policy casbin.Policy) error
-// }
+	"github.com/casbin/casbin/v2"
+	"github.com/dmawardi/Go-Template/internal/models"
+	"gorm.io/gorm"
+)
 
-// // GormCasbinPolicyRepository is a GORM implementation of CasbinPolicyRepository.
-// type GormCasbinPolicyRepository struct {
-//     db *gorm.DB
-// }
+// CasbinPolicyRepository represents a repository for Casbin policies.
+type AuthPolicyRepository interface {
+	FindAll() ([][]string, error)
+	FindAllRoles() ([]string, error)
+	AssignUserRole(userId, roleToApply string) (*bool, error)
+	// FindByUserID(userID string) ([]casbin.Policy, error)
+	Create(policy models.CasbinRule) error
+	Update(oldPolicy, newPolicy models.CasbinRule) error
+	Delete(policy models.CasbinRule) error
+}
 
-// // NewGormCasbinPolicyRepository creates a new instance of GormCasbinPolicyRepository.
-// func NewGormCasbinPolicyRepository(db *gorm.DB) *GormCasbinPolicyRepository {
-//     return &GormCasbinPolicyRepository{
-//         db: db,
-//     }
-// }
+// GormCasbinPolicyRepository is a GORM implementation of CasbinPolicyRepository.
+type authPolicyRepository struct {
+	db       *gorm.DB
+	enforcer *casbin.Enforcer
+}
 
-// // FindAll returns all Casbin policies.
-// func (r *GormCasbinPolicyRepository) FindAll() ([]casbin.Policy, error) {
-//     var policies []casbin.Policy
-//     result := r.db.Model(&casbin.CasbinRule{}).Find(&policies)
-//     if result.Error != nil {
-//         return nil, result.Error
-//     }
-//     return policies, nil
-// }
+// NewGormCasbinPolicyRepository creates a new instance of GormCasbinPolicyRepository.
+func NewAuthPolicyRepository(db *gorm.DB) AuthPolicyRepository {
+	return &authPolicyRepository{
+		db:       db,
+		enforcer: app.RBEnforcer,
+	}
+}
 
-// // FindByUserID returns policies associated with a specific user ID.
-// func (r *GormCasbinPolicyRepository) FindByUserID(userID string) ([]casbin.Policy, error) {
-//     var policies []casbin.Policy
-//     result := r.db.Model(&casbin.CasbinRule{}).Where("v0 = ?", userID).Find(&policies)
-//     if result.Error != nil {
-//         return nil, result.Error
-//     }
-//     return policies, nil
-// }
+// FindAll returns all Casbin policies.
+func (r *authPolicyRepository) FindAllRoles() ([]string, error) {
+	// return all policies found in the databaseq
+	roles := r.enforcer.GetAllRoles()
+	fmt.Printf("Roles: %v\n", roles)
+	return roles, nil
+}
 
-// // Create adds a new policy.
-// func (r *GormCasbinPolicyRepository) Create(policy casbin.Policy) error {
-//     casbinRule := &casbin.CasbinRule{
-//         Ptype: policy[0],
-//         V0:    policy[1],
-//         V1:    policy[2],
-//         V2:    policy[3],
-//         V3:    policy[4],
-//         V4:    policy[5],
-//         V5:    policy[6],
-//     }
-//     result := r.db.Create(casbinRule)
-//     return result.Error
-// }
+func (r *authPolicyRepository) AssignUserRole(userId, roleToApply string) (*bool, error) {
+	// First, remove the existing roles for the user (if found)
+	_, err := r.enforcer.DeleteRolesForUser(userId)
+	if err != nil {
+		fmt.Printf("Error deleting roles for user: %v\n", err)
+		return nil, err
+	}
 
-// // Update updates an existing policy.
-// func (r *GormCasbinPolicyRepository) Update(oldPolicy, newPolicy casbin.Policy) error {
-//     casbinRule := &casbin.CasbinRule{
-//         Ptype: oldPolicy[0],
-//         V0:    oldPolicy[1],
-//         V1:    oldPolicy[2],
-//         V2:    oldPolicy[3],
-//         V3:    oldPolicy[4],
-//         V4:    oldPolicy[5],
-//         V5:    oldPolicy[6],
-//     }
-//     result := r.db.Model(casbinRule).
-//         Updates(map[string]interface{}{
-//             "ptype": newPolicy[0],
-//             "v0":    newPolicy[1],
-//             "v1":    newPolicy[2],
-//             "v2":    newPolicy[3],
-//             "v3":    newPolicy[4],
-//             "v4":    newPolicy[5],
-//             "v5":    newPolicy[6],
-//         })
-//     return result.Error
-// }
+	// Add the new role for the user.
+	success, err := r.enforcer.AddRoleForUser(userId, roleToApply)
+	if err != nil {
+		fmt.Printf("Error assigning role to user: %v\n", err)
+		return nil, err
+	}
 
-// // Delete removes an existing policy.
-// func (r *GormCasbinPolicyRepository) Delete(policy casbin.Policy) error {
-//     casbinRule := &casbin.CasbinRule{
-//         Ptype: policy[0],
-//         V0:    policy[1],
-//         V1:    policy[2],
-//         V2:    policy[3],
-//         V3:    policy[4],
-//         V4:    policy[5],
-//         V5:    policy[6],
-//     }
-//     result := r.db.Delete(casbinRule)
-//     return result.Error
-// }
+	return &success, nil
+}
+
+func (r *authPolicyRepository) FindAll() ([][]string, error) {
+	// return all policies found in the database
+	policies := r.enforcer.GetPolicy()
+	return policies, nil
+}
+
+func (r *authPolicyRepository) Create(policy models.CasbinRule) error {
+	// Add policy to enforcer
+	newPolicy, err := r.enforcer.AddPolicy(policy.V0, policy.V1, policy.V2)
+	if err != nil {
+		return err
+	}
+	// If not new, return error
+	if !newPolicy {
+		return errors.New("policy already exists")
+	}
+	// else, return success
+	return nil
+}
+
+func (r *authPolicyRepository) Delete(policy models.CasbinRule) error {
+	var removed bool
+	var err error
+
+	fmt.Printf("Policy to delete in repository: %v\n", policy)
+	// Remove policy from enforcer
+	removed, err = r.enforcer.RemovePolicy(policy.V0, policy.V1, policy.V2)
+	if err != nil {
+		return err
+	}
+
+	// If not removed, return error
+	if !removed {
+		return errors.New("policy does not exist")
+	}
+
+	// else, return success
+	return nil
+}
+
+func (r *authPolicyRepository) Update(oldPolicy, newPolicy models.CasbinRule) error {
+	fmt.Printf("Old policy: %v\n", oldPolicy)
+	// Remove old policy from enforcer
+	removed, err := r.enforcer.RemovePolicy(oldPolicy.V0, oldPolicy.V1, oldPolicy.V2)
+	if err != nil {
+		fmt.Printf("Error removing old policy: %v\n", err)
+		return err
+	}
+	// If not removed, return error
+	if !removed {
+		fmt.Printf("Policy to update doesn't exist: %v\n", oldPolicy)
+		return errors.New("policy to update does not exist")
+	}
+	// Add new policy to enforcer
+	addedPolicy, err := r.enforcer.AddPolicy(newPolicy.V0, newPolicy.V1, newPolicy.V2)
+	if err != nil {
+		return err
+	}
+	// If not new, return error
+	if !addedPolicy {
+		return errors.New("policy already exists")
+	}
+	// else, return success
+	return nil
+}

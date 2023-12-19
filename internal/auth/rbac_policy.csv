@@ -19,10 +19,19 @@ p,admin,/api/users,update
 p,admin,/api/users,delete
 p,admin,/api/me,read
 p,admin,/api/me,update
+# Authorization Policies
+p,admin,/api/auth,read
+p,admin,/api/auth,create
+p,admin,/api/auth,update
+p,admin,/api/auth,delete
+p,admin,/api/auth/roles,read
+p,admin,/api/auth/roles,update
+p,admin,/api/auth/roles,delete
+p,admin,/api/auth/roles,read
 
 
 # User Roles
-g,1,user
+g,1,admin
 
 # Group Inheritance
 g,moderator,user

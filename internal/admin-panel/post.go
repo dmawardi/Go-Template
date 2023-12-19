@@ -64,6 +64,7 @@ type AdminPostController interface {
 	ObtainFields() BasicAdminController
 }
 
+// CRUD handlers
 func (c adminPostController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab query parameters
 	searchQuery := r.URL.Query().Get("search")

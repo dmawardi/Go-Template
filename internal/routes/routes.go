@@ -26,13 +26,14 @@ type Api interface {
 
 // Api that contains all controllers for route creation
 type api struct {
-	Admin adminpanel.AdminController
-	User  controller.UserController
-	Post  controller.PostController
+	Admin  adminpanel.AdminController
+	User   controller.UserController
+	Post   controller.PostController
+	Policy controller.AuthPolicyController
 }
 
-func NewApi(admin adminpanel.AdminController, user controller.UserController, post controller.PostController) Api {
-	return &api{Admin: admin, User: user, Post: post}
+func NewApi(admin adminpanel.AdminController, user controller.UserController, policy controller.AuthPolicyController, post controller.PostController) Api {
+	return &api{Admin: admin, User: user, Policy: policy, Post: post}
 }
 
 // Overall Routes builder for server
@@ -44,8 +45,9 @@ func (a api) Routes() http.Handler {
 	mux.Use(middleware.Logger)
 	mux.Use(corsMiddleware)
 
-	// User schema
+	// Add special user and group routes
 	mux = a.AddUserApiRoutes(mux)
+	mux = a.AddAuthRBACApiRoutes(mux)
 	// Other schemas
 	mux = a.AddBasicCrudApiRoutes(mux, "posts", a.Post)
 
@@ -102,6 +104,33 @@ func (a api) AddUserApiRoutes(router *chi.Mux) *chi.Mux {
 			mux.Get("/api/me", a.User.GetMyUserDetails)
 			mux.Post("/api/me", controller.HealthCheck)
 			mux.Put("/api/me", a.User.UpdateMyProfile)
+		})
+
+	})
+	return router
+}
+
+// Adds Authorization routes to a Chi mux router
+func (a api) AddAuthRBACApiRoutes(router *chi.Mux) *chi.Mux {
+	// Public routes
+	router.Group(func(mux chi.Router) {
+		// @tag.name Public Routes
+		// @tag.description Unprotected routes
+
+		// Private routes
+		mux.Group(func(mux chi.Router) {
+			mux.Use(auth.AuthenticateJWT)
+
+			// @tag.name Private routes
+			// @tag.description Protected routes
+			// Auth
+			mux.Get("/api/auth", a.Policy.FindAll)
+			mux.Get("/api/auth/roles", a.Policy.FindAllRoles)
+			mux.Put("/api/auth/roles", a.Policy.AssignUserRole)
+
+			mux.Post("/api/auth", a.Policy.Create)
+			mux.Put("/api/auth", a.Policy.Update)
+			mux.Delete("/api/auth", a.Policy.Delete)
 		})
 
 	})

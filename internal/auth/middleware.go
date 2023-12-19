@@ -46,7 +46,7 @@ func Authorize(userId, object, action string) bool {
 	// Load Authorization policy from Database
 	err := app.RBEnforcer.LoadPolicy()
 	if err != nil {
-		fmt.Printf("Failed to load RBAC Enforcer policy in Authorization middleware")
+		fmt.Println("Error loading RBAC policy in Authorization middleware: ", err)
 		return false
 	}
 

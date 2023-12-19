@@ -72,14 +72,12 @@ func main() {
 	auth.SetStateInAuth(&app)
 	adminpanel.SetStateInAdminPanel(&app)
 	service.BuildServiceState(&app)
+	repository.SetAppConfig(&app)
 
 	// Create client using DbConnect
 	client := db.DbConnect()
 	// Set in state
 	app.DbClient = client
-
-	// Create api
-	api := ApiSetup(client)
 
 	// Setup enforcer
 	e, err := auth.EnforcerSetup(client)
@@ -88,6 +86,9 @@ func main() {
 	}
 	// Set enforcer in state
 	app.RBEnforcer = e
+
+	// Create api
+	api := ApiSetup(client)
 
 	fmt.Printf("Starting application on port: %s\n", portNumber)
 
@@ -112,6 +113,10 @@ func ApiSetup(client *gorm.DB) routes.Api {
 	userRepo := repository.NewUserRepository(client)
 	userService := service.NewUserService(userRepo)
 	userController := controller.NewUserController(userService)
+	// Group
+	groupRepo := repository.NewAuthPolicyRepository(client)
+	groupService := service.NewAuthPolicyService(groupRepo)
+	groupController := controller.NewAuthPolicyController(groupService)
 	// post
 	postRepo := repository.NewPostRepository(client)
 	postService := service.NewPostService(postRepo)
@@ -128,6 +133,6 @@ func ApiSetup(client *gorm.DB) routes.Api {
 	adminpanel.GenerateAndSetAdminSidebar(adminController)
 
 	// Build API using controllers
-	api := routes.NewApi(adminController, userController, postController)
+	api := routes.NewApi(adminController, userController, groupController, postController)
 	return api
 }
