@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dmawardi/Go-Template/internal/db"
@@ -66,14 +67,13 @@ func (c adminAuthPolicyController) FindAll(w http.ResponseWriter, r *http.Reques
 	searchQuery := r.URL.Query().Get("search")
 
 	// Find all with options from database
-	found, err := c.service.FindAll()
+	groupsSlice, err := c.service.FindAll()
 	if err != nil {
 		http.Error(w, "Error finding data", http.StatusInternalServerError)
 		return
 	}
-
-	// Convert data to AdminPanelSchema
-	groupsSlice := found
+	// Filter by search query
+	groupsSlice = searchPoliciesByResource(groupsSlice, searchQuery)
 
 	// Sort by resource alphabetically
 	sort.Slice(groupsSlice, func(i, j int) bool {
@@ -512,4 +512,23 @@ func (c adminAuthPolicyController) ObtainFields() BasicAdminController {
 		SchemaName:       c.schemaName,
 		PluralSchemaName: c.pluralSchemaName,
 	}
+}
+
+// Searches a list of policies for a given resource based on search term
+func searchPoliciesByResource(maps []map[string]interface{}, searchTerm string) []map[string]interface{} {
+	var result []map[string]interface{}
+
+	for _, m := range maps {
+		resource, ok := m["resource"].(string)
+		if ok && containsString(resource, searchTerm) {
+			result = append(result, m)
+		}
+	}
+
+	return result
+}
+
+// Checks if a string contains another string
+func containsString(s, searchTerm string) bool {
+	return strings.Contains(strings.ToLower(s), strings.ToLower(searchTerm))
 }
