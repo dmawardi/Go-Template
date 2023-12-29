@@ -7,35 +7,35 @@
         <!-- Headers -->
         <thead>
           <tr>
-          
             {{
               range.TableData.TableHeaders
             }}
-
-            <th><a href="#" onclick="sortTable('{{.ColumnSortLabel}}')">{{.Label}}</a></th>
+            <th>{{.Label}}</th>
             {{
               end
             }}
-            <th>Actions</th>
           </tr>
         </thead>
         <!-- Table Body -->
         <tbody>
           {{
-            range.TableData.TableRows
+            range $rowIndex, $row := .TableData.TableRows
           }}
           <tr>
             <!-- For each row -->
             {{
-              range.Data
+              range $index, $element := .Data
             }}
-            <td {{if ge .RowSpan 1}} rowspan="{{.RowSpan}}" {{end}}>{{.Label}}</td>
+            <td {{if ge $element.RowSpan 1}} rowspan="{{.RowSpan}}" {{end}}>
+              {{if and (eq $index 0) (gt (len $row.Data) 2)}}
+                <a href="{{$element.Label}}">{{$element.Label}}</a>
+              {{else}}
+                {{$element.Label}}
+              {{end}}
+            </td>
             {{
               end
             }}
-            <td>
-              <a href="{{.Edit.EditUrl}}">Edit</a>
-            </td>
           </tr>
           {{
             end

@@ -12,6 +12,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
+	"github.com/go-chi/chi"
 )
 
 // Table headers to show on find all page
@@ -190,108 +191,54 @@ func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request
 	}
 }
 func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) {
-	// 	// Init new User Edit form
-	// 	editForm := c.generateEditForm()
-
 	// 	// Grab URL parameter
-	// 	stringParameter := chi.URLParam(r, "id")
-	// 	// Convert to int
-	// 	idParameter, err := strconv.Atoi(stringParameter)
-	// 	if err != nil {
-	// 		http.Error(w, "Invalid ID", http.StatusBadRequest)
-	// 		return
-	// 	}
+	searchQuery := chi.URLParam(r, "search")
 
-	// 	// If form is being submitted (method = POST)
-	// 	if r.Method == "POST" {
-	// 		// Extract user form submission
-	// 		userToValidate, err := c.extractUpdateFormSubmission(r)
-	// 		if err != nil {
-	// 			http.Error(w, "Error parsing form", http.StatusBadRequest)
-	// 			return
-	// 		}
+	// If form is being submitted (method = POST)
+	if r.Method == "POST" {
+		fmt.Printf("POST detected")
+	}
 
-	// 		// Validate struct
-	// 		pass, valErrors := helpers.GoValidateStruct(userToValidate)
-	// 		// If failure detected
-	// 		// If validation passes
-	// 		if pass {
-	// 			// Update user
-	// 			_, err = c.service.Update(idParameter, &userToValidate)
-	// 			if err != nil {
-	// 				http.Error(w, fmt.Sprintf("Error updating %s", c.schemaName), http.StatusInternalServerError)
-	// 				return
-	// 			}
-	// 			// Redirect or render a success message
-	// 			http.Redirect(w, r, fmt.Sprintf("%s/edit/success", c.adminHomeUrl), http.StatusSeeOther)
-	// 			return
-	// 		}
+	// If not POST, ie. GET
+	// Find all policies
+	found, err := c.service.FindAll()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("%s not found", c.schemaName), http.StatusNotFound)
+		return
+	}
 
-	// 		// If validation fails
-	// 		// Populate form field errors
-	// 		SetValidationErrorsInForm(editForm, *valErrors)
+	// Filter by search query
+	groupsSlice := searchPoliciesByResource(found, searchQuery)
 
-	// 		// Extract form submission from request and build into map[string]string
-	// 		fieldMap, err := c.extractFormFromRequest(r)
-	// 		if err != nil {
-	// 			http.Error(w, "Error parsing form", http.StatusBadRequest)
-	// 			return
-	// 		}
-	// 		// Populate previously entered values (Avoids password)
-	// 		err = populateValuesWithForm(r, &editForm, fieldMap)
-	// 		if err != nil {
-	// 			http.Error(w, "Error populating form", http.StatusInternalServerError)
-	// 			return
-	// 		}
-	// 	}
+	fmt.Printf("Found policy: %v", groupsSlice[0])
 
-	// 	// If not POST, ie. GET
-	// 	// Find current details to use as placeholder values
-	// 	// Init a new db struct
-	// 	found := &db.Post{}
-	// 	// Search for by ID and store in found
-	// 	found, err = c.service.FindById(idParameter)
-	// 	if err != nil {
-	// 		http.Error(w, fmt.Sprintf("%s not found", c.schemaName), http.StatusNotFound)
-	// 		return
-	// 	}
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    fmt.Sprintf("Edit %s: %s", c.schemaName, searchQuery),
+		SectionTitle: fmt.Sprintf("Edit %s: %s", c.schemaName, searchQuery),
+		SidebarList:  sidebarList,
+		PageType: PageType{
+			EditPage:   true,
+			ReadPage:   false,
+			CreatePage: false,
+			DeletePage: false,
+		},
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: fmt.Sprintf("%s/%s", c.adminHomeUrl, searchQuery),
+				FormMethod: "post",
+			},
+			FormFields: []FormField{},
+		},
+	}
 
-	// 	// Populate form field placeholders with data from database
-	// 	currentData := c.getValuesUsingFieldMap(*found)
-	// 	// Populate form field placeholders with data from database
-	// 	err = populatePlaceholdersWithDBData(&editForm, currentData)
-	// 	if err != nil {
-	// 		http.Error(w, "Error generating form", http.StatusInternalServerError)
-	// 		return
-	// 	}
+	// Execute the template with data and write to response
+	err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
 
-	// 	// Data to be injected into template
-	// 	data := PageRenderData{
-	// 		PageTitle:    fmt.Sprintf("Edit %s: %s", c.schemaName, stringParameter),
-	// 		SectionTitle: fmt.Sprintf("Edit %s: %s", c.schemaName, stringParameter),
-	// 		SidebarList:  sidebarList,
-	// 		PageType: PageType{
-	// 			EditPage:   true,
-	// 			ReadPage:   false,
-	// 			CreatePage: false,
-	// 			DeletePage: false,
-	// 		},
-	// 		FormData: FormData{
-	// 			FormDetails: FormDetails{
-	// 				FormAction: fmt.Sprintf("%s/%s", c.adminHomeUrl, stringParameter),
-	// 				FormMethod: "post",
-	// 			},
-	// 			FormFields: editForm,
-	// 		},
-	// 	}
-
-	// // Execute the template with data and write to response
-	// err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
-	//
-	//	if err != nil {
-	//		fmt.Println(err.Error())
-	//		return
-	//	}
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 }
 func (c adminAuthPolicyController) Delete(w http.ResponseWriter, r *http.Request) {
 	// 	stringParameter := chi.URLParam(r, "id")
@@ -514,12 +461,16 @@ func (c adminAuthPolicyController) ObtainFields() BasicAdminController {
 	}
 }
 
+// Search helpers
 // Searches a list of policies for a given resource based on search term
 func searchPoliciesByResource(maps []map[string]interface{}, searchTerm string) []map[string]interface{} {
 	var result []map[string]interface{}
 
+	// Iterate through map of policies
 	for _, m := range maps {
+		// Grab resource
 		resource, ok := m["resource"].(string)
+		// If success and resource contains search term
 		if ok && containsString(resource, searchTerm) {
 			result = append(result, m)
 		}
@@ -528,7 +479,7 @@ func searchPoliciesByResource(maps []map[string]interface{}, searchTerm string) 
 	return result
 }
 
-// Checks if a string contains another string
+// Checks if a string contains another string (Used to search for resource)
 func containsString(s, searchTerm string) bool {
 	return strings.Contains(strings.ToLower(s), strings.ToLower(searchTerm))
 }
