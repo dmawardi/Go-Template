@@ -57,24 +57,32 @@ func (s *authPolicyService) Delete(policy models.CasbinRule) error {
 
 // Transform data from enforcer policies to User friendly response
 func transformDataToResponse(data [][]string) map[string][]map[string]interface{} {
+	// Response format
 	response := make(map[string][]map[string]interface{})
+	// Init policy dictionary for sorting
 	policyDict := make(map[string]map[string]interface{})
 
+	// Loop through data and build policy dictionary
 	for _, item := range data {
+		// Assign policy vars
 		role, resource, action := item[0], item[1], item[2]
 		key := role + resource
 
+		// If key does not exist, create new entry
 		if _, ok := policyDict[key]; !ok {
 			policyDict[key] = map[string]interface{}{
 				"role":     role,
 				"resource": resource,
 				"action":   []string{action},
 			}
+
 		} else {
+			// Else, if record exists with resource, append action to action slice
 			policyDict[key]["action"] = append(policyDict[key]["action"].([]string), action)
 		}
 	}
 
+	// Loop through policyDict and append to response
 	for _, policy := range policyDict {
 		response["policies"] = append(response["policies"], policy)
 	}

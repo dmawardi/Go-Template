@@ -32,6 +32,8 @@ type PageType struct {
 	CreatePage  bool
 	DeletePage  bool
 	SuccessPage bool
+	// Used for customized forms for roles and users
+	Mode string // eg. "roles", "users", or "general" (all other shcmeas)
 }
 
 // Data table
@@ -55,8 +57,14 @@ type TableHeader struct {
 
 // Data to complete a table row
 type TableRow struct {
-	Data []string
+	Data []TableCell
 	Edit EditInfo
+}
+
+// Data for a single cell
+type TableCell struct {
+	Label   string
+	RowSpan int
 }
 
 // Edit info for the Edit column in the table
@@ -65,7 +73,6 @@ type EditInfo struct {
 	DeleteUrl string // eg. admin/users/delete/1
 }
 
-// Form data
 // Function to build table data from slice of adminpanel schema objects, admin schema url (eg. /admin/users) and table headers
 func BuildTableData(listOfSchemaObjects []AdminPanelSchema, metaData models.SchemaMetaData, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
 	// Calculate currently showing records and total pages
@@ -83,7 +90,7 @@ func BuildTableData(listOfSchemaObjects []AdminPanelSchema, metaData models.Sche
 	for _, object := range listOfSchemaObjects {
 		// Init table row
 		row := TableRow{
-			Data: []string{},
+			Data: []TableCell{},
 			// Fill in edit info
 			Edit: EditInfo{
 				EditUrl:   fmt.Sprintf("%s/%s", adminSchemaBaseUrl, object.GetID()),
@@ -100,7 +107,7 @@ func BuildTableData(listOfSchemaObjects []AdminPanelSchema, metaData models.Sche
 			stringFieldData := fmt.Sprint(fieldData)
 
 			// Use header string values to get values from schema object and append
-			row.Data = append(row.Data, stringFieldData)
+			row.Data = append(row.Data, TableCell{Label: stringFieldData})
 		}
 
 		// Append row to table data
@@ -108,4 +115,36 @@ func BuildTableData(listOfSchemaObjects []AdminPanelSchema, metaData models.Sche
 	}
 
 	return tableData
+}
+
+// Function build table data for Permissions
+func BuildRolesTableData(policySlice []map[string]interface{}, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
+	var tableRows []TableRow
+
+	// Loop through policy slice to build table rows
+	for _, policy := range policySlice {
+		var rowData []TableCell
+
+		// Iterate through tableheaders
+		for _, header := range tableHeaders {
+			// Grab data from the schema object
+			value, found := policy[header.Label]
+
+			// If the key is found, append the value to the row data
+			if found {
+				rowData = append(rowData, TableCell{Label: fmt.Sprintf("%v", value)})
+
+				// If the key is not found, append an empty string
+			} else {
+				rowData = append(rowData, TableCell{Label: ""}) // Add an empty string if the key is not found
+			}
+		}
+
+		tableRows = append(tableRows, TableRow{Data: rowData})
+	}
+	return TableData{
+		AdminSchemaUrl: adminSchemaBaseUrl, // You can set this value as needed
+		TableHeaders:   tableHeaders,
+		TableRows:      tableRows,
+	}
 }

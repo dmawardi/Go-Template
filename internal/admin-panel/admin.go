@@ -29,11 +29,12 @@ type AdminController struct {
 	Base AdminBaseController
 	User AdminUserController
 	Post AdminPostController
+	Auth AdminAuthPolicyController
 }
 
 // Constructor
-func NewAdminController(base AdminBaseController, users AdminUserController, posts AdminPostController) AdminController {
-	return AdminController{base, users, posts}
+func NewAdminController(base AdminBaseController, users AdminUserController, posts AdminPostController, authPolicies AdminAuthPolicyController) AdminController {
+	return AdminController{base, users, posts, authPolicies}
 }
 
 // Used for rendering admin sidebar

@@ -109,3 +109,53 @@ func serveAdminSuccess(w http.ResponseWriter, pageTitle string, sectionTitle str
 		return
 	}
 }
+
+// Function to sort permissions data from enforcer
+func sortByRoleResourceAlphabetically(a, b map[string]interface{}) bool {
+	resourceA, okA := a["resource"].(string)
+	resourceB, okB := b["resource"].(string)
+
+	// If either of the elements doesn't have a valid "resource" string, consider it greater (move it to the end)
+	if !okA || !okB {
+		return false
+	}
+
+	// Compare the "resource" strings alphabetically
+	return resourceA < resourceB
+}
+
+// Edit a slice of table rows to add row span to first column and remove <td> tags from
+// subsequent rows
+func editTableDataRowSpan(tableRows []TableRow) {
+	var lastRecordedStart struct {
+		resource string
+		index    int
+	}
+	for i, row := range tableRows {
+		// Extract row variables
+		rowData := row.Data
+		currentResource := rowData[0].Label
+
+		// If current resource is different from last recorded resource, then must edit row span
+		if currentResource != lastRecordedStart.resource {
+			// Calculate row span
+			rowSpan := i - lastRecordedStart.index
+
+			// If the difference between the current index and the last recorded index is greater than 1, then must edit row span
+			if i-lastRecordedStart.index > 1 {
+				// Add row span to first cell of last recorded start row
+				tableRows[lastRecordedStart.index].Data[0].RowSpan = rowSpan
+
+				// Remove <td> tags from subsequent rows: count from last recorded index + 1 till before current index
+				for j := lastRecordedStart.index + 1; j < i; j++ {
+					// Chop first element off of data
+					tableRows[j].Data = tableRows[j].Data[1:]
+				}
+			}
+			// Reassign lastRecordedResource details
+			lastRecordedStart.resource = currentResource
+			lastRecordedStart.index = i
+
+		}
+	}
+}

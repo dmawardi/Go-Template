@@ -1,0 +1,48 @@
+{{define "groups-table"}}
+    <div class="container">
+   {{template "role-search" .}}
+    <!-- Table -->
+    <div class="data-table-container">
+      <table class="data-table">
+        <!-- Headers -->
+        <thead>
+          <tr>
+          
+            {{
+              range.TableData.TableHeaders
+            }}
+
+            <th><a href="#" onclick="sortTable('{{.ColumnSortLabel}}')">{{.Label}}</a></th>
+            {{
+              end
+            }}
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <!-- Table Body -->
+        <tbody>
+          {{
+            range.TableData.TableRows
+          }}
+          <tr>
+            <!-- For each row -->
+            {{
+              range.Data
+            }}
+            <td {{if ge .RowSpan 1}} rowspan="{{.RowSpan}}" {{end}}>{{.Label}}</td>
+            {{
+              end
+            }}
+            <td>
+              <a href="{{.Edit.EditUrl}}">Edit</a>
+            </td>
+          </tr>
+          {{
+            end
+          }}
+        </tbody>
+      </table>
+    </div>
+    </div>
+{{end}}
+`

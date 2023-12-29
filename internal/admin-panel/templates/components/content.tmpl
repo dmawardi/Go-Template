@@ -9,6 +9,20 @@
   </div>
 </div>
 {{else if .PageType.ReadPage}}
+  {{/* Groups page */}}
+  {{if eq .PageType.Mode "groups"}}
+  <div class="content-container">
+  <div class="row">
+    <div>
+      <h1>{{.SectionTitle}}</h1>
+   
+
+      <!-- Data table (includes action box) -->
+      {{ template "groups-table" . }}
+    </div>
+  </div>
+</div>
+  {{else}}
 <div class="content-container">
   <div class="row">
     <div>
@@ -21,6 +35,7 @@
     </div>
   </div>
 </div>
+  {{end}}
 {{else if .PageType.CreatePage}}
 <div class="content-container">
   <div class="row">
