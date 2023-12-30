@@ -2,6 +2,7 @@ package adminpanel
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/dmawardi/Go-Template/internal/models"
 )
@@ -65,6 +66,8 @@ type TableRow struct {
 type TableCell struct {
 	Label   string
 	RowSpan int
+	// Primarily used for the policy table
+	EditLink string
 }
 
 // Edit info for the Edit column in the table
@@ -132,7 +135,17 @@ func BuildRolesTableData(policySlice []map[string]interface{}, adminSchemaBaseUr
 
 			// If the key is found, append the value to the row data
 			if found {
-				rowData = append(rowData, TableCell{Label: fmt.Sprintf("%v", value)})
+				// Append with edit link if it's the first column (resource)
+				if header.Label == "resource" {
+					// Create the edit link from the label value
+					editLink := strings.ReplaceAll(value.(string), "/", "-")
+					// Append to row data with edit link
+					rowData = append(rowData, TableCell{Label: fmt.Sprintf("%v", value), EditLink: editLink})
+
+					// else if other column
+				} else {
+					rowData = append(rowData, TableCell{Label: fmt.Sprintf("%v", value), EditLink: ""})
+				}
 
 				// If the key is not found, append an empty string
 			} else {
@@ -140,6 +153,7 @@ func BuildRolesTableData(policySlice []map[string]interface{}, adminSchemaBaseUr
 			}
 		}
 
+		// Append to table rows
 		tableRows = append(tableRows, TableRow{Data: rowData})
 	}
 	return TableData{

@@ -191,8 +191,8 @@ func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request
 	}
 }
 func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) {
-	// 	// Grab URL parameter
-	searchQuery := chi.URLParam(r, "search")
+	// 	// Grab slug from URL
+	searchQuery := chi.URLParam(r, "id")
 
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
@@ -210,7 +210,7 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 	// Filter by search query
 	groupsSlice := searchPoliciesByResource(found, searchQuery)
 
-	fmt.Printf("Found policy: %v", groupsSlice[0])
+	fmt.Printf("Found policy: %v", groupsSlice)
 
 	// Data to be injected into template
 	data := PageRenderData{
@@ -240,6 +240,7 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 }
+
 func (c adminAuthPolicyController) Delete(w http.ResponseWriter, r *http.Request) {
 	// 	stringParameter := chi.URLParam(r, "id")
 	// 	// Convert to int
