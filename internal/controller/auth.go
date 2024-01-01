@@ -122,7 +122,7 @@ func (c authPolicyController) AssignUserRole(w http.ResponseWriter, r *http.Requ
 // @Security BearerToken
 func (c authPolicyController) Delete(w http.ResponseWriter, r *http.Request) {
 	// Grab request body as models.CasbinRule
-	var pol models.CasbinRule
+	var pol models.PolicyRule
 	err := json.NewDecoder(r.Body).Decode(&pol)
 	if err != nil {
 		http.Error(w, "Invalid policy", http.StatusBadRequest)
@@ -152,7 +152,7 @@ func (c authPolicyController) Delete(w http.ResponseWriter, r *http.Request) {
 // @Security BearerToken
 func (c authPolicyController) Create(w http.ResponseWriter, r *http.Request) {
 	// Grab request body as models.CasbinRule
-	var pol models.CasbinRule
+	var pol models.PolicyRule
 	err := json.NewDecoder(r.Body).Decode(&pol)
 	if err != nil {
 		http.Error(w, "Invalid policy", http.StatusBadRequest)
@@ -170,12 +170,6 @@ func (c authPolicyController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// else, validation passes and allow through
-
-	// Ensure that the DTO is a policy and not a group policy
-	if pol.PType == "g" {
-		http.Error(w, "Can't assign a role. Try different route", http.StatusBadRequest)
-		return
-	}
 
 	// Create the policy
 	err = c.service.Create(pol)

@@ -196,10 +196,13 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 	// 	// Grab slug from URL
 	searchQuery := chi.URLParam(r, "id")
 	searchQuery = UnslugifyResourceName(searchQuery)
+	// Detect request method
+	method := r.Method
 
 	// If form is being submitted (method = POST)
-	if r.Method == "POST" || r.Method == "DELETE" {
+	if method == "POST" || method == "DELETE" {
 		fmt.Printf("POST or DELETE detected")
+
 	}
 
 	// If not POST, ie. GET

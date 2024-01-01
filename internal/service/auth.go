@@ -9,9 +9,9 @@ type AuthPolicyService interface {
 	FindAll() ([]map[string]interface{}, error)
 	FindAllRoles() ([]string, error)
 	AssignUserRole(userId, roleToApply string) (*bool, error)
-	Create(policy models.CasbinRule) error
-	Update(oldPolicy, newPolicy models.CasbinRule) error
-	Delete(policy models.CasbinRule) error
+	Create(policy models.PolicyRule) error
+	Update(oldPolicy, newPolicy models.PolicyRule) error
+	Delete(policy models.PolicyRule) error
 }
 
 type authPolicyService struct {
@@ -45,14 +45,39 @@ func (s *authPolicyService) AssignUserRole(userId, roleToApply string) (*bool, e
 func (s *authPolicyService) FindAllRoles() ([]string, error) {
 	return s.repo.FindAllRoles()
 }
-func (s *authPolicyService) Create(policy models.CasbinRule) error {
-	return s.repo.Create(policy)
+func (s *authPolicyService) Create(policy models.PolicyRule) error {
+	casbinPolicy := models.CasbinRule{
+		PType: "p",
+		V0:    policy.Role,
+		V1:    policy.Resource,
+		V2:    policy.Action,
+	}
+
+	return s.repo.Create(casbinPolicy)
 }
-func (s *authPolicyService) Update(oldPolicy, newPolicy models.CasbinRule) error {
-	return s.repo.Update(oldPolicy, newPolicy)
+func (s *authPolicyService) Update(oldPolicy, newPolicy models.PolicyRule) error {
+	oldCasbinPolicy := models.CasbinRule{
+		PType: "p",
+		V0:    oldPolicy.Role,
+		V1:    oldPolicy.Resource,
+		V2:    oldPolicy.Action,
+	}
+	newCasbinPolicy := models.CasbinRule{
+		PType: "p",
+		V0:    newPolicy.Role,
+		V1:    newPolicy.Resource,
+		V2:    newPolicy.Action,
+	}
+	return s.repo.Update(oldCasbinPolicy, newCasbinPolicy)
 }
-func (s *authPolicyService) Delete(policy models.CasbinRule) error {
-	return s.repo.Delete(policy)
+func (s *authPolicyService) Delete(policy models.PolicyRule) error {
+	casbinPolicy := models.CasbinRule{
+		PType: "p",
+		V0:    policy.Role,
+		V1:    policy.Resource,
+		V2:    policy.Action,
+	}
+	return s.repo.Delete(casbinPolicy)
 }
 
 // Transform data from enforcer policies to User friendly response

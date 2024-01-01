@@ -14,12 +14,12 @@ type CasbinRule struct {
 type PolicyRule struct {
 	Role     string `json:"role" valid:"required"`
 	Resource string `json:"resource" valid:"required"`
-	Action   string `json:"action" valid:"required"`
+	Action   string `json:"action" valid:"required,in(read|create|update|delete)"`
 }
 
 type UpdateCasbinRule struct {
-	OldPolicy CasbinRule `json:"old_policy" valid:"required"`
-	NewPolicy CasbinRule `json:"new_policy" valid:"required"`
+	OldPolicy PolicyRule `json:"old_policy" valid:"required"`
+	NewPolicy PolicyRule `json:"new_policy" valid:"required"`
 }
 
 type CasbinRoleAssignment struct {
