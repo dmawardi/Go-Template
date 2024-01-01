@@ -24,6 +24,26 @@ type PageRenderData struct {
 	TableData TableData
 	// Search
 	SearchTerm string
+	// Special section data for policies
+	PolicySection PolicySection
+}
+
+// Used for the policy section
+type PolicySection struct {
+	FocusedPolicies []PolicyEditDataRow
+}
+
+// Formatted data for ideal edit page rendering
+type PolicyEditDataRow struct {
+	Resource string
+	Role     string
+	Actions  []PolicyActionCell
+}
+
+// Used for rendering the policy table row
+type PolicyActionCell struct {
+	Action  string
+	Granted bool
 }
 
 // Page type (Used for content selection)
@@ -137,7 +157,7 @@ func BuildRolesTableData(policySlice []map[string]interface{}, adminSchemaBaseUr
 			if found {
 				// Append with edit link if it's the first column (resource)
 				if header.Label == "resource" {
-					// Create the edit link from the label value
+					// Create the edit link from the label value (slugify)
 					editLink := strings.ReplaceAll(value.(string), "/", "-")
 					// Append to row data with edit link
 					rowData = append(rowData, TableCell{Label: fmt.Sprintf("%v", value), EditLink: editLink})
@@ -161,4 +181,9 @@ func BuildRolesTableData(policySlice []map[string]interface{}, adminSchemaBaseUr
 		TableHeaders:   tableHeaders,
 		TableRows:      tableRows,
 	}
+}
+
+// Function to unslugify a resource name
+func UnslugifyResourceName(slugifiedResourceName string) string {
+	return strings.ReplaceAll(slugifiedResourceName, "-", "/")
 }

@@ -28,7 +28,7 @@
             }}
             <td {{if ge $element.RowSpan 1}} rowspan="{{.RowSpan}}" {{end}}>
               {{if and (eq $index 0) (gt (len $row.Data) 2)}}
-                <a href="groups/{{$element.EditLink}}">{{$element.Label}}</a>
+                <a href="policy/{{$element.EditLink}}">{{$element.Label}}</a>
               {{else}}
                 {{$element.Label}}
               {{end}}

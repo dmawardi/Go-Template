@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/dmawardi/Go-Template/internal/db"
@@ -22,13 +21,15 @@ var authPolicyTableHeaders = []TableHeader{
 	{Label: "action", ColumnSortLabel: "action", Pointer: false, DataType: "string"},
 }
 
+var possibleActions = []string{"create", "read", "update", "delete"}
+
 func NewAdminAuthPolicyController(service service.AuthPolicyService) AdminAuthPolicyController {
 	return &adminAuthPolicyController{
 		service: service,
 		// Use values from above
-		adminHomeUrl:     "/admin/groups",
-		schemaName:       "Group",
-		pluralSchemaName: "Groups",
+		adminHomeUrl:     "/admin/policy",
+		schemaName:       "Policy",
+		pluralSchemaName: "Policies",
 		tableHeaders:     authPolicyTableHeaders,
 		// formSelectors:    selectorService,
 	}
@@ -100,7 +101,7 @@ func (c adminAuthPolicyController) FindAll(w http.ResponseWriter, r *http.Reques
 			ReadPage:   true,
 			CreatePage: false,
 			DeletePage: false,
-			Mode:       "groups",
+			Mode:       "policy",
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{
@@ -190,13 +191,15 @@ func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request
 		return
 	}
 }
+
 func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) {
 	// 	// Grab slug from URL
 	searchQuery := chi.URLParam(r, "id")
+	searchQuery = UnslugifyResourceName(searchQuery)
 
 	// If form is being submitted (method = POST)
-	if r.Method == "POST" {
-		fmt.Printf("POST detected")
+	if r.Method == "POST" || r.Method == "DELETE" {
+		fmt.Printf("POST or DELETE detected")
 	}
 
 	// If not POST, ie. GET
@@ -208,9 +211,9 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Filter by search query
-	groupsSlice := searchPoliciesByResource(found, searchQuery)
-
-	fmt.Printf("Found policy: %v", groupsSlice)
+	groupsSlice := searchPoliciesForExactResouceMatch(found, searchQuery)
+	// Prepare policies for rendering
+	policies := convertMapToPolicyRule(groupsSlice)
 
 	// Data to be injected into template
 	data := PageRenderData{
@@ -222,13 +225,14 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 			ReadPage:   false,
 			CreatePage: false,
 			DeletePage: false,
+			Mode:       "policy",
+		},
+		PolicySection: PolicySection{
+			FocusedPolicies: policies,
 		},
 		FormData: FormData{
-			FormDetails: FormDetails{
-				FormAction: fmt.Sprintf("%s/%s", c.adminHomeUrl, searchQuery),
-				FormMethod: "post",
-			},
-			FormFields: []FormField{},
+			FormDetails: FormDetails{},
+			FormFields:  []FormField{},
 		},
 	}
 
@@ -480,7 +484,57 @@ func searchPoliciesByResource(maps []map[string]interface{}, searchTerm string) 
 	return result
 }
 
-// Checks if a string contains another string (Used to search for resource)
-func containsString(s, searchTerm string) bool {
-	return strings.Contains(strings.ToLower(s), strings.ToLower(searchTerm))
+// Searches a list of policies for a given resource based on search term
+func searchPoliciesForExactResouceMatch(maps []map[string]interface{}, searchTerm string) []map[string]interface{} {
+	var result []map[string]interface{}
+
+	// Iterate through map of policies
+	for _, m := range maps {
+		// Grab resource
+		resource, ok := m["resource"].(string)
+		// If success and resource contains search term
+		if ok && resource == searchTerm {
+			result = append(result, m)
+		}
+	}
+
+	return result
+}
+
+// Convert the map received from the service to a slice of models.PolicyRule
+func convertMapToPolicyRule(m []map[string]interface{}) []PolicyEditDataRow {
+	var policies []PolicyEditDataRow
+	// Iterate through map of policies
+	for _, policy := range m {
+		var actions []PolicyActionCell
+
+		// Iterate through actions
+		for _, action := range possibleActions {
+			// Create policy action cell
+			actionToAdd := PolicyActionCell{
+				Action: action,
+				// Make false as default
+				Granted: false,
+			}
+
+			// Check if array contains a string
+			if arrayContainsString(policy["action"].([]string), action) {
+				actionToAdd.Granted = true
+			}
+
+			// Append to actions
+			actions = append(actions, actionToAdd)
+		}
+
+		// Build policy edit row
+		policyToAdd := PolicyEditDataRow{
+			Role:     policy["role"].(string),
+			Resource: policy["resource"].(string),
+			Actions:  actions,
+		}
+
+		// Append to policies
+		policies = append(policies, policyToAdd)
+	}
+	return policies
 }

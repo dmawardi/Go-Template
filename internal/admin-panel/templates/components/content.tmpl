@@ -1,16 +1,22 @@
 {{define "content"}}
+{{/* Find / Edit */}}
 {{if .PageType.EditPage}}
-<div class="content-container">
-  <div class="row">
-    <div>
-      <h1>{{.SectionTitle}}</h1>
-      {{template "form" .FormData}}
+  {{if eq .PageType.Mode "policy"}}
+    {{template "policy-edit-form" .}}
+  {{else}}
+    <div class="content-container">
+      <div class="row">
+        <div>
+          <h1>{{.SectionTitle}}</h1>
+          {{template "form" .FormData}}
+        </div>
+      </div>
     </div>
-  </div>
-</div>
+  {{end}}
+  {{/* Find All */}}
 {{else if .PageType.ReadPage}}
-  {{/* Groups page */}}
-  {{if eq .PageType.Mode "groups"}}
+  
+  {{if eq .PageType.Mode "policy"}}
   <div class="content-container">
   <div class="row">
     <div>
@@ -36,6 +42,7 @@
   </div>
 </div>
   {{end}}
+{{/* Create */}}
 {{else if .PageType.CreatePage}}
 <div class="content-container">
   <div class="row">
@@ -45,6 +52,7 @@
     </div>
   </div>
 </div>
+{{/* Delete */}}
 {{else if .PageType.DeletePage}}
 <div class="content-container">
   <div class="row">
@@ -63,6 +71,7 @@
     </div>
   </div>
 </div>
+{{/* Success */}}
 {{else if .PageType.SuccessPage}}
 <div class="content-container">
   <div class="row">
@@ -71,6 +80,7 @@
     </div>
   </div>
 </div>
+{{/* Error */}}
 {{else}}
 <div class="content-container">
   <div>

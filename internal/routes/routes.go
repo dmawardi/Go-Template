@@ -56,7 +56,7 @@ func (a api) Routes() http.Handler {
 	// mux = a.AddAdminCrudRoutes(mux, true, "users", a.Admin.User)
 	mux = a.AddAdminRouteSet(mux, false, "users", a.Admin.User)
 	mux = a.AddAdminRouteSet(mux, false, "posts", a.Admin.Post)
-	mux = a.AddAdminRouteSet(mux, false, "groups", a.Admin.Auth)
+	mux = a.AddAdminPolicySet(mux, false, "policy", a.Admin.Auth)
 
 	// Serve API Swagger docs
 	mux.Get("/swagger/*", httpSwagger.Handler(
@@ -182,6 +182,36 @@ func (a api) AddAdminRouteSet(router *chi.Mux, protected bool, urlExtension stri
 		// Edit/Update (GET data in form / POST form)
 		mux.Get(fmt.Sprintf("/admin/%s/{id}", urlExtension), controller.Edit)
 		mux.Post(fmt.Sprintf("/admin/%s/{id}", urlExtension), controller.Edit)
+		mux.Get(fmt.Sprintf("/admin/%s/edit/success", urlExtension), controller.EditSuccess)
+	})
+	return router
+}
+
+func (a api) AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension string, controller adminpanel.AdminAuthPolicyController) *chi.Mux {
+	// Reassign for consistency
+	r := router
+	r.Group(func(mux chi.Router) {
+		// Set to use JWT authentication if protected
+		if protected {
+			mux.Use(auth.AuthenticateJWT)
+		}
+		// Read (all users)
+		mux.Get(fmt.Sprintf("/admin/%s", urlExtension), controller.FindAll)
+		// Create (GET form / POST form)
+		// mux.Get(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)
+		// mux.Post(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)
+		// mux.Get(fmt.Sprintf("/admin/%s/create/success", urlExtension), controller.CreateSuccess)
+		// // Delete
+		// mux.Get(fmt.Sprintf("/admin/%s/delete/{id}", urlExtension), controller.Delete)
+		// mux.Post(fmt.Sprintf("/admin/%s/delete/{id}", urlExtension), controller.Delete)
+		// mux.Get(fmt.Sprintf("/admin/%s/delete/success", urlExtension), controller.DeleteSuccess)
+		// // Bulk delete (from table)
+		// mux.Delete(fmt.Sprintf("/admin/%s/bulk-delete", urlExtension), controller.BulkDelete)
+
+		// Edit/Update (GET data in form / POST form)
+		mux.Get(fmt.Sprintf("/admin/%s/{id}", urlExtension), controller.Edit)
+		mux.Post(fmt.Sprintf("/admin/%s/{id}", urlExtension), controller.Edit)
+		mux.Delete(fmt.Sprintf("/admin/%s/{id}", urlExtension), controller.Edit)
 		mux.Get(fmt.Sprintf("/admin/%s/edit/success", urlExtension), controller.EditSuccess)
 	})
 	return router

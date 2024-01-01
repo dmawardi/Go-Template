@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -108,6 +109,21 @@ func serveAdminSuccess(w http.ResponseWriter, pageTitle string, sectionTitle str
 		fmt.Println(err.Error())
 		return
 	}
+}
+
+// Checks if a string contains another string (Used to search for resource)
+func containsString(s, searchTerm string) bool {
+	return strings.Contains(strings.ToLower(s), strings.ToLower(searchTerm))
+}
+
+// Checks if array contains data
+func arrayContainsString(arr []string, target string) bool {
+	for _, s := range arr {
+		if s == target {
+			return true
+		}
+	}
+	return false
 }
 
 // Function to sort permissions data from enforcer
