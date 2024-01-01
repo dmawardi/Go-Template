@@ -5,17 +5,7 @@ const policyEditUrl = server_address + "/admin/policy/";
 
 // Function to edit policy from form submission
 async function editPolicy(e, actionToComplete, role, resource, action) {
-  console.log(
-    "Parameters:\nAction: " +
-      actionToComplete +
-      "\nRole: " +
-      role +
-      "\nResource: " +
-      resource +
-      "\nAction: " +
-      action
-  );
-  //   Prevent default behavior
+  //   Prevent default submit behavior
   e.preventDefault();
 
   //   Depending on action to complete, send request to server
@@ -27,7 +17,6 @@ async function editPolicy(e, actionToComplete, role, resource, action) {
         resource: resource,
         action: action,
       });
-      console.log("response in add: ", response);
       break;
 
     case "delete":
@@ -36,13 +25,11 @@ async function editPolicy(e, actionToComplete, role, resource, action) {
         resource: resource,
         action: action,
       });
-      console.log("response in delete: ", response);
       break;
     default:
       response = false;
   }
 
-  console.log("response: ", response);
   if (!response) {
     alert("Action failed.");
   } else {
@@ -64,13 +51,9 @@ async function sendRequest(requestedAction, policyData) {
     //  Build request URL
     requestUrl = policyEditUrl + slugParam;
 
-    console.log("capitalizedAction: ", capitalizedAction);
-    console.log("slugParam: ", slugParam);
-    console.log("requestUrl: ", requestUrl);
-
-    // Convert the selectedItems array to JSON
+    // Convert the data to JSON string
     policyDataJson = JSON.stringify(policyData);
-    console.log("policyDataJson: ", policyDataJson);
+
     // Send a DELETE request to the server
     const response = await fetch(requestUrl, {
       method: capitalizedAction,
@@ -85,11 +68,9 @@ async function sendRequest(requestedAction, policyData) {
     if (!response.ok) {
       return false;
     }
-    console.log("success. Response: ", response);
-    // Else convert json response to data
-    const data = await response.json();
-    console.log("data: ", data);
-    return data;
+
+    // Reload the page
+    return true;
   } catch (error) {
     console.error("Error:", error);
     return false;

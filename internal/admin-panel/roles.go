@@ -1,6 +1,7 @@
 package adminpanel
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
@@ -193,15 +195,49 @@ func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request
 }
 
 func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) {
-	// 	// Grab slug from URL
-	searchQuery := chi.URLParam(r, "id")
-	searchQuery = UnslugifyResourceName(searchQuery)
+	// Grab slug from URL
+	policySlug := chi.URLParam(r, "id")
+	// Unslug
+	policyUnslug := UnslugifyResourceName(policySlug)
 	// Detect request method
 	method := r.Method
 
 	// If form is being submitted (method = POST)
 	if method == "POST" || method == "DELETE" {
-		fmt.Printf("POST or DELETE detected")
+		// Extract from request body, json policy
+		pol := &models.PolicyRule{}
+
+		// Decode request body as JSON and store in login
+		err := json.NewDecoder(r.Body).Decode(&pol)
+		if err != nil {
+			http.Error(w, "Invalid policy", http.StatusBadRequest)
+			return
+		}
+
+		// Validate the incoming DTO
+		pass, _ := helpers.GoValidateStruct(pol)
+
+		// If passes
+		if pass {
+			if method == "POST" {
+				// Create policy
+				err = c.service.Create(*pol)
+				if err != nil {
+					http.Error(w, fmt.Sprintf("Error creating %s", c.schemaName), http.StatusInternalServerError)
+					return
+				}
+			} else if method == "DELETE" {
+				// Delete policy
+				err = c.service.Delete(*pol)
+				if err != nil {
+					http.Error(w, fmt.Sprintf("Error deleting %s", c.schemaName), http.StatusInternalServerError)
+					return
+				}
+			}
+			// Redirect or render a success message
+			http.Redirect(w, r, fmt.Sprintf("%s/%s", c.adminHomeUrl, policySlug), http.StatusSeeOther)
+			return
+		}
 
 	}
 
@@ -214,14 +250,14 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Filter by search query
-	groupsSlice := searchPoliciesForExactResouceMatch(found, searchQuery)
+	groupsSlice := searchPoliciesForExactResouceMatch(found, policyUnslug)
 	// Prepare policies for rendering
 	policies := convertMapToPolicyRule(groupsSlice)
 
 	// Data to be injected into template
 	data := PageRenderData{
-		PageTitle:    fmt.Sprintf("Edit %s: %s", c.schemaName, searchQuery),
-		SectionTitle: fmt.Sprintf("Edit %s: %s", c.schemaName, searchQuery),
+		PageTitle:    fmt.Sprintf("Edit %s: %s", c.schemaName, policyUnslug),
+		SectionTitle: fmt.Sprintf("Edit %s: %s", c.schemaName, policyUnslug),
 		SidebarList:  sidebarList,
 		PageType: PageType{
 			EditPage:   true,

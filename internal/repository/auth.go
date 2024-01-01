@@ -84,7 +84,6 @@ func (r *authPolicyRepository) Delete(policy models.CasbinRule) error {
 	var removed bool
 	var err error
 
-	fmt.Printf("Policy to delete in repository: %v\n", policy)
 	// Remove policy from enforcer
 	removed, err = r.enforcer.RemovePolicy(policy.V0, policy.V1, policy.V2)
 	if err != nil {
