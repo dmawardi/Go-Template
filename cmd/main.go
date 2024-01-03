@@ -128,7 +128,7 @@ func ApiSetup(client *gorm.DB) routes.Api {
 		adminpanel.NewAdminBaseController(),
 		adminpanel.NewAdminUserController(userService, selectorService),
 		adminpanel.NewAdminPostController(postService, selectorService),
-		adminpanel.NewAdminAuthPolicyController(groupService))
+		adminpanel.NewAdminAuthPolicyController(groupService, selectorService))
 
 	// Generate admin sidebar list from admin controller
 	adminpanel.GenerateAndSetAdminSidebar(adminController)

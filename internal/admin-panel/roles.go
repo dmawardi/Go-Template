@@ -25,7 +25,7 @@ var authPolicyTableHeaders = []TableHeader{
 
 var possibleActions = []string{"create", "read", "update", "delete"}
 
-func NewAdminAuthPolicyController(service service.AuthPolicyService) AdminAuthPolicyController {
+func NewAdminAuthPolicyController(service service.AuthPolicyService, selectorService SelectorService) AdminAuthPolicyController {
 	return &adminAuthPolicyController{
 		service: service,
 		// Use values from above
@@ -33,7 +33,7 @@ func NewAdminAuthPolicyController(service service.AuthPolicyService) AdminAuthPo
 		schemaName:       "Policy",
 		pluralSchemaName: "Policies",
 		tableHeaders:     authPolicyTableHeaders,
-		// formSelectors:    selectorService,
+		formSelectors:    selectorService,
 	}
 }
 
@@ -123,71 +123,71 @@ func (c adminAuthPolicyController) FindAll(w http.ResponseWriter, r *http.Reques
 }
 
 func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request) {
-	// 	// Init new User Create form
-	// 	createForm := c.generateCreateForm()
+	// Init new form
+	createForm := c.generateCreateForm()
 
-	// 	// If form is being submitted (method = POST)
-	// 	if r.Method == "POST" {
-	// 		// Extract user form submission
-	// 		toValidate, err := c.extractCreateFormSubmission(r)
-	// 		if err != nil {
-	// 			http.Error(w, "Error parsing form", http.StatusBadRequest)
-	// 			return
-	// 		}
+	// If form is being submitted (method = POST)
+	if r.Method == "POST" {
+		// Extract user form submission
+		toValidate, err := c.extractCreateFormSubmission(r)
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
 
-	// 		// Validate struct
-	// 		pass, valErrors := helpers.GoValidateStruct(toValidate)
-	// 		// If failure detected
-	// 		// If validation passes
-	// 		if pass {
-	// 			// Create user
-	// 			_, err = c.service.Create(&toValidate)
-	// 			if err != nil {
-	// 				http.Error(w, fmt.Sprintf("Error creating %s", c.schemaName), http.StatusInternalServerError)
-	// 				return
-	// 			}
-	// 			// Redirect or render a success message
-	// 			http.Redirect(w, r, fmt.Sprintf("%s/create/success", c.adminHomeUrl), http.StatusSeeOther)
-	// 			return
-	// 		}
+		// Validate struct
+		pass, valErrors := helpers.GoValidateStruct(toValidate)
+		// If failure detected
+		// If validation passes
+		if pass {
+			// Create
+			err = c.service.Create(toValidate)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Error creating %s", c.schemaName), http.StatusInternalServerError)
+				return
+			}
+			// Redirect or render a success message
+			http.Redirect(w, r, fmt.Sprintf("%s/create/success", c.adminHomeUrl), http.StatusSeeOther)
+			return
+		}
 
-	// 		// If validation fails
-	// 		// Populate form field errors
-	// 		SetValidationErrorsInForm(createForm, *valErrors)
+		// If validation fails
+		// Populate form field errors
+		SetValidationErrorsInForm(createForm, *valErrors)
 
-	// 		// Extract form submission from request and build into map[string]string
-	// 		formFieldMap, err := c.extractFormFromRequest(r)
-	// 		if err != nil {
-	// 			http.Error(w, "Error parsing form", http.StatusBadRequest)
-	// 			return
-	// 		}
-	// 		// Populate previously entered values (Avoids password)
-	// 		populateValuesWithForm(r, &createForm, formFieldMap)
-	// 	}
+		// Extract form submission from request and build into map[string]string
+		formFieldMap, err := c.extractFormFromRequest(r)
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+		fmt.Printf("formFieldMap: %+v\n", formFieldMap)
+	}
 
-	// 	// Render preparation
-	// 	// Data to be injected into template
-	// 	data := PageRenderData{
-	// 		PageTitle:    fmt.Sprintf("Create %s", c.schemaName),
-	// 		SectionTitle: fmt.Sprintf("Create a new %s", c.schemaName),
-	// 		SidebarList:  sidebarList,
-	// 		PageType: PageType{
-	// 			EditPage:   false,
-	// 			ReadPage:   false,
-	// 			CreatePage: true,
-	// 			DeletePage: false,
-	// 		},
-	// 		FormData: FormData{
-	// 			FormDetails: FormDetails{
-	// 				FormAction: fmt.Sprintf("%s/create", c.adminHomeUrl),
-	// 				FormMethod: "post",
-	// 			},
-	// 			FormFields: createForm,
-	// 		},
-	// 	}
+	// Render preparation
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    fmt.Sprintf("Create %s", c.schemaName),
+		SectionTitle: fmt.Sprintf("Create a new %s", c.schemaName),
+		SidebarList:  sidebarList,
+		PageType: PageType{
+			EditPage:   false,
+			ReadPage:   false,
+			CreatePage: true,
+			DeletePage: false,
+			Mode:       "policy",
+		},
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: fmt.Sprintf("%s/create", c.adminHomeUrl),
+				FormMethod: "post",
+			},
+			FormFields: createForm,
+		},
+	}
 
 	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", PageRenderData{})
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -285,97 +285,10 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 }
 
 func (c adminAuthPolicyController) Delete(w http.ResponseWriter, r *http.Request) {
-	// 	stringParameter := chi.URLParam(r, "id")
-	// 	// Convert to int
-	// 	idParameter, err := strconv.Atoi(stringParameter)
-	// 	if err != nil {
-	// 		serveAdminError(w, "Unable to interpret ID")
-	// 		return
-	// 	}
-	// 	// If form is being submitted (method = POST)
-	// 	if r.Method == "POST" {
-	// 		// Delete user
-	// 		err = c.service.Delete(idParameter)
-	// 		if err != nil {
-	// 			http.Error(w, fmt.Sprintf("Error deleting %s", c.schemaName), http.StatusInternalServerError)
-	// 			return
-	// 		}
-	// 		// Redirect to success page
-	// 		http.Redirect(w, r, fmt.Sprintf("%s/delete/success", c.adminHomeUrl), http.StatusSeeOther)
-	// 		return
-	// 	}
 
-	// 	// GET request
-	// 	// Data to be injected into template
-	// 	data := PageRenderData{
-	// 		PageTitle:    fmt.Sprintf("Delete %s", c.schemaName),
-	// 		SectionTitle: fmt.Sprintf("Are you sure you wish to delete user: %s?", stringParameter),
-	// 		SidebarList:  sidebarList,
-	// 		SchemaHome:   c.adminHomeUrl,
-	// 		PageType: PageType{
-	// 			EditPage:   false,
-	// 			ReadPage:   false,
-	// 			CreatePage: false,
-	// 			DeletePage: true,
-	// 		},
-	// 		FormData: FormData{
-	// 			FormDetails: FormDetails{
-	// 				FormAction: fmt.Sprintf("%s/delete/%s", c.adminHomeUrl, stringParameter),
-	// 				FormMethod: "post",
-	// 			},
-	// 			FormFields: []FormField{},
-	// 		},
-	// 	}
-
-	// // Execute the template with data and write to response
-	// err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
-	//
-	//	if err != nil {
-	//		fmt.Println(err.Error())
-	//		return
-	//	}
 }
 func (c adminAuthPolicyController) BulkDelete(w http.ResponseWriter, r *http.Request) {
-	// 	// Grab body of request
-	// 	// Init
-	// 	var listOfIds BulkDeleteRequest
 
-	// 	// Prepare response
-	// 	bulkResponse := models.BulkDeleteResponse{
-	// 		// Set deleted records to length of selected items
-	// 		DeletedRecords: len(listOfIds.SelectedItems),
-	// 		Errors:         []error{},
-	// 	}
-
-	// 	// Decode request body as JSON and store in login
-	// 	err := json.NewDecoder(r.Body).Decode(&listOfIds)
-	// 	if err != nil {
-	// 		fmt.Println("Decoding error: ", err)
-	// 	}
-
-	// 	// Convert string slice to int slice
-	// 	intIdList, err := convertStringSliceToIntSlice(listOfIds.SelectedItems)
-	// 	if err != nil {
-	// 		bulkResponse.Errors = append(bulkResponse.Errors, err)
-	// 		bulkResponse.Success = false
-	// 		helpers.WriteAsJSON(w, bulkResponse)
-	// 		return
-	// 	}
-
-	// // Bulk Delete users
-	// err = c.service.BulkDelete(intIdList)
-	// // If error detected send error response
-	//
-	//	if err != nil {
-	//		bulkResponse.Errors = append(bulkResponse.Errors, err)
-	//		bulkResponse.Success = false
-	//		helpers.WriteAsJSON(w, bulkResponse)
-	//		return
-	//	}
-	//
-	// // else if successful
-	// bulkResponse.Success = true
-	// helpers.WriteAsJSON(w, bulkResponse)
 }
 
 // Success handlers
@@ -393,45 +306,29 @@ func (c adminAuthPolicyController) DeleteSuccess(w http.ResponseWriter, r *http.
 }
 
 // Form generation
-// Used to build Create user form
+// Used to build Create form
 func (c adminAuthPolicyController) generateCreateForm() []FormField {
 	return []FormField{
-		{DbLabel: "Title", Label: "Title", Name: "title", Placeholder: "", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Body", Label: "Body", Name: "body", Placeholder: "", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "User", Label: "User", Name: "user", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.UserSelection()},
-	}
-}
-
-// Used to build Edit user form
-func (c adminAuthPolicyController) generateEditForm() []FormField {
-	return []FormField{
-		{DbLabel: "Title", Label: "Title", Name: "title", Placeholder: "", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Body", Label: "Body", Name: "body", Placeholder: "", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "User", Label: "User", Name: "user", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.UserSelection()},
+		{DbLabel: "Resource", Label: "Resource", Name: "resource", Placeholder: "eg. '/api/posts'", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "Role", Label: "First Role", Name: "role", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.RoleSelection()},
+		{DbLabel: "Action", Label: "Action", Name: "action", Placeholder: "", Value: "", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.ActionSelection()},
 	}
 }
 
 // Extract forms
-// Used to extract form submission from request and build into models.CreatePost
-func (c adminAuthPolicyController) extractCreateFormSubmission(r *http.Request) (models.CreatePost, error) {
+// Used to extract form submission from request and build into service-ready format
+func (c adminAuthPolicyController) extractCreateFormSubmission(r *http.Request) (models.PolicyRule, error) {
 	// Parse the form
 	err := r.ParseForm()
 	if err != nil {
-		return models.CreatePost{}, errors.New("Error parsing form")
-	}
-
-	user := r.FormValue("user")
-	// Convert to int
-	userId, err := strconv.Atoi(user)
-	if err != nil {
-		return models.CreatePost{}, errors.New("Error parsing form")
+		return models.PolicyRule{}, errors.New("Error parsing form")
 	}
 
 	// Build struct for validation
-	toValidate := models.CreatePost{
-		Title: r.FormValue("title"),
-		Body:  r.FormValue("body"),
-		User:  db.User{ID: uint(userId)},
+	toValidate := models.PolicyRule{
+		Role:     r.FormValue("role"),
+		Resource: r.FormValue("resource"),
+		Action:   r.FormValue("action"),
 	}
 
 	return toValidate, nil

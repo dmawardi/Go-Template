@@ -44,14 +44,12 @@
   {{end}}
 {{/* Create */}}
 {{else if .PageType.CreatePage}}
-<div class="content-container">
-  <div class="row">
-    <div>
-      <h1>{{.SectionTitle}}</h1>
-      {{template "form" .FormData}}
-    </div>
-  </div>
-</div>
+  {{if eq .PageType.Mode "policy"}}
+    {{template "policy-form" .}}
+  {{else}}
+    {{template "form" .}}
+  {{end}}
+
 {{/* Delete */}}
 {{else if .PageType.DeletePage}}
 <div class="content-container">

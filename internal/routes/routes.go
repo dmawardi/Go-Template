@@ -198,9 +198,9 @@ func (a api) AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension str
 		// Read (all users)
 		mux.Get(fmt.Sprintf("/admin/%s", urlExtension), controller.FindAll)
 		// Create (GET form / POST form)
-		// mux.Get(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)
-		// mux.Post(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)
-		// mux.Get(fmt.Sprintf("/admin/%s/create/success", urlExtension), controller.CreateSuccess)
+		mux.Get(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)
+		mux.Post(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)
+		mux.Get(fmt.Sprintf("/admin/%s/create/success", urlExtension), controller.CreateSuccess)
 		// // Delete
 		// mux.Get(fmt.Sprintf("/admin/%s/delete/{id}", urlExtension), controller.Delete)
 		// mux.Post(fmt.Sprintf("/admin/%s/delete/{id}", urlExtension), controller.Delete)

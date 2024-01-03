@@ -1,7 +1,8 @@
-{{define "form"}}
+{{define "policy-form"}}
 <div class="content-container">
   <div class="row">
     <div>
+      Policy creation
       <h1>{{.SectionTitle}}</h1>
       <form
         class="admin-form"
@@ -45,10 +46,7 @@
           {{/* Checkbox */}}
           {{else if eq .Type "checkbox"}}
           <input class="form-checkbox" type="{{.Type}}" class="form-control"
-          id="{{.Name
-
-
-          }}" name="{{.Name}}" value="{{.Value}}"
+          id="{{.Name}}" name="{{.Name}}" value="{{.Value}}"
           {{if eq .Placeholder "true" }}checked{{ end }}
           {{if .Required}}required{{ end }} {{if .Disabled}}disabled{{ end }}
           />
@@ -95,7 +93,9 @@
         {{ end }}
 
         {{/* Submission buttons */}}
-        <button type="submit" class="submit-button">Submit</button>
+        <button type="submit" class="submit-button">
+          Create resource role policy
+        </button>
       </form>
     </div>
   </div>

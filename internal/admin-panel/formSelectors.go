@@ -1,8 +1,6 @@
 package adminpanel
 
 import (
-	"fmt"
-
 	"github.com/dmawardi/Go-Template/internal/db"
 	"gorm.io/gorm"
 )
@@ -10,6 +8,7 @@ import (
 type SelectorService interface {
 	RoleSelection() []FormFieldSelector
 	UserSelection() []FormFieldSelector
+	ActionSelection() []FormFieldSelector
 }
 type selectorService struct {
 	DB *gorm.DB
@@ -35,11 +34,19 @@ func (c selectorService) UserSelection() []FormFieldSelector {
 	if err != nil {
 		return nil
 	}
-	fmt.Printf("users in selection: %+v", users)
 
 	return []FormFieldSelector{
 		{Value: "user", Label: "User", Selected: true},
 		{Value: "admin", Label: "Admin", Selected: false},
 		{Value: "moderator", Label: "Moderator", Selected: false},
+	}
+}
+
+func (c selectorService) ActionSelection() []FormFieldSelector {
+	return []FormFieldSelector{
+		{Value: "create", Label: "Create", Selected: true},
+		{Value: "read", Label: "Read", Selected: false},
+		{Value: "update", Label: "Update", Selected: false},
+		{Value: "delete", Label: "Delete", Selected: false},
 	}
 }
