@@ -280,7 +280,6 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 
 	// Execute the template with data and write to response
 	err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
-
 	if err != nil {
 		fmt.Println(err.Error())
 		return

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/casbin/casbin/v2"
+	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"gorm.io/gorm"
 )
@@ -43,10 +44,19 @@ func (r *authPolicyRepository) FindAllRoles() ([]string, error) {
 }
 
 func (r *authPolicyRepository) AssignUserRole(userId, roleToApply string) (*bool, error) {
+	// Check if user exists
+	user := db.User{}
+	result := r.db.Where("id = ?", userId).First(&user)
+	if result.Error != nil {
+		fmt.Printf("Error finding user with id: %v\n", userId)
+		return nil, result.Error
+	}
+
+	// If user exists, proceed
 	// First, remove the existing roles for the user (if found)
 	_, err := r.enforcer.DeleteRolesForUser(userId)
 	if err != nil {
-		fmt.Printf("Error deleting roles for user: %v\n", err)
+		fmt.Printf("Error removing roles for user: %v\n", err)
 		return nil, err
 	}
 
