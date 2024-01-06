@@ -31,6 +31,13 @@ type PageRenderData struct {
 // Used for the policy section
 type PolicySection struct {
 	FocusedPolicies []PolicyEditDataRow
+	PolicyResource  string
+	Selectors       PolicyEditSelectors
+}
+
+type PolicyEditSelectors struct {
+	RoleSelection   []FormFieldSelector
+	ActionSelection []FormFieldSelector
 }
 
 // Formatted data for ideal edit page rendering

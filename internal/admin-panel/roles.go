@@ -6,10 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
-	"strconv"
-	"time"
 
-	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
@@ -54,13 +51,10 @@ type AdminAuthPolicyController interface {
 	Create(w http.ResponseWriter, r *http.Request)
 	// Edit is also used to view the record details
 	Edit(w http.ResponseWriter, r *http.Request)
-	Delete(w http.ResponseWriter, r *http.Request)
 	// Bulk delete (from table)
-	BulkDelete(w http.ResponseWriter, r *http.Request)
 	// Success pages
 	CreateSuccess(w http.ResponseWriter, r *http.Request)
-	EditSuccess(w http.ResponseWriter, r *http.Request)
-	DeleteSuccess(w http.ResponseWriter, r *http.Request)
+	// EditSuccess(w http.ResponseWriter, r *http.Request)
 	// For sidebar
 	ObtainFields() BasicAdminController
 }
@@ -254,6 +248,11 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 	// Prepare policies for rendering
 	policies := convertMapToPolicyRule(groupsSlice)
 
+	// Init new role selector values
+	rolesCurrentlyInPolicy := c.formSelectors.RoleSelection()
+	// Remove roles that are already in the policy
+	rolesCurrentlyInPolicy = buildOnlyMissingRoleSelector(policies, rolesCurrentlyInPolicy)
+
 	// Data to be injected into template
 	data := PageRenderData{
 		PageTitle:    fmt.Sprintf("Edit %s: %s", c.schemaName, policyUnslug),
@@ -268,6 +267,10 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 		},
 		PolicySection: PolicySection{
 			FocusedPolicies: policies,
+			PolicyResource:  policyUnslug,
+			Selectors: PolicyEditSelectors{
+				RoleSelection:   rolesCurrentlyInPolicy,
+				ActionSelection: c.formSelectors.ActionSelection()},
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{},
@@ -284,25 +287,10 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-func (c adminAuthPolicyController) Delete(w http.ResponseWriter, r *http.Request) {
-
-}
-func (c adminAuthPolicyController) BulkDelete(w http.ResponseWriter, r *http.Request) {
-
-}
-
 // Success handlers
 func (c adminAuthPolicyController) CreateSuccess(w http.ResponseWriter, r *http.Request) {
 	// Serve admin success page
 	serveAdminSuccess(w, fmt.Sprintf("Create %s", c.schemaName), fmt.Sprintf("%s Created Successfully!", c.schemaName))
-}
-func (c adminAuthPolicyController) EditSuccess(w http.ResponseWriter, r *http.Request) {
-	// Serve admin success page
-	serveAdminSuccess(w, fmt.Sprintf("Edit %s", c.schemaName), fmt.Sprintf("%s Updated Successfully!", c.schemaName))
-}
-func (c adminAuthPolicyController) DeleteSuccess(w http.ResponseWriter, r *http.Request) {
-	// Serve admin success page
-	serveAdminSuccess(w, fmt.Sprintf("Delete %s", c.schemaName), fmt.Sprintf("%s Deleted Successfully!", c.schemaName))
 }
 
 // Form generation
@@ -334,31 +322,6 @@ func (c adminAuthPolicyController) extractCreateFormSubmission(r *http.Request) 
 	return toValidate, nil
 }
 
-// Used to extract form submission from request and build into models.UpdateUser
-func (c adminAuthPolicyController) extractUpdateFormSubmission(r *http.Request) (models.UpdatePost, error) {
-	// Parse the form
-	err := r.ParseForm()
-	if err != nil {
-		return models.UpdatePost{}, errors.New("Error parsing form")
-	}
-
-	// Extract user
-	user := r.FormValue("user")
-	// Convert to int
-	userId, err := strconv.Atoi(user)
-	if err != nil {
-		return models.UpdatePost{}, errors.New("Error parsing form")
-	}
-	// Build struct for validation
-	toValidate := models.UpdatePost{
-		Title: r.FormValue("title"),
-		Body:  r.FormValue("body"),
-		User:  db.User{ID: uint(userId)},
-	}
-
-	return toValidate, nil
-}
-
 // Basic helper functions
 // Used to extract form submission from request and build into map[string]string (Used in populateValuesWithForm)
 func (c adminAuthPolicyController) extractFormFromRequest(r *http.Request) (map[string]string, error) {
@@ -376,21 +339,6 @@ func (c adminAuthPolicyController) extractFormFromRequest(r *http.Request) (map[
 		"Verified": r.FormValue("verified"),
 	}
 	return fieldMap, nil
-}
-
-// For dynamic data iteration: takes a user and returns a map for easier dynamic access
-func (c adminAuthPolicyController) getValuesUsingFieldMap(post db.Post) map[string]string {
-	// Map of user fields
-	fieldMap := map[string]string{
-		"ID":        fmt.Sprint(post.ID),
-		"CreatedAt": post.CreatedAt.Format(time.RFC3339),
-		"UpdatedAt": post.UpdatedAt.Format(time.RFC3339),
-		"Title":     post.Title,
-		"Body":      post.Body,
-		// Foreign key: uses username
-		"UserID": fmt.Sprint(post.UserID),
-	}
-	return fieldMap
 }
 
 // Used to build standardize controller fields for admin panel sidebar generation
@@ -473,4 +421,20 @@ func convertMapToPolicyRule(m []map[string]interface{}) []PolicyEditDataRow {
 		policies = append(policies, policyToAdd)
 	}
 	return policies
+}
+
+// Takes a slice of PolicyEditDataRow and role selector and returns a slice of role selector with only missing roles
+func buildOnlyMissingRoleSelector(policies []PolicyEditDataRow, roleSelector []FormFieldSelector) []FormFieldSelector {
+	for _, p := range policies {
+		// Iterate through roleSelector
+		for i, role := range roleSelector {
+			// If the role matches
+			if role.Value == p.Role {
+				// Remove from slice
+				roleSelector = append(roleSelector[:i], roleSelector[i+1:]...)
+				break
+			}
+		}
+	}
+	return roleSelector
 }

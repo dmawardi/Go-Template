@@ -26,9 +26,41 @@ async function editPolicy(e, actionToComplete, role, resource, action) {
         action: action,
       });
       break;
+    case "role":
+      getDetailFromRoleAddForm("role-add-form");
+
+      response = await sendRequest("post", {
+        role: role,
+        resource: resource,
+        action: action,
+      });
+      break;
     default:
       response = false;
   }
+
+  if (!response) {
+    alert("Action failed.");
+  } else {
+    // If successful
+    // Once complete, Reload the page
+    window.location.reload();
+  }
+}
+
+// Used to add a role to a policy on a policy page
+async function addRole(e, resource) {
+  //   Prevent default submit behavior
+  e.preventDefault();
+  //   Get the form details
+  const [role, action] = getDetailFromRoleAddForm("role-add-form");
+
+  //   Send Post request to add policy
+  response = await sendRequest("post", {
+    role: role,
+    resource: resource,
+    action: action,
+  });
 
   if (!response) {
     alert("Action failed.");
@@ -75,4 +107,17 @@ async function sendRequest(requestedAction, policyData) {
     console.error("Error:", error);
     return false;
   }
+}
+
+// Function to extract detail from form selectors
+function getDetailFromRoleAddForm(formId) {
+  //   Get the form element
+  const form = document.getElementById(formId);
+
+  //   Get the role and action from the form
+  const role = form.role.value;
+  const action = form.action.value;
+
+  //   Return the role and action
+  return [role, action];
 }

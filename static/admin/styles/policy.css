@@ -28,6 +28,29 @@
   margin: auto;
 }
 
+/* Styling for the "Add Role" section */
+.role-add-section {
+  /* margin: 1rem 0; */
+  background-color: #ccc;
+  border-radius: 5px;
+  color: black;
+}
+
+.role-add-section p {
+  margin: 0;
+  padding: 10px 0px 0px 20px;
+  font-weight: bolder;
+}
+
+.role-add-button-section {
+  border: #ccc 1px solid;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+}
+
 /* If remove policy active, */
 .inactive-policy {
   color: #dc3545;

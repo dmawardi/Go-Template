@@ -212,7 +212,6 @@ func (a api) AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension str
 		mux.Get(fmt.Sprintf("/admin/%s/{id}", urlExtension), controller.Edit)
 		mux.Post(fmt.Sprintf("/admin/%s/{id}", urlExtension), controller.Edit)
 		mux.Delete(fmt.Sprintf("/admin/%s/{id}", urlExtension), controller.Edit)
-		mux.Get(fmt.Sprintf("/admin/%s/edit/success", urlExtension), controller.EditSuccess)
 	})
 	return router
 }
