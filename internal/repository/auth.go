@@ -14,6 +14,7 @@ import (
 type AuthPolicyRepository interface {
 	FindAll() ([][]string, error)
 	FindAllRoles() ([]string, error)
+	FindRoleByUserId(userId string) (string, error)
 	AssignUserRole(userId, roleToApply string) (*bool, error)
 	// FindByUserID(userID string) ([]casbin.Policy, error)
 	Create(policy models.CasbinRule) error
@@ -41,6 +42,19 @@ func (r *authPolicyRepository) FindAllRoles() ([]string, error) {
 	roles := r.enforcer.GetAllRoles()
 	fmt.Printf("Roles: %v\n", roles)
 	return roles, nil
+}
+
+func (r *authPolicyRepository) FindRoleByUserId(userId string) (string, error) {
+	// return all policies found in the databaseq
+	roles, err := r.enforcer.GetRolesForUser(userId)
+	if err != nil {
+		return "", err
+	}
+	fmt.Printf("Roles: %v\n", roles)
+	if len(roles) == 0 {
+		return "", errors.New("no roles found for user")
+	}
+	return roles[0], nil
 }
 
 func (r *authPolicyRepository) AssignUserRole(userId, roleToApply string) (*bool, error) {

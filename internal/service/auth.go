@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/repository"
 )
@@ -8,6 +10,7 @@ import (
 type AuthPolicyService interface {
 	FindAll() ([]map[string]interface{}, error)
 	FindAllRoles() ([]string, error)
+	FindRoleByUserId(userId int) (string, error)
 	AssignUserRole(userId, roleToApply string) (*bool, error)
 	Create(policy models.PolicyRule) error
 	Update(oldPolicy, newPolicy models.PolicyRule) error
@@ -40,6 +43,11 @@ func (s *authPolicyService) AssignUserRole(userId, roleToApply string) (*bool, e
 		return nil, err
 	}
 	return success, nil
+}
+
+func (s *authPolicyService) FindRoleByUserId(userId int) (string, error) {
+	// Convert the userId to string then pass to repo
+	return s.repo.FindRoleByUserId(fmt.Sprint(userId))
 }
 
 func (s *authPolicyService) FindAllRoles() ([]string, error) {
