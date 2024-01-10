@@ -32,12 +32,13 @@ type UserService interface {
 
 type userService struct {
 	repo repository.UserRepository
+	auth repository.AuthPolicyRepository
 	mail email.Email
 }
 
 // Builds a new service with injected repository. Includes email service
-func NewUserService(repo repository.UserRepository) UserService {
-	return &userService{repo: repo, mail: email.NewSMTPEmail()}
+func NewUserService(repo repository.UserRepository, auth repository.AuthPolicyRepository) UserService {
+	return &userService{repo: repo, auth: auth, mail: email.NewSMTPEmail()}
 }
 
 // Creates a user in the database
@@ -84,6 +85,12 @@ func (s *userService) FindById(userId int) (*db.User, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Get user role and attach to user
+	err = findRoleAndAttach(user, s.auth)
+	if err != nil {
+		return nil, err
+	}
 	// else
 	return user, nil
 }
@@ -94,6 +101,11 @@ func (s *userService) FindByEmail(email string) (*db.User, error) {
 	// If error detected
 	if err != nil {
 		fmt.Printf("error found in Find by email: %v", err)
+		return nil, err
+	}
+	// Get user role and attach to user
+	err = findRoleAndAttach(user, s.auth)
+	if err != nil {
 		return nil, err
 	}
 	// else
@@ -259,5 +271,20 @@ func (s *userService) ResendEmailVerification(id int) error {
 	go s.mail.SendEmail(user.Email, "Please Verify your Email", emailString)
 
 	// Return no error found
+	return nil
+}
+
+// Helper function to find user role and attach to user
+func findRoleAndAttach(user *db.User, auth repository.AuthPolicyRepository) error {
+	// Get user role
+	role, err := auth.FindRoleByUserId(fmt.Sprint(user.ID))
+	// If no role found, return user without role
+	if err != nil {
+		fmt.Printf("error in finding role by user id: %v", err)
+		return nil
+	}
+	// Assign role to user db object
+	user.Role = role
+	// else
 	return nil
 }

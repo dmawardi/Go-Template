@@ -114,8 +114,8 @@ func ApiSetup(client *gorm.DB) routes.Api {
 	groupService := service.NewAuthPolicyService(groupRepo)
 	groupController := controller.NewAuthPolicyController(groupService)
 	// user
-	userRepo := repository.NewUserRepository(client, groupRepo)
-	userService := service.NewUserService(userRepo)
+	userRepo := repository.NewUserRepository(client)
+	userService := service.NewUserService(userRepo, groupRepo)
 	userController := controller.NewUserController(userService)
 	// post
 	postRepo := repository.NewPostRepository(client)

@@ -12,11 +12,13 @@ import (
 
 // CasbinPolicyRepository represents a repository for Casbin policies.
 type AuthPolicyRepository interface {
-	FindAll() ([][]string, error)
+	// Roles
 	FindAllRoles() ([]string, error)
 	FindRoleByUserId(userId string) (string, error)
 	AssignUserRole(userId, roleToApply string) (*bool, error)
-	// FindByUserID(userID string) ([]casbin.Policy, error)
+	DeleteAllUserRoles(userID string) (*bool, error)
+	// Policies
+	FindAll() ([][]string, error)
 	Create(policy models.CasbinRule) error
 	Update(oldPolicy, newPolicy models.CasbinRule) error
 	Delete(policy models.CasbinRule) error
@@ -36,6 +38,7 @@ func NewAuthPolicyRepository(db *gorm.DB) AuthPolicyRepository {
 	}
 }
 
+// Roles
 // FindAll returns all Casbin policies.
 func (r *authPolicyRepository) FindAllRoles() ([]string, error) {
 	// return all policies found in the databaseq
@@ -43,20 +46,19 @@ func (r *authPolicyRepository) FindAllRoles() ([]string, error) {
 	fmt.Printf("Roles: %v\n", roles)
 	return roles, nil
 }
-
 func (r *authPolicyRepository) FindRoleByUserId(userId string) (string, error) {
 	// return all policies found in the databaseq
 	roles, err := r.enforcer.GetRolesForUser(userId)
 	if err != nil {
 		return "", err
 	}
-	fmt.Printf("Roles: %v\n", roles)
+	// If no roles found, return error
 	if len(roles) == 0 {
 		return "", errors.New("no roles found for user")
 	}
+	// Return first found role (should be only role)
 	return roles[0], nil
 }
-
 func (r *authPolicyRepository) AssignUserRole(userId, roleToApply string) (*bool, error) {
 	// Check if user exists
 	user := db.User{}
@@ -83,13 +85,25 @@ func (r *authPolicyRepository) AssignUserRole(userId, roleToApply string) (*bool
 
 	return &success, nil
 }
+func (r *authPolicyRepository) DeleteAllUserRoles(userID string) (*bool, error) {
+	// Set default result
+	result := false
+	// Remove all roles for user
+	_, err := r.enforcer.DeleteRolesForUser(userID)
+	if err != nil {
+		fmt.Printf("Error removing roles for user: %v\n", err)
+		result = false
+		return &result, err
+	}
+	return &result, nil
+}
 
+// Policies
 func (r *authPolicyRepository) FindAll() ([][]string, error) {
 	// return all policies found in the database
 	policies := r.enforcer.GetPolicy()
 	return policies, nil
 }
-
 func (r *authPolicyRepository) Create(policy models.CasbinRule) error {
 	// Add policy to enforcer
 	newPolicy, err := r.enforcer.AddPolicy(policy.V0, policy.V1, policy.V2)
@@ -103,7 +117,6 @@ func (r *authPolicyRepository) Create(policy models.CasbinRule) error {
 	// else, return success
 	return nil
 }
-
 func (r *authPolicyRepository) Delete(policy models.CasbinRule) error {
 	var removed bool
 	var err error
@@ -122,7 +135,6 @@ func (r *authPolicyRepository) Delete(policy models.CasbinRule) error {
 	// else, return success
 	return nil
 }
-
 func (r *authPolicyRepository) Update(oldPolicy, newPolicy models.CasbinRule) error {
 	fmt.Printf("Old policy: %v\n", oldPolicy)
 	// Remove old policy from enforcer
