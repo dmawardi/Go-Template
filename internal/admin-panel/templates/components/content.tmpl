@@ -4,14 +4,7 @@
   {{if eq .PageType.Mode "policy"}}
     {{template "policy-edit-form" .}}
   {{else}}
-    <div class="content-container">
-      <div class="row">
-        <div>
-          <h1>{{.SectionTitle}}</h1>
-          {{template "form" .FormData}}
-        </div>
-      </div>
-    </div>
+    {{template "form" .}}
   {{end}}
   {{/* Find All */}}
 {{else if .PageType.ReadPage}}

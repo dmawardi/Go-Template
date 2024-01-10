@@ -24,11 +24,12 @@ type UserRepository interface {
 }
 
 type userRepository struct {
-	DB *gorm.DB
+	DB   *gorm.DB
+	auth AuthPolicyRepository
 }
 
-func NewUserRepository(db *gorm.DB) UserRepository {
-	return &userRepository{db}
+func NewUserRepository(db *gorm.DB, auth AuthPolicyRepository) UserRepository {
+	return &userRepository{db, auth}
 }
 
 // Creates a user in the database
@@ -76,7 +77,17 @@ func (r *userRepository) FindById(userId int) (*db.User, error) {
 	if result.Error != nil {
 		return nil, result.Error
 	}
+
 	// else
+	// Get user role
+	role, err := r.auth.FindRoleByUserId(fmt.Sprint(user.ID))
+	// If no role found, return user without role
+	if err != nil {
+		return &user, nil
+	}
+	// Assign role to user db object
+	user.Role = role
+
 	return &user, nil
 }
 
