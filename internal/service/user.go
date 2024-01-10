@@ -120,6 +120,18 @@ func (s *userService) Delete(id int) error {
 		fmt.Println("error in deleting user: ", err)
 		return err
 	}
+
+	// Delete all user roles
+	success, err := s.auth.DeleteAllUserRoles(fmt.Sprint(id))
+	if err != nil {
+		fmt.Printf("error in deleting user roles: %v\n", err)
+		return err
+	}
+	if !*success {
+		fmt.Printf("error in deleting user roles (no roles assigned?): %v", err)
+		return err
+	}
+
 	// else
 	return nil
 }
@@ -131,6 +143,20 @@ func (s *userService) BulkDelete(ids []int) error {
 	if err != nil {
 		fmt.Println("error in bulk deleting users: ", err)
 		return err
+	}
+	// Iterate through ids and delete all user roles
+	for _, id := range ids {
+		// Delete all user roles
+		success, err := s.auth.DeleteAllUserRoles(fmt.Sprint(id))
+		if err != nil {
+			fmt.Printf("error in deleting user roles: %v\n", err)
+			return err
+		}
+		// If not successful in deletion
+		if !*success {
+			fmt.Printf("error in deleting user roles (no roles assigned?): %v\n", err)
+			return err
+		}
 	}
 	// else
 	return nil

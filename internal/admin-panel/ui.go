@@ -128,7 +128,7 @@ func BuildTableData(listOfSchemaObjects []AdminPanelSchema, metaData models.Sche
 			},
 		}
 
-		// Iterate through tableheaders
+		// Iterate through tableheaders to extract table data
 		for _, header := range tableHeaders {
 			// Grab data from the schema object
 			fieldData := object.ObtainValue(header.Label)

@@ -104,6 +104,7 @@ func (r *userRepository) BulkDelete(ids []int) error {
 		fmt.Println("error in deleting users: ", err)
 		return err
 	}
+
 	// else
 	return nil
 }

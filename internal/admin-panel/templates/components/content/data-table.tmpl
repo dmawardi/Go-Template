@@ -40,7 +40,7 @@
         <!-- Table Body -->
         <tbody>
           {{
-            range.TableData.TableRows
+            range $rowIndex, $row := .TableData.TableRows
           }}
           <tr>
             <!-- For each row -->
@@ -49,13 +49,13 @@
                 type="checkbox"
                 name="selected_items"
                 class="select-row"
-                value="{{ index .Data 0 }}"
+                value="{{ (index $row.Data 0).Label}}"
                 onclick="updateSelectAll(this)"
               />
-              <label for="{{ printf "select-row-%s" (index .Data 0) }}"></label>
+              <label for="{{ printf "select-row-%s" (index $row.Data 0).Label }}"></label>
             </td>
             {{
-              range.Data
+              range $row.Data
             }}
             <td>{{.Label}}</td>
             {{
