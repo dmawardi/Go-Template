@@ -1,6 +1,8 @@
 package adminpanel
 
 import (
+	"fmt"
+
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/service"
@@ -41,23 +43,28 @@ func (c selectorService) RoleSelection() []FormFieldSelector {
 	}
 
 	// Set basic default as user
-	c.setDefaultSelected(roleSelector, "user")
+	setDefaultSelected(roleSelector, "user")
 
 	return roleSelector
 }
 
 func (c selectorService) UserSelection() []FormFieldSelector {
 	var users []db.User
-	err := c.DB.Select("id, username").Find(&users)
-	if err != nil {
+	// Query all users
+	result := c.DB.Select("id, username").Find(&users)
+	if result.Error != nil {
+		fmt.Printf("Error finding users: %v\n", result.Error)
 		return nil
 	}
 
-	return []FormFieldSelector{
-		{Value: "user", Label: "User", Selected: true},
-		{Value: "admin", Label: "Admin", Selected: false},
-		{Value: "moderator", Label: "Moderator", Selected: false},
+	// Init
+	var selector []FormFieldSelector
+	// Build []FormFieldSelector from []string DB output
+	for _, user := range users {
+		selector = append(selector, FormFieldSelector{Value: user.Username, Label: helpers.CapitalizeFirstLetter(user.Username)})
 	}
+
+	return selector
 }
 
 func (c selectorService) ActionSelection() []FormFieldSelector {
@@ -69,10 +76,10 @@ func (c selectorService) ActionSelection() []FormFieldSelector {
 	}
 }
 
-// Takes a slice of FormFieldSelector and sets the Selected field to true for the selector with the specified default value
-func (c selectorService) setDefaultSelected(selector []FormFieldSelector, defaultValue string) {
+// Takes a slice of FormFieldSelector and sets the Selected field to true for the selector with the specified value
+func setDefaultSelected(selector []FormFieldSelector, valueToSelect string) {
 	for i, s := range selector {
-		if s.Value == defaultValue {
+		if s.Value == valueToSelect {
 			selector[i].Selected = true
 		} else {
 			selector[i].Selected = false

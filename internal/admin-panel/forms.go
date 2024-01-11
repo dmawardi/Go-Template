@@ -83,24 +83,6 @@ func SetValidationErrorsInForm(form []FormField, validationErrors models.Validat
 	}
 }
 
-// Function to build selector for form. Takes current value to set as selected
-func addDefaultSelectedToSelector(selector []FormFieldSelector, currentValue string) []FormFieldSelector {
-	// Iterate through selector
-	for i := range selector {
-		// Check if value matches current value
-		if selector[i].Value == currentValue {
-			// If found, set selected to true
-			selector[i].Selected = true
-
-		} else {
-			// Else, set selected to false
-			selector[i].Selected = false
-		}
-	}
-	// Return completed selector
-	return selector
-}
-
 // Used to populate FormField values with placeholder values found from form in request
 func populateValuesWithForm(r *http.Request, form *[]FormField, fieldMap map[string]string) error {
 	// Parse the form
@@ -130,8 +112,8 @@ func populatePlaceholdersWithDBData(form *[]FormField, fieldMap map[string]strin
 		// Get pointer to field
 		field := &(*form)[i]
 		if field.Type == "select" {
-			// Update selectors with default value
-			field.Selectors = addDefaultSelectedToSelector(field.Selectors, fieldMap[field.DbLabel])
+			// Update selectors with current value selected
+			setDefaultSelected(field.Selectors, fieldMap[field.DbLabel])
 			// Else treat as ordinary input
 		} else {
 			// If the field exists in the map, populate the placeholder
