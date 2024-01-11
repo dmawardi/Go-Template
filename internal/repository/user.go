@@ -44,8 +44,8 @@ func (r *userRepository) Create(user *db.User) (*db.User, error) {
 
 // Find a list of users in the database
 func (r *userRepository) FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedUsers, error) {
-	// Build meta data for posts
-	metaData, err := models.BuildMetaData(r.DB, db.Post{}, limit, offset, order, conditions)
+	// Build meta data for users
+	metaData, err := models.BuildMetaData(r.DB, db.User{}, limit, offset, order, conditions)
 	if err != nil {
 		fmt.Printf("Error building meta data: %s", err)
 		return nil, err

@@ -15,11 +15,11 @@ import (
 )
 
 type UserService interface {
-	FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedUsers, error)
-	FindById(int) (*db.User, error)
-	FindByEmail(string) (*db.User, error)
-	Create(user *models.CreateUser) (*db.User, error)
-	Update(int, *models.UpdateUser) (*db.User, error)
+	FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedUsersWithRole, error)
+	FindById(int) (*models.UserWithRole, error)
+	FindByEmail(string) (*models.UserWithRole, error)
+	Create(user *models.CreateUser) (*models.UserWithRole, error)
+	Update(int, *models.UpdateUser) (*models.UserWithRole, error)
 	Delete(int) error
 	BulkDelete([]int) error
 	// Takes an email and if the email is found in the database, will reset the password and send an email to the user with the new password
@@ -42,7 +42,7 @@ func NewUserService(repo repository.UserRepository, auth repository.AuthPolicyRe
 }
 
 // Creates a user in the database
-func (s *userService) Create(user *models.CreateUser) (*db.User, error) {
+func (s *userService) Create(user *models.CreateUser) (*models.UserWithRole, error) {
 	// Build hashed password from user password input
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
 	if err != nil {
@@ -54,7 +54,6 @@ func (s *userService) Create(user *models.CreateUser) (*db.User, error) {
 		Password: string(hashedPassword),
 		Name:     user.Name,
 		Email:    user.Email,
-		Role:     user.Role,
 		Verified: &user.Verified,
 	}
 
@@ -64,6 +63,10 @@ func (s *userService) Create(user *models.CreateUser) (*db.User, error) {
 		return nil, fmt.Errorf("failed creating user: %w", err)
 	}
 
+	// If no role found, assign user role
+	if user.Role == "" {
+		user.Role = "user"
+	}
 	// Assign user role
 	success, err := s.auth.AssignUserRole(fmt.Sprint(created.ID), user.Role)
 	if err != nil {
@@ -73,21 +76,38 @@ func (s *userService) Create(user *models.CreateUser) (*db.User, error) {
 		return nil, fmt.Errorf("failed assigning user role: %w", err)
 	}
 
-	return created, nil
+	// Combine user and role data
+	userToReturn := BuildUserWithRole(created, user.Role)
+
+	return userToReturn, nil
 }
 
 // Find a list of users in the database
-func (s *userService) FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedUsers, error) {
+func (s *userService) FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedUsersWithRole, error) {
 	// Query all users based on the received parameters
 	users, err := s.repo.FindAll(limit, offset, order, conditions)
 	if err != nil {
 		return nil, err
 	}
-	return users, nil
+
+	// Init full users slice
+	var fullUsers []models.UserWithRole
+	// Iterate through users and attach role to complete the data
+	for _, user := range *users.Data {
+		// Get user role and attach to user
+		fullUser, err := findRoleAndAttach(&user, s.auth)
+		if err != nil {
+			return nil, err
+		}
+		// Append to full users slice
+		fullUsers = append(fullUsers, *fullUser)
+	}
+
+	return &models.PaginatedUsersWithRole{Data: &fullUsers, Meta: users.Meta}, nil
 }
 
 // Find user in database by ID
-func (s *userService) FindById(userId int) (*db.User, error) {
+func (s *userService) FindById(userId int) (*models.UserWithRole, error) {
 	// Find user by id
 	user, err := s.repo.FindById(userId)
 	// If error detected
@@ -96,16 +116,16 @@ func (s *userService) FindById(userId int) (*db.User, error) {
 	}
 
 	// Get user role and attach to user
-	err = findRoleAndAttach(user, s.auth)
+	fullUser, err := findRoleAndAttach(user, s.auth)
 	if err != nil {
 		return nil, err
 	}
 	// else
-	return user, nil
+	return fullUser, nil
 }
 
 // Find user in database by email
-func (s *userService) FindByEmail(email string) (*db.User, error) {
+func (s *userService) FindByEmail(email string) (*models.UserWithRole, error) {
 	user, err := s.repo.FindByEmail(email)
 	// If error detected
 	if err != nil {
@@ -113,12 +133,12 @@ func (s *userService) FindByEmail(email string) (*db.User, error) {
 		return nil, err
 	}
 	// Get user role and attach to user
-	err = findRoleAndAttach(user, s.auth)
+	fullUser, err := findRoleAndAttach(user, s.auth)
 	if err != nil {
 		return nil, err
 	}
 	// else
-	return user, nil
+	return fullUser, nil
 }
 
 // Delete user in database
@@ -172,9 +192,9 @@ func (s *userService) BulkDelete(ids []int) error {
 }
 
 // Updates user in database
-func (s *userService) Update(id int, user *models.UpdateUser) (*db.User, error) {
+func (s *userService) Update(id int, user *models.UpdateUser) (*models.UserWithRole, error) {
 	// Create db User type from incoming DTO
-	toUpdate := &db.User{Name: user.Name, Username: user.Username, Email: user.Email, Password: user.Password, Role: user.Role, Verified: &user.Verified}
+	toUpdate := &db.User{Name: user.Name, Username: user.Username, Email: user.Email, Password: user.Password, Verified: &user.Verified}
 
 	// Update using repo
 	updated, err := s.repo.Update(id, toUpdate)
@@ -194,7 +214,13 @@ func (s *userService) Update(id int, user *models.UpdateUser) (*db.User, error) 
 		}
 	}
 
-	return updated, nil
+	// Get user role and attach to user
+	fullUser, err := findRoleAndAttach(updated, s.auth)
+	if err != nil {
+		return nil, err
+	}
+
+	return fullUser, nil
 }
 
 // Takes an email and if the email is found in the database, will reset the password and send an email to the user with the new password
@@ -322,16 +348,41 @@ func (s *userService) ResendEmailVerification(id int) error {
 }
 
 // Helper function to find user role and attach to user
-func findRoleAndAttach(user *db.User, auth repository.AuthPolicyRepository) error {
+func findRoleAndAttach(user *db.User, auth repository.AuthPolicyRepository) (*models.UserWithRole, error) {
+	fullUser := &models.UserWithRole{}
 	// Get user role
 	role, err := auth.FindRoleByUserId(fmt.Sprint(user.ID))
 	// If no role found, return user without role
 	if err != nil {
-		fmt.Printf("error in finding role by user id: %v", err)
-		return nil
+		// Give empty value for role
+		fullUser = BuildUserWithRole(user, "")
+		// Ignore error (no role found)
+		return fullUser, nil
 	}
-	// Assign role to user db object
-	user.Role = role
+	// Else
+	fullUser = BuildUserWithRole(user, role)
+
 	// else
-	return nil
+	return fullUser, nil
+}
+
+// Builds new models.UserWithRole object from db user and
+func BuildUserWithRole(user *db.User, role string) *models.UserWithRole {
+	return &models.UserWithRole{
+		ID:       user.ID,
+		Username: user.Username,
+		Password: user.Password,
+		Name:     user.Name,
+		Email:    user.Email,
+		// Authorization
+		Role: role,
+		// Verification
+		Verified:               user.Verified,
+		VerificationCode:       user.VerificationCode,
+		VerificationCodeExpiry: user.VerificationCodeExpiry,
+		// Timestamps
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+		DeletedAt: user.DeletedAt,
+	}
 }

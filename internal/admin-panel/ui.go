@@ -75,7 +75,9 @@ type TableData struct {
 // Used for table header information. Also holds information for sorting and pointer + data type
 type TableHeader struct {
 	Label string
-	// label used in db
+	// Is the column sortable
+	Sortable bool
+	// label used in db to sort
 	ColumnSortLabel string
 	// Is data type a pointer
 	Pointer bool

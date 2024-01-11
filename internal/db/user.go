@@ -15,7 +15,6 @@ func (schemaObject User) ObtainValue(keyValue string) string {
 		"Name":                   schemaObject.Name,
 		"Username":               schemaObject.Username,
 		"Email":                  schemaObject.Email,
-		"Role":                   schemaObject.Role,
 		"Verified":               fmt.Sprint(PointerToStringWithType(schemaObject.Verified, "bool")),
 		"VerificationCode":       schemaObject.VerificationCode,
 		"VerificationCodeExpiry": schemaObject.VerificationCodeExpiry.Format(time.RFC3339),

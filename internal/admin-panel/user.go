@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/dmawardi/Go-Template/internal/controller"
-	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
@@ -18,10 +17,11 @@ import (
 
 // Table headers to show on find all page
 var userTableHeaders = []TableHeader{
-	{Label: "ID", ColumnSortLabel: "id", Pointer: false, DataType: "int"},
-	{Label: "Username", ColumnSortLabel: "username", Pointer: false, DataType: "string"},
-	{Label: "Email", ColumnSortLabel: "email", Pointer: false, DataType: "string"},
-	{Label: "Verified", ColumnSortLabel: "verified", Pointer: true, DataType: "bool"},
+	{Label: "ID", ColumnSortLabel: "id", Pointer: false, DataType: "int", Sortable: true},
+	{Label: "Username", ColumnSortLabel: "username", Pointer: false, DataType: "string", Sortable: true},
+	{Label: "Email", ColumnSortLabel: "email", Pointer: false, DataType: "string", Sortable: true},
+	{Label: "Role", ColumnSortLabel: "role", Pointer: false, DataType: "string"},
+	{Label: "Verified", ColumnSortLabel: "verified", Pointer: true, DataType: "bool", Sortable: true},
 }
 
 func NewAdminUserController(service service.UserService, selectorService SelectorService) AdminUserController {
@@ -263,7 +263,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 	// If not POST, ie. GET
 	// Find current details to use as placeholder values
 	// Init a new db struct
-	found := &db.User{}
+	found := &models.UserWithRole{}
 	// Search for by ID and store in found
 	found, err = c.service.FindById(idParameter)
 	if err != nil {
@@ -521,7 +521,7 @@ func (c adminUserController) extractFormFromRequest(r *http.Request) (map[string
 }
 
 // For dynamic data iteration: takes a user and returns a map for easier dynamic access
-func (c adminUserController) getValuesUsingFieldMap(user db.User) map[string]string {
+func (c adminUserController) getValuesUsingFieldMap(user models.UserWithRole) map[string]string {
 	// Map of user fields
 	fieldMap := map[string]string{
 		"ID":                     fmt.Sprint(user.ID),
@@ -530,10 +530,10 @@ func (c adminUserController) getValuesUsingFieldMap(user db.User) map[string]str
 		"Name":                   user.Name,
 		"Username":               user.Username,
 		"Email":                  user.Email,
-		"Role":                   user.Role,
 		"Verified":               fmt.Sprint(user.Verified),
 		"VerificationCode":       user.VerificationCode,
 		"VerificationCodeExpiry": user.VerificationCodeExpiry.Format(time.RFC3339),
+		"Role":                   user.Role,
 	}
 	return fieldMap
 }

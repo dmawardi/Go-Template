@@ -17,7 +17,6 @@ type User struct {
 	Username  string         `json:"username,omitempty"`
 	Email     string         `json:"email,omitempty" gorm:"uniqueIndex"`
 	Password  string         `json:"-"`
-	Role      string         `json:"role,omitempty" gorm:"default:user"`
 	// Verification
 	Verified               *bool     `json:"verified,omitempty" gorm:"default:false"`
 	VerificationCode       string    `json:"verification_code,omitempty" gorm:"default:null"`

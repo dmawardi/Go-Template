@@ -18,9 +18,9 @@ import (
 
 // Table headers to show on find all page
 var postTableHeaders = []TableHeader{
-	{Label: "ID", ColumnSortLabel: "id", Pointer: false, DataType: "int"},
-	{Label: "Title", ColumnSortLabel: "title", Pointer: false, DataType: "string"},
-	{Label: "Content", ColumnSortLabel: "content", Pointer: false, DataType: "string"},
+	{Label: "ID", ColumnSortLabel: "id", Pointer: false, DataType: "int", Sortable: true},
+	{Label: "Title", ColumnSortLabel: "title", Pointer: false, DataType: "string", Sortable: true},
+	{Label: "Content", ColumnSortLabel: "content", Pointer: false, DataType: "string", Sortable: true},
 	{Label: "User", ColumnSortLabel: "user", Pointer: false, DataType: "foreign"},
 }
 

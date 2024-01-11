@@ -30,10 +30,18 @@
               range.TableData.TableHeaders
             }}
 
-            <th><a href="#" onclick="sortTable('{{.ColumnSortLabel}}')">{{.Label}}</a></th>
+            {{/* Sortable table headers if sortable is true */}}
+            <th>
+            {{if .Sortable}}
+            <a href="#" onclick="sortTable('{{.ColumnSortLabel}}')">{{.Label}}</a>
+            {{else}}
+            {{.Label}}
+            {{end}}
+            </th>
             {{
               end
             }}
+            
             <th>Actions</th>
           </tr>
         </thead>
