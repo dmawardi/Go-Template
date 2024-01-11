@@ -131,8 +131,6 @@ func (r *userRepository) Update(id int, user *db.User) (*db.User, error) {
 		user.Password = string(hashedPassword)
 	}
 
-	fmt.Printf("Updating this user: %v with user: %v\n", *foundUser.Verified, *user.Verified)
-
 	// Update user using found user
 	updateResult := r.DB.Model(&foundUser).Updates(user)
 	if updateResult.Error != nil {
@@ -146,7 +144,7 @@ func (r *userRepository) Update(id int, user *db.User) (*db.User, error) {
 		fmt.Println("User to update not found: ", err)
 		return nil, err
 	}
-	fmt.Printf("Updated user: %v\n", *updatedUser.Verified)
+
 	return updatedUser, nil
 }
 

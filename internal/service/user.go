@@ -64,6 +64,15 @@ func (s *userService) Create(user *models.CreateUser) (*db.User, error) {
 		return nil, fmt.Errorf("failed creating user: %w", err)
 	}
 
+	// Assign user role
+	success, err := s.auth.AssignUserRole(fmt.Sprint(created.ID), user.Role)
+	if err != nil {
+		return nil, fmt.Errorf("failed assigning user role: %w", err)
+	}
+	if !*success {
+		return nil, fmt.Errorf("failed assigning user role: %w", err)
+	}
+
 	return created, nil
 }
 
@@ -171,6 +180,18 @@ func (s *userService) Update(id int, user *models.UpdateUser) (*db.User, error) 
 	updated, err := s.repo.Update(id, toUpdate)
 	if err != nil {
 		return nil, err
+	}
+
+	// Assign user role (if role update found)
+	if user.Role != "" {
+		// Update user role in policy table
+		success, err := s.auth.AssignUserRole(fmt.Sprint(updated.ID), user.Role)
+		if err != nil {
+			return nil, fmt.Errorf("failed assigning user role: %w", err)
+		}
+		if !*success {
+			return nil, fmt.Errorf("failed assigning user role: %w", err)
+		}
 	}
 
 	return updated, nil
