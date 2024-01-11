@@ -262,7 +262,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 
 	// If not POST, ie. GET
 	// Find current details to use as placeholder values
-	// Init a new db struct
+	// Init
 	found := &models.UserWithRole{}
 	// Search for by ID and store in found
 	found, err = c.service.FindById(idParameter)

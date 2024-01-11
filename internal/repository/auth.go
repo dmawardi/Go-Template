@@ -43,7 +43,6 @@ func NewAuthPolicyRepository(db *gorm.DB) AuthPolicyRepository {
 func (r *authPolicyRepository) FindAllRoles() ([]string, error) {
 	// return all policies found in the databaseq
 	roles := r.enforcer.GetAllRoles()
-	fmt.Printf("Roles: %v\n", roles)
 	return roles, nil
 }
 func (r *authPolicyRepository) FindRoleByUserId(userId string) (string, error) {

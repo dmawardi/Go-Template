@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"net/http"
 	"strings"
+	"unicode"
 
 	"github.com/asaskevich/govalidator"
 )
@@ -46,4 +47,13 @@ func ExtractBasePath(r *http.Request) string {
 	// Join strings in slice for clean URL
 	pathWithoutParameters := strings.Join(fullPathArray, "/")
 	return pathWithoutParameters
+}
+
+// Capitalizes the first letter of a string
+func CapitalizeFirstLetter(str string) string {
+	for _, r := range str {
+		u := string(unicode.ToUpper(r))
+		return u + str[len(u):]
+	}
+	return ""
 }
