@@ -48,7 +48,7 @@ func (r *postRepository) FindAll(limit int, offset int, order string, conditions
 
 	// Query all posts based on the received parameters
 	var posts []db.Post
-	err = db.QueryAll(r.DB, &posts, limit, offset, order, conditions)
+	err = db.QueryAll(r.DB, &posts, limit, offset, order, conditions, []string{"User"})
 	if err != nil {
 		fmt.Printf("Error querying db for list of posts: %s", err)
 		return nil, err

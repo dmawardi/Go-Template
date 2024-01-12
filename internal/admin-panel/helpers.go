@@ -187,17 +187,22 @@ func jsonToMap(jsonStr string) (map[string]string, error) {
 	return result, nil
 }
 
+// Convert struct string to map
 func structStringToMap(structStr string) (map[string]string, error) {
 	result := make(map[string]string)
-	pairs := strings.Split(strings.Trim(structStr, "{}"), ", ")
 
-	for _, pair := range pairs {
-		keyValue := strings.SplitN(pair, ":", 2)
-		if len(keyValue) != 2 {
-			return nil, fmt.Errorf("invalid format: %s", pair)
-		}
-		key := strings.TrimSpace(keyValue[0])
-		value := strings.TrimSpace(keyValue[1])
+	// Split the string based on space and colons
+	pairs := strings.FieldsFunc(structStr, func(r rune) bool {
+		return r == ':' || r == ' '
+	})
+
+	if len(pairs)%2 != 0 {
+		return nil, fmt.Errorf("invalid format")
+	}
+
+	for i := 0; i < len(pairs); i += 2 {
+		key := strings.Trim(pairs[i], " ")
+		value := strings.Trim(pairs[i+1], " ")
 		result[key] = value
 	}
 

@@ -53,7 +53,7 @@ func (r *userRepository) FindAll(limit int, offset int, order string, conditions
 
 	// Query all users based on the received parameters
 	var users []db.User
-	err = db.QueryAll(r.DB, &users, limit, offset, order, conditions)
+	err = db.QueryAll(r.DB, &users, limit, offset, order, conditions, []string{})
 	if err != nil {
 		fmt.Printf("Error querying db for list of users: %s", err)
 		return nil, err

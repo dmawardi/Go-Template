@@ -121,7 +121,7 @@ func PointerToStringWithType(ptr interface{}, dataType string) string {
 }
 
 // Query all records in a table based on conditions (results are populated into a slice of the schema type)
-func QueryAll(dbClient *gorm.DB, dbSchema interface{}, limit, offset int, order string, conditions []interface{}) error {
+func QueryAll(dbClient *gorm.DB, dbSchema interface{}, limit, offset int, order string, conditions []interface{}, preloads []string) error {
 	// Build base query for query schema
 	query := dbClient.Model(dbSchema)
 
@@ -150,6 +150,11 @@ func QueryAll(dbClient *gorm.DB, dbSchema interface{}, limit, offset int, order 
 			// For subsequent conditions, use Or
 			query = query.Or(condition, value)
 		}
+	}
+
+	// Iterate through preloads to preload foreign key fields
+	for _, fieldToPreload := range preloads {
+		query = query.Preload(fieldToPreload)
 	}
 
 	// Query database
