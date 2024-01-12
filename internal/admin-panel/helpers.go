@@ -1,6 +1,7 @@
 package adminpanel
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -174,4 +175,31 @@ func editTableDataRowSpan(tableRows []TableRow) {
 
 		}
 	}
+}
+
+// Convert json string to map
+func jsonToMap(jsonStr string) (map[string]string, error) {
+	var result map[string]string
+	err := json.Unmarshal([]byte(jsonStr), &result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func structStringToMap(structStr string) (map[string]string, error) {
+	result := make(map[string]string)
+	pairs := strings.Split(strings.Trim(structStr, "{}"), ", ")
+
+	for _, pair := range pairs {
+		keyValue := strings.SplitN(pair, ":", 2)
+		if len(keyValue) != 2 {
+			return nil, fmt.Errorf("invalid format: %s", pair)
+		}
+		key := strings.TrimSpace(keyValue[0])
+		value := strings.TrimSpace(keyValue[1])
+		result[key] = value
+	}
+
+	return result, nil
 }

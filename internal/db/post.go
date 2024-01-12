@@ -15,7 +15,7 @@ func (schemaObject Post) ObtainValue(keyValue string) string {
 		"UpdatedAt": schemaObject.UpdatedAt.Format(time.RFC3339),
 		"Title":     schemaObject.Title,
 		"Body":      schemaObject.Body,
-		"UserID":    fmt.Sprint(schemaObject.UserID),
+		"User":      fmt.Sprintf("%+v", schemaObject.User),
 	}
 	// Return value of key
 	return fieldMap[keyValue]
@@ -23,5 +23,5 @@ func (schemaObject Post) ObtainValue(keyValue string) string {
 
 // Grabs the ID of the schema object as string
 func (schemaObject Post) GetID() string {
-	return fmt.Sprint(schemaObject.ID)
+	return fmt.Sprint(schemaObject.UserID)
 }

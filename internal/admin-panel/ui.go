@@ -83,6 +83,8 @@ type TableHeader struct {
 	Pointer bool
 	// Used for pointer to string extraction
 	DataType string
+	// Used for foreign key extraction
+	ForeignKeyRepKeyName string
 }
 
 // Data to complete a table row
@@ -132,14 +134,35 @@ func BuildTableData(listOfSchemaObjects []AdminPanelSchema, metaData models.Sche
 
 		// Iterate through tableheaders to extract table data
 		for _, header := range tableHeaders {
-			// Grab data from the schema object
-			fieldData := object.ObtainValue(header.Label)
+			// If found to be a foreign key, extract the foreign key value
+			if header.DataType == "foreign" {
+				// Extract foreign key id
+				foreignKeyID := object.GetID()
 
-			// convert fieldData to string
-			stringFieldData := fmt.Sprint(fieldData)
+				// Attempt to extract foreign key representative value
+				fieldData := object.ObtainValue(header.Label)
+				// Convert string value to map[string]string
+				foreignKeyDataMap, err := structStringToMap(fieldData)
+				if err != nil {
+					fmt.Printf("Error converting struct to map: %v\n", err)
+				}
+				// Extract foreign key representative value
+				foreignKeyValue := foreignKeyDataMap[header.ForeignKeyRepKeyName]
 
-			// Use header string values to get values from schema object and append
-			row.Data = append(row.Data, TableCell{Label: stringFieldData})
+				// Append to row data
+				row.Data = append(row.Data, TableCell{Label: fmt.Sprintf("(%s) %s", foreignKeyID, foreignKeyValue)})
+
+				// If not a foreign key, extract the value from the schema object
+			} else {
+				// Grab data from the schema object
+				fieldData := object.ObtainValue(header.Label)
+
+				// convert fieldData to string
+				stringFieldData := fmt.Sprint(fieldData)
+
+				// Use header string values to get values from schema object and append
+				row.Data = append(row.Data, TableCell{Label: stringFieldData})
+			}
 		}
 
 		// Append row to table data

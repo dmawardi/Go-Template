@@ -65,7 +65,7 @@ func (b basicAdminController) ObtainFields() basicAdminController {
 	return basicAdminController{b.AdminHomeUrl, b.SchemaName, b.PluralSchemaName}
 }
 
-// Interface for all schemas (used for Admin panel) (Add for every schema)
+// Interface for all schemas (used for Admin panel) (Add receiver functions for every schema)
 type AdminPanelSchema interface {
 	// Returns ID of record
 	GetID() string

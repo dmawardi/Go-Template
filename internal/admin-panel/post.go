@@ -20,8 +20,8 @@ import (
 var postTableHeaders = []TableHeader{
 	{Label: "ID", ColumnSortLabel: "id", Pointer: false, DataType: "int", Sortable: true},
 	{Label: "Title", ColumnSortLabel: "title", Pointer: false, DataType: "string", Sortable: true},
-	{Label: "Content", ColumnSortLabel: "content", Pointer: false, DataType: "string", Sortable: true},
-	{Label: "User", ColumnSortLabel: "user", Pointer: false, DataType: "foreign"},
+	{Label: "Body", ColumnSortLabel: "body", Pointer: false, DataType: "string", Sortable: true},
+	{Label: "User", ColumnSortLabel: "user", Pointer: false, DataType: "foreign", ForeignKeyRepKeyName: "Username"},
 }
 
 func NewAdminPostController(service service.PostService, selectorService SelectorService) AdminPostController {
@@ -416,7 +416,7 @@ func (c adminPostController) DeleteSuccess(w http.ResponseWriter, r *http.Reques
 // Used to build Create user form
 func (c adminPostController) generateCreateForm() []FormField {
 	return []FormField{
-		{DbLabel: "Title", Label: "Title", Name: "title", Placeholder: "", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "Title", Label: "Title", Name: "title", Placeholder: "", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Body", Label: "Body", Name: "body", Placeholder: "", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "User", Label: "User", Name: "user", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.UserSelection()},
 	}
@@ -437,6 +437,7 @@ func (c adminPostController) extractCreateFormSubmission(r *http.Request) (model
 	// Parse the form
 	err := r.ParseForm()
 	if err != nil {
+		fmt.Printf("Error parsing form: %v\n", err)
 		return models.CreatePost{}, errors.New("Error parsing form")
 	}
 
@@ -444,6 +445,7 @@ func (c adminPostController) extractCreateFormSubmission(r *http.Request) (model
 	// Convert to int
 	userId, err := strconv.Atoi(user)
 	if err != nil {
+		fmt.Printf("Error converting to int: %v\n", err)
 		return models.CreatePost{}, errors.New("Error parsing form")
 	}
 
@@ -453,6 +455,7 @@ func (c adminPostController) extractCreateFormSubmission(r *http.Request) (model
 		Body:  r.FormValue("body"),
 		User:  db.User{ID: uint(userId)},
 	}
+	fmt.Printf("Extracted form to validate: %v\n", toValidate)
 
 	return toValidate, nil
 }

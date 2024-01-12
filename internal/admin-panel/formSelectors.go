@@ -61,7 +61,7 @@ func (c selectorService) UserSelection() []FormFieldSelector {
 	var selector []FormFieldSelector
 	// Build []FormFieldSelector from []string DB output
 	for _, user := range users {
-		selector = append(selector, FormFieldSelector{Value: user.Username, Label: helpers.CapitalizeFirstLetter(user.Username)})
+		selector = append(selector, FormFieldSelector{Value: fmt.Sprint(user.ID), Label: helpers.CapitalizeFirstLetter(user.Username)})
 	}
 
 	return selector
