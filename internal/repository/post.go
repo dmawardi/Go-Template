@@ -66,7 +66,6 @@ func (r *postRepository) FindById(id int) (*db.Post, error) {
 	post := db.Post{}
 	// Check if post exists in db
 	result := r.DB.First(&post, id)
-
 	// If error detected
 	if result.Error != nil {
 		return nil, result.Error

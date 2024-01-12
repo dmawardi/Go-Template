@@ -187,23 +187,27 @@ func jsonToMap(jsonStr string) (map[string]string, error) {
 	return result, nil
 }
 
-// Convert struct string to map
-func structStringToMap(structStr string) (map[string]string, error) {
+// Convert struct string to map. Struct string will be in format: "[key1]:value1|[key2]:value2"
+func stringToMap(input string) (map[string]string, error) {
 	result := make(map[string]string)
 
-	// Split the string based on space and colons
-	pairs := strings.FieldsFunc(structStr, func(r rune) bool {
-		return r == ':' || r == ' '
-	})
+	// Split the input string by "|"
+	parts := strings.Split(input, "|")
 
-	if len(pairs)%2 != 0 {
-		return nil, fmt.Errorf("invalid format")
-	}
+	for _, part := range parts {
+		// Check if the part has "[]" to identify a key name
+		keyValueSlice := strings.Split(part, ":")
 
-	for i := 0; i < len(pairs); i += 2 {
-		key := strings.Trim(pairs[i], " ")
-		value := strings.Trim(pairs[i+1], " ")
-		result[key] = value
+		// If a key value pair is found
+		if len(keyValueSlice) == 2 {
+			// Grab the first item in slice as key, and remove the "[" and "]" characters
+			key := keyValueSlice[0]
+			// // Grab the second item in slice as value
+			value := keyValueSlice[1]
+			// Add key value pair to result map
+			result[key[1:len(key)-1]] = value
+		}
+
 	}
 
 	return result, nil

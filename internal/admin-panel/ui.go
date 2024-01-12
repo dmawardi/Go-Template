@@ -136,16 +136,15 @@ func BuildTableData(listOfSchemaObjects []AdminPanelSchema, metaData models.Sche
 		for _, header := range tableHeaders {
 			// If found to be a foreign key, extract the foreign key value
 			if header.DataType == "foreign" {
-				// Extract foreign key id
-				foreignKeyID := object.GetID()
-
 				// Attempt to extract foreign key representative value
 				fieldData := object.ObtainValue(header.Label)
 				// Convert string value to map[string]string
-				foreignKeyDataMap, err := structStringToMap(fieldData)
+				foreignKeyDataMap, err := stringToMap(fieldData)
 				if err != nil {
 					fmt.Printf("Error converting struct to map: %v\n", err)
 				}
+				// Extract foreign key id
+				foreignKeyID := foreignKeyDataMap["ID"]
 				// Extract foreign key representative value
 				foreignKeyValue := foreignKeyDataMap[header.ForeignKeyRepKeyName]
 

@@ -263,9 +263,8 @@ func (c adminPostController) Edit(w http.ResponseWriter, r *http.Request) {
 	// If not POST, ie. GET
 	// Find current details to use as placeholder values
 	// Init a new db struct
-	found := &db.Post{}
 	// Search for by ID and store in found
-	found, err = c.service.FindById(idParameter)
+	found, err := c.service.FindById(idParameter)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("%s not found", c.schemaName), http.StatusNotFound)
 		return
