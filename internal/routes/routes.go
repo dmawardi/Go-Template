@@ -197,6 +197,7 @@ func (a api) AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension str
 		}
 		// Read (all users)
 		mux.Get(fmt.Sprintf("/admin/%s", urlExtension), controller.FindAll)
+		mux.Get(fmt.Sprintf("/admin/%s/roles", urlExtension), controller.FindAllRoleInheritance)
 		// Create (GET form / POST form)
 		mux.Get(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)
 		mux.Post(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)

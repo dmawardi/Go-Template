@@ -36,3 +36,8 @@ type PolicyRuleCombinedActions struct {
 	Resource string   `json:"resource" valid:"required"`
 	Action   []string `json:"action" valid:"required"`
 }
+
+type G2Record struct {
+	Role         string `json:"role"`
+	InheritsFrom string `json:"inherits_from"`
+}

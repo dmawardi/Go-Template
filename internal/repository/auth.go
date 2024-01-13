@@ -17,6 +17,8 @@ type AuthPolicyRepository interface {
 	FindRoleByUserId(userId string) (string, error)
 	AssignUserRole(userId, roleToApply string) (*bool, error)
 	DeleteAllUserRoles(userID string) (*bool, error)
+	// Role Inheritance
+	FindAllRoleInheritance() ([][]string, error)
 	// Policies
 	FindAll() ([][]string, error)
 	Create(policy models.CasbinRule) error
@@ -39,6 +41,14 @@ func NewAuthPolicyRepository(db *gorm.DB) AuthPolicyRepository {
 }
 
 // Roles
+// Returns all role inheritance records
+func (r *authPolicyRepository) FindAllRoleInheritance() ([][]string, error) {
+	// return all policies found in the database
+	g2Records := r.auth.Enforcer.GetNamedGroupingPolicy("g2")
+
+	return g2Records, nil
+}
+
 // FindAll returns all Casbin policies.
 func (r *authPolicyRepository) FindAllRoles() ([]string, error) {
 	// return all policies found in the databaseq

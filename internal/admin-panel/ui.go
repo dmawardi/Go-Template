@@ -214,6 +214,34 @@ func BuildRolesTableData(policySlice []map[string]interface{}, adminSchemaBaseUr
 	}
 }
 
+func BuildRoleInheritanceTableData(policySlice []map[string]string, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
+	var tableRows []TableRow
+
+	// Loop through policy slice to build table rows
+	for _, policy := range policySlice {
+		var rowData []TableCell
+
+		// Iterate through tableheaders
+		for _, header := range tableHeaders {
+			// Grab data from the schema object
+			value, found := policy[header.Label]
+
+			// If the key is found, append the value to the row data
+			if found {
+				rowData = append(rowData, TableCell{Label: fmt.Sprintf("%v", value), EditLink: ""})
+			}
+		}
+
+		// Append to table rows
+		tableRows = append(tableRows, TableRow{Data: rowData})
+	}
+	return TableData{
+		AdminSchemaUrl: adminSchemaBaseUrl, // You can set this value as needed
+		TableHeaders:   tableHeaders,
+		TableRows:      tableRows,
+	}
+}
+
 // Function to unslugify a resource name
 func UnslugifyResourceName(slugifiedResourceName string) string {
 	return strings.ReplaceAll(slugifiedResourceName, "-", "/")

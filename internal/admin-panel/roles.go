@@ -20,6 +20,11 @@ var authPolicyTableHeaders = []TableHeader{
 	{Label: "action", ColumnSortLabel: "action", Pointer: false, DataType: "string"},
 }
 
+var rolePolicyTableHeaders = []TableHeader{
+	{Label: "role", ColumnSortLabel: "role", Pointer: false, DataType: "string", Sortable: false},
+	{Label: "inherits_from", ColumnSortLabel: "inherits_from", Pointer: false, DataType: "string", Sortable: false},
+}
+
 var possibleActions = []string{"create", "read", "update", "delete"}
 
 func NewAdminAuthPolicyController(service service.AuthPolicyService, selectorService SelectorService) AdminAuthPolicyController {
@@ -30,6 +35,7 @@ func NewAdminAuthPolicyController(service service.AuthPolicyService, selectorSer
 		schemaName:       "Policy",
 		pluralSchemaName: "Policies",
 		tableHeaders:     authPolicyTableHeaders,
+		roleTableHeaders: rolePolicyTableHeaders,
 		formSelectors:    selectorService,
 	}
 }
@@ -42,7 +48,9 @@ type adminAuthPolicyController struct {
 	schemaName       string
 	pluralSchemaName string
 	// Custom table headers
-	tableHeaders  []TableHeader
+	tableHeaders     []TableHeader
+	roleTableHeaders []TableHeader
+
 	formSelectors SelectorService
 }
 
@@ -50,6 +58,7 @@ type AdminAuthPolicyController interface {
 	FindAll(w http.ResponseWriter, r *http.Request)
 	Create(w http.ResponseWriter, r *http.Request)
 	CreateRole(w http.ResponseWriter, r *http.Request)
+	FindAllRoleInheritance(w http.ResponseWriter, r *http.Request)
 	// Edit is also used to view the record details
 	Edit(w http.ResponseWriter, r *http.Request)
 	// Success pages
@@ -103,6 +112,59 @@ func (c adminAuthPolicyController) FindAll(w http.ResponseWriter, r *http.Reques
 		FormData: FormData{
 			FormDetails: FormDetails{
 				FormAction: c.adminHomeUrl,
+				FormMethod: "get",
+			},
+			FormFields: []FormField{},
+		},
+	}
+
+	// Execute the template with data and write to response
+	err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter, r *http.Request) {
+	// Grab query parameters
+	searchQuery := r.URL.Query().Get("search")
+
+	// Find all with options from database
+	inheritanceSlice, err := c.service.FindAllRoleInheritance()
+	if err != nil {
+		http.Error(w, "Error finding data", http.StatusInternalServerError)
+		return
+	}
+	// // Filter by search query
+	inheritanceSlice = searchMapUsingKeys(inheritanceSlice, []string{"inherits_from", "role"}, searchQuery)
+
+	// Sort by resource alphabetically
+	sort.Slice(inheritanceSlice, func(i, j int) bool {
+		// Give two items to compare to role resource alpha sorter
+		return sortByKeyAlphabetically(inheritanceSlice[i], inheritanceSlice[j], "role")
+	})
+
+	// // Build the roles table data
+	tableData := BuildRoleInheritanceTableData(inheritanceSlice, c.adminHomeUrl, c.roleTableHeaders)
+
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    "Admin: " + c.pluralSchemaName,
+		SectionTitle: fmt.Sprintf("Select a %s to edit", c.schemaName),
+		SidebarList:  sidebarList,
+		TableData:    tableData,
+		SchemaHome:   c.adminHomeUrl,
+		SearchTerm:   searchQuery,
+		PageType: PageType{
+			EditPage:   false,
+			ReadPage:   true,
+			CreatePage: false,
+			DeletePage: false,
+			Mode:       "policy",
+		},
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: c.adminHomeUrl + "/roles",
 				FormMethod: "get",
 			},
 			FormFields: []FormField{},
@@ -464,6 +526,32 @@ func searchPoliciesByResource(maps []map[string]interface{}, searchTerm string) 
 		// If success and resource contains search term
 		if ok && containsString(resource, searchTerm) {
 			result = append(result, m)
+		}
+	}
+
+	return result
+}
+
+func searchMapUsingKeys(maps []map[string]string, mapKeysToSearch []string, searchTerm string) []map[string]string {
+	var result []map[string]string
+	// Init to record if already added to results
+	addedToResult := false
+
+	// Iterate through map of policies
+	for _, m := range maps {
+		// Reset added to result
+		addedToResult = false
+		// Iterate through list of keys to search for term
+		for _, keyToSearch := range mapKeysToSearch {
+			// Grab value
+			value, ok := m[keyToSearch]
+			// If success, and the record hasn't been added already and value contains search term
+			if ok && containsString(value, searchTerm) && !addedToResult {
+				// Append
+				result = append(result, m)
+				// Set added to true
+				addedToResult = true
+			}
 		}
 	}
 

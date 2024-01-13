@@ -10,6 +10,7 @@ import (
 type AuthPolicyService interface {
 	FindAll() ([]map[string]interface{}, error)
 	FindAllRoles() ([]string, error)
+	FindAllRoleInheritance() ([]map[string]string, error)
 	FindRoleByUserId(userId int) (string, error)
 	AssignUserRole(userId, roleToApply string) (*bool, error)
 	Create(policy models.PolicyRule) error
@@ -35,6 +36,24 @@ func (s *authPolicyService) FindAll() ([]map[string]interface{}, error) {
 	organizedData := transformDataToResponse(data)
 
 	return organizedData["policies"], nil
+}
+
+func (s *authPolicyService) FindAllRoleInheritance() ([]map[string]string, error) {
+	formattedG2Records := []map[string]string{}
+	g2Records, err := s.repo.FindAllRoleInheritance()
+	if err != nil {
+		return nil, err
+	}
+
+	// Iterate through g2Records and format into array of G2Record struct
+	for _, policy := range g2Records {
+		record := map[string]string{
+			"role":          policy[0],
+			"inherits_from": policy[1],
+		}
+		formattedG2Records = append(formattedG2Records, record)
+	}
+	return formattedG2Records, nil
 }
 
 func (s *authPolicyService) AssignUserRole(userId, roleToApply string) (*bool, error) {

@@ -141,6 +141,19 @@ func sortByRoleResourceAlphabetically(a, b map[string]interface{}) bool {
 	return resourceA < resourceB
 }
 
+func sortByKeyAlphabetically(a, b map[string]string, key string) bool {
+	valueA, okA := a[key]
+	valueB, okB := b[key]
+
+	// If either of the elements doesn't have a valid string for the given key, consider it greater (move it to the end)
+	if !okA || !okB {
+		return false
+	}
+
+	// Compare the strings alphabetically
+	return valueA < valueB
+}
+
 // Edit a slice of table rows to add row span to first column and remove <td> tags from
 // subsequent rows
 func editTableDataRowSpan(tableRows []TableRow) {
