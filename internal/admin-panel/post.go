@@ -262,7 +262,6 @@ func (c adminPostController) Edit(w http.ResponseWriter, r *http.Request) {
 
 	// If not POST, ie. GET
 	// Find current details to use as placeholder values
-	// Init a new db struct
 	// Search for by ID and store in found
 	found, err := c.service.FindById(idParameter)
 	if err != nil {
@@ -512,8 +511,8 @@ func (c adminPostController) getValuesUsingFieldMap(post db.Post) map[string]str
 		"UpdatedAt": post.UpdatedAt.Format(time.RFC3339),
 		"Title":     post.Title,
 		"Body":      post.Body,
-		// Foreign key: uses username
-		"UserID": fmt.Sprint(post.UserID),
+		// Foreign key: Return ID as string
+		"User": fmt.Sprint(post.UserID),
 	}
 	return fieldMap
 }

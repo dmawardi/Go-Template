@@ -112,6 +112,7 @@ func populatePlaceholdersWithDBData(form *[]FormField, fieldMap map[string]strin
 		// Get pointer to field
 		field := &(*form)[i]
 		if field.Type == "select" {
+			fmt.Printf("Select field found. Selectors: %v\nValueToSelect: %v\n", field.Selectors, fieldMap)
 			// Update selectors with current value selected
 			setDefaultSelected(field.Selectors, fieldMap[field.DbLabel])
 			// Else treat as ordinary input
