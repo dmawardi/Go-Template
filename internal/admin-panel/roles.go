@@ -20,9 +20,13 @@ var authPolicyTableHeaders = []TableHeader{
 	{Label: "action", ColumnSortLabel: "action", Pointer: false, DataType: "string"},
 }
 
-var rolePolicyTableHeaders = []TableHeader{
+var inheritanceTableHeaders = []TableHeader{
 	{Label: "role", ColumnSortLabel: "role", Pointer: false, DataType: "string", Sortable: false},
 	{Label: "inherits_from", ColumnSortLabel: "inherits_from", Pointer: false, DataType: "string", Sortable: false},
+}
+
+var roleTableHeaders = []TableHeader{
+	{Label: "role", ColumnSortLabel: "role", Pointer: false, DataType: "string", Sortable: false},
 }
 
 var possibleActions = []string{"create", "read", "update", "delete"}
@@ -31,12 +35,13 @@ func NewAdminAuthPolicyController(service service.AuthPolicyService, selectorSer
 	return &adminAuthPolicyController{
 		service: service,
 		// Use values from above
-		adminHomeUrl:     "/admin/policy",
-		schemaName:       "Policy",
-		pluralSchemaName: "Policies",
-		tableHeaders:     authPolicyTableHeaders,
-		roleTableHeaders: rolePolicyTableHeaders,
-		formSelectors:    selectorService,
+		adminHomeUrl:            "/admin/policy",
+		schemaName:              "Policy",
+		pluralSchemaName:        "Policies",
+		tableHeaders:            authPolicyTableHeaders,
+		inheritanceTableHeaders: inheritanceTableHeaders,
+		roleTableheaders:        roleTableHeaders,
+		formSelectors:           selectorService,
 	}
 }
 
@@ -48,17 +53,20 @@ type adminAuthPolicyController struct {
 	schemaName       string
 	pluralSchemaName string
 	// Custom table headers
-	tableHeaders     []TableHeader
-	roleTableHeaders []TableHeader
+	tableHeaders            []TableHeader
+	inheritanceTableHeaders []TableHeader
+	roleTableheaders        []TableHeader
 
+	// Form selectors
 	formSelectors SelectorService
 }
 
 type AdminAuthPolicyController interface {
 	FindAll(w http.ResponseWriter, r *http.Request)
+	FindAllRoles(w http.ResponseWriter, r *http.Request)
+	FindAllRoleInheritance(w http.ResponseWriter, r *http.Request)
 	Create(w http.ResponseWriter, r *http.Request)
 	CreateRole(w http.ResponseWriter, r *http.Request)
-	FindAllRoleInheritance(w http.ResponseWriter, r *http.Request)
 	// Edit is also used to view the record details
 	Edit(w http.ResponseWriter, r *http.Request)
 	// Success pages
@@ -90,7 +98,7 @@ func (c adminAuthPolicyController) FindAll(w http.ResponseWriter, r *http.Reques
 	})
 
 	// Build the roles table data
-	tableData := BuildRolesTableData(groupsSlice, c.adminHomeUrl, c.tableHeaders)
+	tableData := BuildPolicyTableData(groupsSlice, c.adminHomeUrl, c.tableHeaders)
 	// Add the row span attribute to the table based on resource grouping
 	editTableDataRowSpan(tableData.TableRows)
 
@@ -98,7 +106,7 @@ func (c adminAuthPolicyController) FindAll(w http.ResponseWriter, r *http.Reques
 	data := PageRenderData{
 		PageTitle:    "Admin: " + c.pluralSchemaName,
 		SectionTitle: fmt.Sprintf("Select a %s to edit", c.schemaName),
-		SidebarList:  sidebarList,
+		SidebarList:  sidebar,
 		TableData:    tableData,
 		SchemaHome:   c.adminHomeUrl,
 		SearchTerm:   searchQuery,
@@ -145,13 +153,66 @@ func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter,
 	})
 
 	// // Build the roles table data
-	tableData := BuildRoleInheritanceTableData(inheritanceSlice, c.adminHomeUrl, c.roleTableHeaders)
+	tableData := BuildRoleInheritanceTableData(inheritanceSlice, c.adminHomeUrl, c.inheritanceTableHeaders)
 
 	// Data to be injected into template
 	data := PageRenderData{
 		PageTitle:    "Admin: " + c.pluralSchemaName,
 		SectionTitle: fmt.Sprintf("Select a %s to edit", c.schemaName),
-		SidebarList:  sidebarList,
+		SidebarList:  sidebar,
+		TableData:    tableData,
+		SchemaHome:   c.adminHomeUrl,
+		SearchTerm:   searchQuery,
+		PageType: PageType{
+			EditPage:   false,
+			ReadPage:   true,
+			CreatePage: false,
+			DeletePage: false,
+			Mode:       "policy",
+		},
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: c.adminHomeUrl + "/roles",
+				FormMethod: "get",
+			},
+			FormFields: []FormField{},
+		},
+	}
+
+	// Execute the template with data and write to response
+	err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+func (c adminAuthPolicyController) FindAllRoles(w http.ResponseWriter, r *http.Request) {
+	// Grab query parameters
+	searchQuery := r.URL.Query().Get("search")
+
+	// Find all with options from database
+	rolesSlice, err := c.service.FindAllRoles()
+	if err != nil {
+		http.Error(w, "Error finding data", http.StatusInternalServerError)
+		return
+	}
+
+	filteredSlice := []string{}
+	// Iterate through roles slice and remove items that do not match search query
+	for _, role := range rolesSlice {
+		if containsString(role, searchQuery) {
+			filteredSlice = append(filteredSlice, role)
+		}
+	}
+
+	// // Build the roles table data
+	tableData := BuildRoleTableData(filteredSlice, c.adminHomeUrl, c.roleTableheaders)
+
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    "Admin: " + c.pluralSchemaName,
+		SectionTitle: fmt.Sprintf("Select a %s to edit", c.schemaName),
+		SidebarList:  sidebar,
 		TableData:    tableData,
 		SchemaHome:   c.adminHomeUrl,
 		SearchTerm:   searchQuery,
@@ -226,7 +287,7 @@ func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request
 	data := PageRenderData{
 		PageTitle:    fmt.Sprintf("Create %s", c.schemaName),
 		SectionTitle: fmt.Sprintf("Create a new %s", c.schemaName),
-		SidebarList:  sidebarList,
+		SidebarList:  sidebar,
 		PageType: PageType{
 			EditPage:   false,
 			ReadPage:   false,
@@ -302,7 +363,7 @@ func (c adminAuthPolicyController) CreateRole(w http.ResponseWriter, r *http.Req
 	data := PageRenderData{
 		PageTitle:    fmt.Sprintf("Create %s Role", c.schemaName),
 		SectionTitle: fmt.Sprintf("Create a new %s Role", c.schemaName),
-		SidebarList:  sidebarList,
+		SidebarList:  sidebar,
 		PageType: PageType{
 			EditPage:   false,
 			ReadPage:   false,
@@ -396,7 +457,7 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 	data := PageRenderData{
 		PageTitle:    fmt.Sprintf("Edit %s: %s", c.schemaName, policyUnslug),
 		SectionTitle: fmt.Sprintf("Edit %s: %s", c.schemaName, policyUnslug),
-		SidebarList:  sidebarList,
+		SidebarList:  sidebar,
 		PageType: PageType{
 			EditPage:   true,
 			ReadPage:   false,

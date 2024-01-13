@@ -69,7 +69,7 @@ func serveAdminError(w http.ResponseWriter, sectionTitle string) {
 	data := PageRenderData{
 		PageTitle:    "Error - Admin",
 		SectionTitle: sectionTitle,
-		SidebarList:  sidebarList,
+		SidebarList:  sidebar,
 		PageType: PageType{
 			EditPage:   false,
 			ReadPage:   false,
@@ -93,7 +93,7 @@ func serveAdminSuccess(w http.ResponseWriter, pageTitle string, sectionTitle str
 	data := PageRenderData{
 		PageTitle:    pageTitle,
 		SectionTitle: sectionTitle,
-		SidebarList:  sidebarList,
+		SidebarList:  sidebar,
 		PageType: PageType{
 			EditPage:    false,
 			ReadPage:    false,

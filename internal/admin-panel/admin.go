@@ -16,9 +16,12 @@ func SetStateInAdminPanel(a *config.AppConfig) {
 }
 
 // Build item list for sidebar (Add for every module)
-var sidebarList = []sidebarItem{
-	{Name: "Groups", FindAllLink: "/admin/groups", AddLink: "/admin/groups/create"},
-	// This list is filled upon runtime by GenerateAndSetAdminSidebar
+var sidebar = AdminSideBar{
+	Main: []sidebarItem{
+		{Name: "Groups", FindAllLink: "/admin/groups", AddLink: "/admin/groups/create"},
+		// This list is filled upon runtime by GenerateAndSetAdminSidebar
+	},
+	Auth: BuildAuthSidebarSection(),
 }
 
 // Default Records Displayed on find all pages
@@ -42,6 +45,11 @@ type sidebarItem struct {
 	Name        string
 	FindAllLink string
 	AddLink     string
+}
+
+type AdminSideBar struct {
+	Main []sidebarItem
+	Auth []sidebarItem
 }
 
 type BasicAdminController interface {
@@ -125,7 +133,27 @@ func GenerateAndSetAdminSidebar(adminCont AdminController) {
 			}
 
 			// append to sidebar list
-			sidebarList = append(sidebarList, item)
+			sidebar.Main = append(sidebar.Main, item)
 		}
+	}
+}
+
+func BuildAuthSidebarSection() []sidebarItem {
+	return []sidebarItem{
+		{
+			Name:        "Policies",
+			FindAllLink: "/admin/policy",
+			AddLink:     "/admin/policy/create",
+		},
+		{
+			Name:        "Roles",
+			FindAllLink: "/admin/policy/roles",
+			AddLink:     "/admin/policy/create-role",
+		},
+		{
+			Name:        "Inheritance",
+			FindAllLink: "/admin/policy/inheritance",
+			AddLink:     "/admin/policy/create-inheritance",
+		},
 	}
 }

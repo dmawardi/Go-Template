@@ -14,7 +14,7 @@ type PageRenderData struct {
 	PageTitle string
 	// In BODY
 	SectionTitle string
-	SidebarList  []sidebarItem
+	SidebarList  AdminSideBar
 	// Schema home used to return to the schema home page from delete
 	SchemaHome string // eg. /admin/users/
 	// Page type (Used for content selection)
@@ -172,7 +172,7 @@ func BuildTableData(listOfSchemaObjects []AdminPanelSchema, metaData models.Sche
 }
 
 // Function build table data for Permissions
-func BuildRolesTableData(policySlice []map[string]interface{}, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
+func BuildPolicyTableData(policySlice []map[string]interface{}, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
 	var tableRows []TableRow
 
 	// Loop through policy slice to build table rows
@@ -203,6 +203,28 @@ func BuildRolesTableData(policySlice []map[string]interface{}, adminSchemaBaseUr
 				rowData = append(rowData, TableCell{Label: ""}) // Add an empty string if the key is not found
 			}
 		}
+
+		// Append to table rows
+		tableRows = append(tableRows, TableRow{Data: rowData})
+	}
+	return TableData{
+		AdminSchemaUrl: adminSchemaBaseUrl, // You can set this value as needed
+		TableHeaders:   tableHeaders,
+		TableRows:      tableRows,
+	}
+}
+
+func BuildRoleTableData(roleSlice []string, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
+	var tableRows []TableRow
+
+	// Loop through policy slice to build table rows
+	for _, role := range roleSlice {
+		var rowData []TableCell
+
+		// Grab data from the schema object
+		value := role
+
+		rowData = append(rowData, TableCell{Label: fmt.Sprintf("%v", value), EditLink: ""})
 
 		// Append to table rows
 		tableRows = append(tableRows, TableRow{Data: rowData})

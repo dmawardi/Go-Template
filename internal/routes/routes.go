@@ -197,8 +197,9 @@ func (a api) AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension str
 		}
 		// Read (all users)
 		mux.Get(fmt.Sprintf("/admin/%s", urlExtension), controller.FindAll)
-		mux.Get(fmt.Sprintf("/admin/%s/roles", urlExtension), controller.FindAllRoleInheritance)
-		// Create (GET form / POST form)
+		mux.Get(fmt.Sprintf("/admin/%s/roles", urlExtension), controller.FindAllRoles)
+		mux.Get(fmt.Sprintf("/admin/%s/inheritance", urlExtension), controller.FindAllRoleInheritance)
+		// Create Policy (GET form / POST form)
 		mux.Get(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)
 		mux.Post(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)
 		mux.Get(fmt.Sprintf("/admin/%s/create/success", urlExtension), controller.CreateSuccess)
@@ -206,7 +207,11 @@ func (a api) AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension str
 		mux.Get(fmt.Sprintf("/admin/%s/create-role", urlExtension), controller.CreateRole)
 		mux.Post(fmt.Sprintf("/admin/%s/create-role", urlExtension), controller.CreateRole)
 		mux.Get(fmt.Sprintf("/admin/%s/create-role/success", urlExtension), controller.CreateRoleSuccess)
-		// mux.Get(fmt.Sprintf("/admin/%s/delete/{id}", urlExtension), controller.Delete)
+		// Create inheritance
+		mux.Get(fmt.Sprintf("/admin/%s/create-inheritance", urlExtension), controller.CreateRole)
+		mux.Post(fmt.Sprintf("/admin/%s/create-inheritance", urlExtension), controller.CreateRole)
+		mux.Get(fmt.Sprintf("/admin/%s/create-inheritance/success", urlExtension), controller.CreateRoleSuccess)
+
 		// mux.Post(fmt.Sprintf("/admin/%s/delete/{id}", urlExtension), controller.Delete)
 		// mux.Get(fmt.Sprintf("/admin/%s/delete/success", urlExtension), controller.DeleteSuccess)
 		// // Bulk delete (from table)

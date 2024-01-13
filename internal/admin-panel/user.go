@@ -107,7 +107,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	data := PageRenderData{
 		PageTitle:    "Admin: " + c.pluralSchemaName,
 		SectionTitle: "Select a user to edit",
-		SidebarList:  sidebarList,
+		SidebarList:  sidebar,
 		TableData:    tableData,
 		SchemaHome:   c.adminHomeUrl,
 		SearchTerm:   searchQuery,
@@ -181,7 +181,7 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 	data := PageRenderData{
 		PageTitle:    fmt.Sprintf("Create %s", c.schemaName),
 		SectionTitle: fmt.Sprintf("Create a new %s", c.schemaName),
-		SidebarList:  sidebarList,
+		SidebarList:  sidebar,
 		PageType: PageType{
 			EditPage:   false,
 			ReadPage:   false,
@@ -284,7 +284,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 	data := PageRenderData{
 		PageTitle:    fmt.Sprintf("Edit %s: %s", c.schemaName, stringParameter),
 		SectionTitle: fmt.Sprintf("Edit %s: %s", c.schemaName, stringParameter),
-		SidebarList:  sidebarList,
+		SidebarList:  sidebar,
 		PageType: PageType{
 			EditPage:   true,
 			ReadPage:   false,
@@ -333,7 +333,7 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 	data := PageRenderData{
 		PageTitle:    fmt.Sprintf("Delete %s", c.schemaName),
 		SectionTitle: fmt.Sprintf("Are you sure you wish to delete user: %s?", stringParameter),
-		SidebarList:  sidebarList,
+		SidebarList:  sidebar,
 		SchemaHome:   c.adminHomeUrl,
 		PageType: PageType{
 			EditPage:   false,
