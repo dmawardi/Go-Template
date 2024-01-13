@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/casbin/casbin/v2"
+	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"gorm.io/gorm"
@@ -26,15 +26,15 @@ type AuthPolicyRepository interface {
 
 // GormCasbinPolicyRepository is a GORM implementation of CasbinPolicyRepository.
 type authPolicyRepository struct {
-	db       *gorm.DB
-	enforcer *casbin.Enforcer
+	db   *gorm.DB
+	auth config.AuthEnforcer
 }
 
 // NewGormCasbinPolicyRepository creates a new instance of GormCasbinPolicyRepository.
 func NewAuthPolicyRepository(db *gorm.DB) AuthPolicyRepository {
 	return &authPolicyRepository{
-		db:       db,
-		enforcer: app.Auth.Enforcer,
+		db:   db,
+		auth: app.Auth,
 	}
 }
 
@@ -42,12 +42,12 @@ func NewAuthPolicyRepository(db *gorm.DB) AuthPolicyRepository {
 // FindAll returns all Casbin policies.
 func (r *authPolicyRepository) FindAllRoles() ([]string, error) {
 	// return all policies found in the databaseq
-	roles := r.enforcer.GetAllRoles()
+	roles := r.auth.Enforcer.GetAllRoles()
 	return roles, nil
 }
 func (r *authPolicyRepository) FindRoleByUserId(userId string) (string, error) {
 	// return all policies found in the databaseq
-	roles, err := r.enforcer.GetRolesForUser(userId)
+	roles, err := r.auth.Enforcer.GetRolesForUser(userId)
 	if err != nil {
 		return "", err
 	}
@@ -69,14 +69,14 @@ func (r *authPolicyRepository) AssignUserRole(userId, roleToApply string) (*bool
 
 	// If user exists, proceed
 	// First, remove the existing roles for the user (if found)
-	_, err := r.enforcer.DeleteRolesForUser(userId)
+	_, err := r.auth.Enforcer.DeleteRolesForUser(userId)
 	if err != nil {
 		fmt.Printf("Error removing roles for user: %v\n", err)
 		return nil, err
 	}
 
 	// Add the new role for the user.
-	success, err := r.enforcer.AddRoleForUser(userId, roleToApply)
+	success, err := r.auth.Enforcer.AddRoleForUser(userId, roleToApply)
 	if err != nil {
 		fmt.Printf("Error assigning role to user: %v\n", err)
 		return nil, err
@@ -88,7 +88,7 @@ func (r *authPolicyRepository) DeleteAllUserRoles(userID string) (*bool, error) 
 	// Set default result
 	result := false
 	// Remove all roles for user
-	_, err := r.enforcer.DeleteRolesForUser(userID)
+	_, err := r.auth.Enforcer.DeleteRolesForUser(userID)
 	if err != nil {
 		fmt.Printf("Error removing roles for user: %v\n", err)
 		result = false
@@ -100,12 +100,12 @@ func (r *authPolicyRepository) DeleteAllUserRoles(userID string) (*bool, error) 
 // Policies
 func (r *authPolicyRepository) FindAll() ([][]string, error) {
 	// return all policies found in the database
-	policies := r.enforcer.GetPolicy()
+	policies := r.auth.Enforcer.GetPolicy()
 	return policies, nil
 }
 func (r *authPolicyRepository) Create(policy models.CasbinRule) error {
 	// Add policy to enforcer
-	newPolicy, err := r.enforcer.AddPolicy(policy.V0, policy.V1, policy.V2)
+	newPolicy, err := r.auth.Enforcer.AddPolicy(policy.V0, policy.V1, policy.V2)
 	if err != nil {
 		return err
 	}
@@ -121,7 +121,7 @@ func (r *authPolicyRepository) Delete(policy models.CasbinRule) error {
 	var err error
 
 	// Remove policy from enforcer
-	removed, err = r.enforcer.RemovePolicy(policy.V0, policy.V1, policy.V2)
+	removed, err = r.auth.Enforcer.RemovePolicy(policy.V0, policy.V1, policy.V2)
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func (r *authPolicyRepository) Delete(policy models.CasbinRule) error {
 func (r *authPolicyRepository) Update(oldPolicy, newPolicy models.CasbinRule) error {
 	fmt.Printf("Old policy: %v\n", oldPolicy)
 	// Remove old policy from enforcer
-	removed, err := r.enforcer.RemovePolicy(oldPolicy.V0, oldPolicy.V1, oldPolicy.V2)
+	removed, err := r.auth.Enforcer.RemovePolicy(oldPolicy.V0, oldPolicy.V1, oldPolicy.V2)
 	if err != nil {
 		fmt.Printf("Error removing old policy: %v\n", err)
 		return err
@@ -148,7 +148,7 @@ func (r *authPolicyRepository) Update(oldPolicy, newPolicy models.CasbinRule) er
 		return errors.New("policy to update does not exist")
 	}
 	// Add new policy to enforcer
-	addedPolicy, err := r.enforcer.AddPolicy(newPolicy.V0, newPolicy.V1, newPolicy.V2)
+	addedPolicy, err := r.auth.Enforcer.AddPolicy(newPolicy.V0, newPolicy.V1, newPolicy.V2)
 	if err != nil {
 		return err
 	}
