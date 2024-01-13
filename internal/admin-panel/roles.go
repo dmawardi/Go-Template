@@ -49,11 +49,12 @@ type adminAuthPolicyController struct {
 type AdminAuthPolicyController interface {
 	FindAll(w http.ResponseWriter, r *http.Request)
 	Create(w http.ResponseWriter, r *http.Request)
+	CreateRole(w http.ResponseWriter, r *http.Request)
 	// Edit is also used to view the record details
 	Edit(w http.ResponseWriter, r *http.Request)
-	// Bulk delete (from table)
 	// Success pages
 	CreateSuccess(w http.ResponseWriter, r *http.Request)
+	CreateRoleSuccess(w http.ResponseWriter, r *http.Request)
 	// EditSuccess(w http.ResponseWriter, r *http.Request)
 	// For sidebar
 	ObtainFields() BasicAdminController
@@ -188,6 +189,82 @@ func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request
 	}
 }
 
+func (c adminAuthPolicyController) CreateRole(w http.ResponseWriter, r *http.Request) {
+	// Init new form
+	createForm := c.generateCreateRoleForm()
+
+	// If form is being submitted (method = POST)
+	if r.Method == "POST" {
+		// Extract user form submission
+		submittedForm, err := c.extractCreateRoleFormSubmission(r)
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+
+		// Validate struct
+		pass, valErrors := helpers.GoValidateStruct(submittedForm)
+		// If failure detected
+		// If validation passes
+		if pass {
+			// Create
+			success, err := c.service.AssignUserRole(submittedForm.UserId, submittedForm.Role)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Error assigning role %s", c.schemaName), http.StatusInternalServerError)
+				return
+			}
+			if !*success {
+				http.Error(w, fmt.Sprintf("Error assigning role %s", c.schemaName), http.StatusInternalServerError)
+				return
+			}
+			// Redirect or render a success message
+			http.Redirect(w, r, fmt.Sprintf("%s/create-role/success", c.adminHomeUrl), http.StatusSeeOther)
+			return
+		}
+
+		// If validation fails
+		// Populate form field errors
+		SetValidationErrorsInForm(createForm, *valErrors)
+
+		// Extract form submission from request and build into map[string]string
+		formFieldMap, err := c.extractFormFromRequest(r)
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+		fmt.Printf("formFieldMap: %+v\n", formFieldMap)
+	}
+
+	// Render preparation
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    fmt.Sprintf("Create %s Role", c.schemaName),
+		SectionTitle: fmt.Sprintf("Create a new %s Role", c.schemaName),
+		SidebarList:  sidebarList,
+		PageType: PageType{
+			EditPage:   false,
+			ReadPage:   false,
+			CreatePage: true,
+			DeletePage: false,
+			Mode:       "policy",
+		},
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: fmt.Sprintf("%s/create-role", c.adminHomeUrl),
+				FormMethod: "post",
+			},
+			FormFields: createForm,
+		},
+	}
+
+	// Execute the template with data and write to response
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+
 func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) {
 	// Grab slug from URL
 	policySlug := chi.URLParam(r, "id")
@@ -291,6 +368,10 @@ func (c adminAuthPolicyController) CreateSuccess(w http.ResponseWriter, r *http.
 	// Serve admin success page
 	serveAdminSuccess(w, fmt.Sprintf("Create %s", c.schemaName), fmt.Sprintf("%s Created Successfully!", c.schemaName))
 }
+func (c adminAuthPolicyController) CreateRoleSuccess(w http.ResponseWriter, r *http.Request) {
+	// Serve admin success page
+	serveAdminSuccess(w, fmt.Sprintf("Create %s Role", c.schemaName), fmt.Sprintf("%s Role Created Successfully!", c.schemaName))
+}
 
 // Form generation
 // Used to build Create form
@@ -299,6 +380,13 @@ func (c adminAuthPolicyController) generateCreateForm() []FormField {
 		{DbLabel: "Resource", Label: "Resource", Name: "resource", Placeholder: "eg. '/api/posts'", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Role", Label: "First Role", Name: "role", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.RoleSelection()},
 		{DbLabel: "Action", Label: "Action", Name: "action", Placeholder: "", Value: "", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.ActionSelection()},
+	}
+}
+
+func (c adminAuthPolicyController) generateCreateRoleForm() []FormField {
+	return []FormField{
+		{DbLabel: "Role", Label: "New Role Name", Name: "role", Placeholder: "eg. 'Moderator'", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "User", Label: "First Member", Name: "user", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.UserSelection()},
 	}
 }
 
@@ -316,6 +404,21 @@ func (c adminAuthPolicyController) extractCreateFormSubmission(r *http.Request) 
 		Role:     r.FormValue("role"),
 		Resource: r.FormValue("resource"),
 		Action:   r.FormValue("action"),
+	}
+
+	return toValidate, nil
+}
+func (c adminAuthPolicyController) extractCreateRoleFormSubmission(r *http.Request) (models.CasbinRoleAssignment, error) {
+	// Parse the form
+	err := r.ParseForm()
+	if err != nil {
+		return models.CasbinRoleAssignment{}, errors.New("Error parsing form")
+	}
+
+	// Build struct for validation
+	toValidate := models.CasbinRoleAssignment{
+		Role:   r.FormValue("role"),
+		UserId: r.FormValue("user"),
 	}
 
 	return toValidate, nil

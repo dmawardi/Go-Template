@@ -201,7 +201,10 @@ func (a api) AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension str
 		mux.Get(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)
 		mux.Post(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)
 		mux.Get(fmt.Sprintf("/admin/%s/create/success", urlExtension), controller.CreateSuccess)
-		// // Delete
+		// Create Role
+		mux.Get(fmt.Sprintf("/admin/%s/create-role", urlExtension), controller.CreateRole)
+		mux.Post(fmt.Sprintf("/admin/%s/create-role", urlExtension), controller.CreateRole)
+		mux.Get(fmt.Sprintf("/admin/%s/create-role/success", urlExtension), controller.CreateRoleSuccess)
 		// mux.Get(fmt.Sprintf("/admin/%s/delete/{id}", urlExtension), controller.Delete)
 		// mux.Post(fmt.Sprintf("/admin/%s/delete/{id}", urlExtension), controller.Delete)
 		// mux.Get(fmt.Sprintf("/admin/%s/delete/success", urlExtension), controller.DeleteSuccess)
