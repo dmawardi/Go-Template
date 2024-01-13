@@ -67,11 +67,13 @@ type AdminAuthPolicyController interface {
 	FindAllRoleInheritance(w http.ResponseWriter, r *http.Request)
 	Create(w http.ResponseWriter, r *http.Request)
 	CreateRole(w http.ResponseWriter, r *http.Request)
+	CreateInheritance(w http.ResponseWriter, r *http.Request)
 	// Edit is also used to view the record details
 	Edit(w http.ResponseWriter, r *http.Request)
 	// Success pages
 	CreateSuccess(w http.ResponseWriter, r *http.Request)
 	CreateRoleSuccess(w http.ResponseWriter, r *http.Request)
+	CreateInheritanceSuccess(w http.ResponseWriter, r *http.Request)
 	// EditSuccess(w http.ResponseWriter, r *http.Request)
 	// For sidebar
 	ObtainFields() BasicAdminController
@@ -172,7 +174,7 @@ func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter,
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{
-				FormAction: c.adminHomeUrl + "/roles",
+				FormAction: c.adminHomeUrl + "/inheritance",
 				FormMethod: "get",
 			},
 			FormFields: []FormField{},
@@ -388,6 +390,72 @@ func (c adminAuthPolicyController) CreateRole(w http.ResponseWriter, r *http.Req
 	}
 }
 
+func (c adminAuthPolicyController) CreateInheritance(w http.ResponseWriter, r *http.Request) {
+	// Init new form
+	createForm := c.generateCreateInheritanceForm()
+
+	// If form is being submitted (method = POST)
+	if r.Method == "POST" {
+		// Extract user form submission
+		submittedForm, err := c.extractCreateInheritanceFormSubmission(r)
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+		fmt.Printf("submittedForm: %+v\n", submittedForm)
+
+		// Validate struct
+		pass, valErrors := helpers.GoValidateStruct(submittedForm)
+		// If failure detected
+		// If validation passes
+		if pass {
+			// Create
+			err := c.service.CreateInheritance(models.G2Record{Role: submittedForm.Role, InheritsFrom: submittedForm.InheritsFrom})
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Error assigning role %s", c.schemaName), http.StatusInternalServerError)
+				return
+			}
+
+			// Redirect or render a success message
+			http.Redirect(w, r, fmt.Sprintf("%s/create-inheritance/success", c.adminHomeUrl), http.StatusSeeOther)
+			return
+		}
+
+		// If validation fails
+		// Populate form field errors
+		SetValidationErrorsInForm(createForm, *valErrors)
+	}
+
+	// Render preparation
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    fmt.Sprintf("Create %s Inheritance", c.schemaName),
+		SectionTitle: fmt.Sprintf("Create a new %s Inheritance", c.schemaName),
+		SidebarList:  sidebar,
+		PageType: PageType{
+			EditPage:   false,
+			ReadPage:   false,
+			CreatePage: true,
+			DeletePage: false,
+			Mode:       "policy",
+		},
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: fmt.Sprintf("%s/create-inheritance", c.adminHomeUrl),
+				FormMethod: "post",
+			},
+			FormFields: createForm,
+		},
+	}
+
+	// Execute the template with data and write to response
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+
 func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) {
 	// Grab slug from URL
 	policySlug := chi.URLParam(r, "id")
@@ -495,6 +563,10 @@ func (c adminAuthPolicyController) CreateRoleSuccess(w http.ResponseWriter, r *h
 	// Serve admin success page
 	serveAdminSuccess(w, fmt.Sprintf("Create %s Role", c.schemaName), fmt.Sprintf("%s Role Created Successfully!", c.schemaName))
 }
+func (c adminAuthPolicyController) CreateInheritanceSuccess(w http.ResponseWriter, r *http.Request) {
+	// Serve admin success page
+	serveAdminSuccess(w, fmt.Sprintf("Create %s Role Inheritance", c.schemaName), fmt.Sprintf("%s Role Inheritance Created Successfully!", c.schemaName))
+}
 
 // Form generation
 // Used to build Create form
@@ -510,6 +582,12 @@ func (c adminAuthPolicyController) generateCreateRoleForm() []FormField {
 	return []FormField{
 		{DbLabel: "Role", Label: "New Role Name", Name: "role", Placeholder: "eg. 'Moderator'", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "User", Label: "First Member", Name: "user", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.UserSelection()},
+	}
+}
+func (c adminAuthPolicyController) generateCreateInheritanceForm() []FormField {
+	return []FormField{
+		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "eg. 'post-admin'", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "InheritsFrom", Label: "Inherits from (role)", Name: "inherits_from", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.RoleSelection()},
 	}
 }
 
@@ -542,6 +620,21 @@ func (c adminAuthPolicyController) extractCreateRoleFormSubmission(r *http.Reque
 	toValidate := models.CasbinRoleAssignment{
 		Role:   r.FormValue("role"),
 		UserId: r.FormValue("user"),
+	}
+
+	return toValidate, nil
+}
+func (c adminAuthPolicyController) extractCreateInheritanceFormSubmission(r *http.Request) (models.G2Record, error) {
+	// Parse the form
+	err := r.ParseForm()
+	if err != nil {
+		return models.G2Record{}, errors.New("Error parsing form")
+	}
+
+	// Build struct for validation
+	toValidate := models.G2Record{
+		Role:         r.FormValue("role"),
+		InheritsFrom: r.FormValue("inherits_from"),
 	}
 
 	return toValidate, nil

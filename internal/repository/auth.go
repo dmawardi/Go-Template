@@ -22,6 +22,8 @@ type AuthPolicyRepository interface {
 	// Policies
 	FindAll() ([][]string, error)
 	Create(policy models.CasbinRule) error
+	CreateInheritance(inherit models.G2Record) error
+	DeleteInheritance(inherit models.G2Record) error
 	Update(oldPolicy, newPolicy models.CasbinRule) error
 	Delete(policy models.CasbinRule) error
 }
@@ -48,8 +50,36 @@ func (r *authPolicyRepository) FindAllRoleInheritance() ([][]string, error) {
 
 	return g2Records, nil
 }
+func (r *authPolicyRepository) CreateInheritance(inherit models.G2Record) error {
+	// Add policy to enforcer
+	newPolicy, err := r.auth.Enforcer.AddNamedGroupingPolicy("g2", inherit.Role, inherit.InheritsFrom)
+	if err != nil {
+		return err
+	}
+	// If not new, return error
+	if !newPolicy {
+		return errors.New("policy already exists")
+	}
+	// else, return success
+	return nil
+}
+func (r *authPolicyRepository) DeleteInheritance(inherit models.G2Record) error {
+	// Remove policy from enforcer
+	removed, err := r.auth.Enforcer.RemoveNamedGroupingPolicy("g2", inherit.Role, inherit.InheritsFrom)
+	if err != nil {
+		return err
+	}
 
-// FindAll returns all Casbin policies.
+	// If not removed, return error
+	if !removed {
+		return errors.New("policy does not exist")
+	}
+
+	// else, return success
+	return nil
+}
+
+// Roles
 func (r *authPolicyRepository) FindAllRoles() ([]string, error) {
 	// return all policies found in the databaseq
 	roles := r.auth.Enforcer.GetAllRoles()

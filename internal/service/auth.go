@@ -14,6 +14,8 @@ type AuthPolicyService interface {
 	FindRoleByUserId(userId int) (string, error)
 	AssignUserRole(userId, roleToApply string) (*bool, error)
 	Create(policy models.PolicyRule) error
+	CreateInheritance(inherit models.G2Record) error
+	DeleteInheritance(inherit models.G2Record) error
 	Update(oldPolicy, newPolicy models.PolicyRule) error
 	Delete(policy models.PolicyRule) error
 }
@@ -55,7 +57,14 @@ func (s *authPolicyService) FindAllRoleInheritance() ([]map[string]string, error
 	}
 	return formattedG2Records, nil
 }
+func (s *authPolicyService) CreateInheritance(inherit models.G2Record) error {
+	return s.repo.CreateInheritance(inherit)
+}
+func (s *authPolicyService) DeleteInheritance(inherit models.G2Record) error {
+	return s.repo.DeleteInheritance(inherit)
+}
 
+// Assigning a user a role will automatically create a new role with the user as the first member if not already found
 func (s *authPolicyService) AssignUserRole(userId, roleToApply string) (*bool, error) {
 	success, err := s.repo.AssignUserRole(userId, roleToApply)
 	if err != nil {
