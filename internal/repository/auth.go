@@ -34,7 +34,7 @@ type authPolicyRepository struct {
 func NewAuthPolicyRepository(db *gorm.DB) AuthPolicyRepository {
 	return &authPolicyRepository{
 		db:       db,
-		enforcer: app.RBEnforcer,
+		enforcer: app.Auth.Enforcer,
 	}
 }
 

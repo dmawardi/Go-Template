@@ -166,9 +166,11 @@ func setupTestEnforcer(dbClient *gorm.DB) {
 		fmt.Println("Error building enforcer")
 	}
 
-	// Assign values in app for authentication
+	// Set Gorm client
 	app.DbClient = dbClient
-	app.RBEnforcer = enforcer
+	// Set enforcer in state
+	app.Auth.Enforcer = enforcer.Enforcer
+	app.Auth.Adapter = enforcer.Adapter
 	// Sync app in authentication package for usage in authentication functions
 	auth.SetStateInAuth(&app)
 }

@@ -85,7 +85,8 @@ func main() {
 		log.Fatal("Couldn't setup RBAC Authorization Enforcer")
 	}
 	// Set enforcer in state
-	app.RBEnforcer = e
+	app.Auth.Enforcer = e.Enforcer
+	app.Auth.Adapter = e.Adapter
 
 	// Create api
 	api := ApiSetup(client)

@@ -44,14 +44,14 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 // Middleware to check whether user is authorized
 func Authorize(userId, object, action string) bool {
 	// Load Authorization policy from Database
-	err := app.RBEnforcer.LoadPolicy()
+	err := app.Auth.Enforcer.LoadPolicy()
 	if err != nil {
 		fmt.Println("Error loading RBAC policy in Authorization middleware: ", err)
 		return false
 	}
 
 	// Enforce policy for user's role using their ID
-	ok, err := app.RBEnforcer.Enforce(userId, object, action)
+	ok, err := app.Auth.Enforcer.Enforce(userId, object, action)
 	if err != nil {
 		fmt.Print("Failed to enforce RBAC policy in Authorization middleware: ", err, "\nUser ID: ", userId, "\nObject: ", object, "\nAction: ", action, "\n")
 		return false
