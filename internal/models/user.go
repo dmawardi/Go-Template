@@ -20,7 +20,7 @@ type CreateUser struct {
 	Name     string `json:"name" valid:"length(6|80),required"`
 	Email    string `json:"email" valid:"email,required"`
 	Verified bool   `json:"verified,omitempty"`
-	Role     string `json:"role,omitempty" valid:"required,in(admin|moderator|user)"`
+	Role     string `json:"role,omitempty" valid:"required"`
 }
 
 // Created user (for admin use)
@@ -52,7 +52,7 @@ type UpdateUser struct {
 	Name     string `json:"name,omitempty" valid:"length(6|80)"`
 	Email    string `json:"email,omitempty" valid:"email"`
 	Verified bool   `json:"verified,omitempty"`
-	Role     string `json:"role,omitempty" valid:"in(admin|moderator|user)"`
+	Role     string `json:"role,omitempty" valid:""`
 }
 type UpdatedUser struct {
 	ID        uint           `json:"id"`
