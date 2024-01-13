@@ -173,7 +173,7 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Populate previously entered values (Avoids password)
-		populateValuesWithForm(r, &createForm, formFieldMap)
+		populateValuesWithForm(&createForm, formFieldMap)
 	}
 
 	// Render preparation
@@ -253,7 +253,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Populate previously entered values (Avoids password)
-		err = populateValuesWithForm(r, &editForm, fieldMap)
+		err = populateValuesWithForm(&editForm, fieldMap)
 		if err != nil {
 			http.Error(w, "Error populating form", http.StatusInternalServerError)
 			return

@@ -1,9 +1,7 @@
 package adminpanel
 
 import (
-	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/dmawardi/Go-Template/internal/models"
@@ -83,15 +81,9 @@ func SetValidationErrorsInForm(form []FormField, validationErrors models.Validat
 	}
 }
 
-// Used to populate FormField values with placeholder values found from form in request
-func populateValuesWithForm(r *http.Request, form *[]FormField, fieldMap map[string]string) error {
-	// Parse the form
-	err := r.ParseForm()
-	if err != nil {
-		return errors.New("Error parsing form")
-	}
-
-	// Loop through fields and populate placeholders
+// Used to populate FormField values with placeholder values found from previously submitted form
+func populateValuesWithForm(form *[]FormField, fieldMap map[string]string) error {
+	// Loop through fields in the form and populate placeholders
 	for i := range *form {
 		// Get pointer to field
 		field := &(*form)[i]
@@ -112,7 +104,6 @@ func populatePlaceholdersWithDBData(form *[]FormField, fieldMap map[string]strin
 		// Get pointer to field
 		field := &(*form)[i]
 		if field.Type == "select" {
-			fmt.Printf("Select field found. Selectors: %v\nValueToSelect: %v\n", field.Selectors, fieldMap)
 			// Update selectors with current value selected
 			setDefaultSelected(field.Selectors, fieldMap[field.DbLabel])
 			// Else treat as ordinary input

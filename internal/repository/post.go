@@ -112,6 +112,10 @@ func (r *postRepository) Update(id int, post *db.Post) (*db.Post, error) {
 		fmt.Println("Post to update not found: ", err)
 		return nil, err
 	}
+	// Set post user id (gorm requires this as it does not automatically set the foreign key)
+	if post.UserID == 0 {
+		post.UserID = post.User.ID
+	}
 
 	// Update post using found post
 	updateResult := r.DB.Model(&found).Updates(post)

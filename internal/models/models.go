@@ -94,7 +94,7 @@ func BuildMetaData(dbClient *gorm.DB, dbSchema interface{}, limit int, offset in
 	var totalCount *int64
 
 	// Count the total number of records
-	totalCount, err := db.CountBasedOnConditions(db.User{}, conditions, dbClient)
+	totalCount, err := db.CountBasedOnConditions(dbSchema, conditions, dbClient)
 	if err != nil {
 		return nil, err
 	}
