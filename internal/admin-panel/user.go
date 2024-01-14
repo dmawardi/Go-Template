@@ -122,6 +122,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 			},
 			FormFields: []FormField{},
 		},
+		HeaderSection: header,
 	}
 
 	// Execute the template with data and write to response

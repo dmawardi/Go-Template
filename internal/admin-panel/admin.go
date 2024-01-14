@@ -2,6 +2,7 @@ package adminpanel
 
 import (
 	"fmt"
+	"html/template"
 	"reflect"
 
 	"github.com/dmawardi/Go-Template/internal/config"
@@ -10,9 +11,19 @@ import (
 // init state for db access
 var app *config.AppConfig
 
+var header = HeaderSection{
+	ViewSiteUrl:       "#",
+	LogOutUrl:         "#",
+	ChangePasswordUrl: "#",
+}
+
 // Function called in main.go to connect app state to current file
 func SetStateInAdminPanel(a *config.AppConfig) {
 	app = a
+	// Set header urls after setting state
+	header.ChangePasswordUrl = template.URL("http://" + app.BaseURL + "/admin/change-password")
+	header.LogOutUrl = template.URL("http://" + app.BaseURL + "/admin/logout")
+	header.ViewSiteUrl = template.URL("http://" + app.BaseURL)
 }
 
 // Build item list for sidebar (Add for every module)

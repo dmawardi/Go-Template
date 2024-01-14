@@ -2,6 +2,7 @@ package adminpanel
 
 import (
 	"fmt"
+	"html/template"
 	"strings"
 
 	"github.com/dmawardi/Go-Template/internal/models"
@@ -26,6 +27,13 @@ type PageRenderData struct {
 	SearchTerm string
 	// Special section data for policies
 	PolicySection PolicySection
+	HeaderSection HeaderSection
+}
+
+type HeaderSection struct {
+	ViewSiteUrl       template.URL
+	ChangePasswordUrl template.URL
+	LogOutUrl         template.URL
 }
 
 // Used for the policy section

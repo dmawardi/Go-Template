@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"gorm.io/gorm"
 
@@ -22,6 +23,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// Set default port number
 const portNumber = ":8080"
 
 // Init state
@@ -57,6 +59,14 @@ func main() {
 	if err != nil {
 		log.Fatal("Unable to load environment variables.")
 	}
+	// Extract environment variables
+	serverUrl := os.Getenv("SERVER_BASE_URL")
+	portNumber := os.Getenv("SERVER_PORT")
+
+	// Get BASE URL from environment variables
+	baseURL := fmt.Sprintf("%s%s", serverUrl, portNumber)
+	// Set in app state
+	app.BaseURL = baseURL
 
 	// Parse the template files in the templates directory
 	tmpl, err := adminpanel.ParseAdminTemplates()
@@ -66,13 +76,6 @@ func main() {
 	}
 	// Set template in state
 	app.AdminTemplates = tmpl
-
-	// Set state in other packages
-	controller.SetStateInHandlers(&app)
-	auth.SetStateInAuth(&app)
-	adminpanel.SetStateInAdminPanel(&app)
-	service.BuildServiceState(&app)
-	repository.SetAppConfig(&app)
 
 	// Create client using DbConnect
 	client := db.DbConnect()
@@ -87,6 +90,14 @@ func main() {
 	// Set enforcer in state
 	app.Auth.Enforcer = e.Enforcer
 	app.Auth.Adapter = e.Adapter
+
+	// Set state in other packages
+	controller.SetStateInHandlers(&app)
+	auth.SetStateInAuth(&app)
+	adminpanel.SetStateInAdminPanel(&app)
+	service.BuildServiceState(&app)
+	repository.SetAppConfig(&app)
+	routes.BuildRouteState(&app)
 
 	// Create api
 	api := ApiSetup(client)

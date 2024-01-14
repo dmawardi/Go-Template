@@ -19,6 +19,8 @@ type AppConfig struct {
 	Session        *sessions.CookieStore
 	Auth           AuthEnforcer
 	AdminTemplates *template.Template
+	// Should be set to the base url of the app upon server start
+	BaseURL string
 }
 
 type AuthEnforcer struct {

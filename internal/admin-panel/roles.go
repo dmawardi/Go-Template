@@ -129,6 +129,7 @@ func (c adminAuthPolicyController) FindAll(w http.ResponseWriter, r *http.Reques
 			},
 			FormFields: []FormField{},
 		},
+		HeaderSection: header,
 	}
 
 	// Execute the template with data and write to response
@@ -182,6 +183,7 @@ func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter,
 			},
 			FormFields: []FormField{},
 		},
+		HeaderSection: header,
 	}
 
 	// Execute the template with data and write to response
@@ -235,6 +237,7 @@ func (c adminAuthPolicyController) FindAllRoles(w http.ResponseWriter, r *http.R
 			},
 			FormFields: []FormField{},
 		},
+		HeaderSection: header,
 	}
 
 	// Execute the template with data and write to response
@@ -307,6 +310,7 @@ func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request
 			},
 			FormFields: createForm,
 		},
+		HeaderSection: header,
 	}
 
 	// Execute the template with data and write to response
@@ -383,6 +387,7 @@ func (c adminAuthPolicyController) CreateRole(w http.ResponseWriter, r *http.Req
 			},
 			FormFields: createForm,
 		},
+		HeaderSection: header,
 	}
 
 	// Execute the template with data and write to response
@@ -449,6 +454,7 @@ func (c adminAuthPolicyController) CreateInheritance(w http.ResponseWriter, r *h
 			},
 			FormFields: createForm,
 		},
+		HeaderSection: header,
 	}
 
 	// Execute the template with data and write to response
@@ -502,6 +508,7 @@ func (c adminAuthPolicyController) DeleteInheritance(w http.ResponseWriter, r *h
 			},
 			FormFields: []FormField{},
 		},
+		HeaderSection: header,
 	}
 
 	// Execute the template with data and write to response
@@ -601,6 +608,7 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 			FormDetails: FormDetails{},
 			FormFields:  []FormField{},
 		},
+		HeaderSection: header,
 	}
 
 	// Execute the template with data and write to response

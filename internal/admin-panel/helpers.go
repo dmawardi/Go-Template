@@ -101,7 +101,8 @@ func serveAdminSuccess(w http.ResponseWriter, pageTitle string, sectionTitle str
 			DeletePage:  false,
 			SuccessPage: true,
 		},
-		FormData: FormData{},
+		FormData:      FormData{},
+		HeaderSection: header,
 	}
 
 	// Execute the template with data and write to response

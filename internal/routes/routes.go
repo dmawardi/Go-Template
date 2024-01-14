@@ -6,12 +6,20 @@ import (
 
 	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
 	"github.com/dmawardi/Go-Template/internal/auth"
+	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/controller"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
 	_ "github.com/swaggo/http-swagger/example/go-chi/docs"
 )
+
+var app *config.AppConfig
+
+// Create new service repository
+func BuildRouteState(a *config.AppConfig) {
+	app = a
+}
 
 type Api interface {
 	// Total route builder for API
@@ -20,7 +28,7 @@ type Api interface {
 	AddUserApiRoutes(router *chi.Mux) *chi.Mux
 	AddBasicCrudApiRoutes(router *chi.Mux, urlExtension string, controller controller.BasicController) *chi.Mux
 	// Admin routes
-	AddBasicAdminRoutes(router *chi.Mux) *chi.Mux
+	AddBasicAdminRoutes(router *chi.Mux, controller adminpanel.AdminBaseController) *chi.Mux
 	AddAdminRouteSet(router *chi.Mux, protected bool, urlExtension string, controller controller.BasicAdminController) *chi.Mux
 }
 
@@ -52,15 +60,15 @@ func (a api) Routes() http.Handler {
 	mux = a.AddBasicCrudApiRoutes(mux, "posts", a.Post)
 
 	// // Add basic admin routes
-	mux = a.AddBasicAdminRoutes(mux)
+	mux = a.AddBasicAdminRoutes(mux, a.Admin.Base)
 	// mux = a.AddAdminCrudRoutes(mux, true, "users", a.Admin.User)
 	mux = a.AddAdminRouteSet(mux, false, "users", a.Admin.User)
 	mux = a.AddAdminRouteSet(mux, false, "posts", a.Admin.Post)
 	mux = a.AddAdminPolicySet(mux, false, "policy", a.Admin.Auth)
 
-	// Serve API Swagger docs
+	// Serve API Swagger docs at built URL from config state
 	mux.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/static/docs/swagger.json"), //The url pointing to API definition
+		httpSwagger.URL(fmt.Sprintf("%s/static/docs/swagger.json", app.BaseURL)), //The url pointing to API definition
 	))
 
 	// Build fileserver using static directory
@@ -216,11 +224,6 @@ func (a api) AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension str
 		mux.Post(fmt.Sprintf("/admin/%s/delete-inheritance/{inherit-slug}", urlExtension), controller.DeleteInheritance)
 		mux.Get(fmt.Sprintf("/admin/%s/delete-inheritance/success", urlExtension), controller.DeleteInheritanceSuccess)
 
-		// mux.Post(fmt.Sprintf("/admin/%s/delete/{id}", urlExtension), controller.Delete)
-		// mux.Get(fmt.Sprintf("/admin/%s/delete/success", urlExtension), controller.DeleteSuccess)
-		// // Bulk delete (from table)
-		// mux.Delete(fmt.Sprintf("/admin/%s/bulk-delete", urlExtension), controller.BulkDelete)
-
 		// Edit/Update (GET data in form / POST form)
 		mux.Get(fmt.Sprintf("/admin/%s/{id}", urlExtension), controller.Edit)
 		mux.Post(fmt.Sprintf("/admin/%s/{id}", urlExtension), controller.Edit)
@@ -230,14 +233,12 @@ func (a api) AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension str
 }
 
 // Function to add new routes to an existing Chi mux router
-func (a api) AddBasicAdminRoutes(router *chi.Mux) *chi.Mux {
+func (a api) AddBasicAdminRoutes(router *chi.Mux, controller adminpanel.AdminBaseController) *chi.Mux {
 	// Public routes
 	router.Group(func(mux chi.Router) {
 		// @tag.name Public Routes
 		// @tag.description Unprotected routes
-		mux.Get("/admin", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("This is the admin login page sailor"))
-		})
+		mux.Get("/admin", controller.Login)
 
 		// Private routes
 		mux.Group(func(mux chi.Router) {
@@ -246,9 +247,11 @@ func (a api) AddBasicAdminRoutes(router *chi.Mux) *chi.Mux {
 			// @tag.name Private routes
 			// @tag.description Protected routes
 			// admin home
-			mux.Get("/admin/home", func(w http.ResponseWriter, r *http.Request) {
-				w.Write([]byte("This is the admin main home page"))
-			})
+			mux.Get("/admin/home", controller.Home)
+			// Change password
+			mux.Get("/admin/change-password", controller.ChangePassword)
+			// admin logout
+			mux.Get("/admin/logout", controller.Logout)
 
 		})
 

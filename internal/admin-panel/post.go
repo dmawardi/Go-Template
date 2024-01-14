@@ -124,6 +124,7 @@ func (c adminPostController) FindAll(w http.ResponseWriter, r *http.Request) {
 			},
 			FormFields: []FormField{},
 		},
+		HeaderSection: header,
 	}
 
 	// Execute the template with data and write to response
@@ -199,6 +200,7 @@ func (c adminPostController) Create(w http.ResponseWriter, r *http.Request) {
 			},
 			FormFields: createForm,
 		},
+		HeaderSection: header,
 	}
 
 	// Execute the template with data and write to response
@@ -302,6 +304,7 @@ func (c adminPostController) Edit(w http.ResponseWriter, r *http.Request) {
 			},
 			FormFields: editForm,
 		},
+		HeaderSection: header,
 	}
 
 	// Execute the template with data and write to response
@@ -352,6 +355,7 @@ func (c adminPostController) Delete(w http.ResponseWriter, r *http.Request) {
 			},
 			FormFields: []FormField{},
 		},
+		HeaderSection: header,
 	}
 
 	// Execute the template with data and write to response
