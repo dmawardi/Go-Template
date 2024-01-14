@@ -18,7 +18,6 @@ func SetStateInAdminPanel(a *config.AppConfig) {
 // Build item list for sidebar (Add for every module)
 var sidebar = AdminSideBar{
 	Main: []sidebarItem{
-		{Name: "Groups", FindAllLink: "/admin/groups", AddLink: "/admin/groups/create"},
 		// This list is filled upon runtime by GenerateAndSetAdminSidebar
 	},
 	Auth: BuildAuthSidebarSection(),
@@ -123,7 +122,7 @@ func GenerateAndSetAdminSidebar(adminCont AdminController) {
 		fieldValue := valueOfCont.Field(i).Interface()
 
 		// If not base controller, add to sidebar list
-		if fieldName != "Base" {
+		if fieldName != "Base" && fieldName != "Auth" {
 			currentController := ObtainFieldsForAnyType(fieldValue)
 			// Create sidebar item
 			item := sidebarItem{

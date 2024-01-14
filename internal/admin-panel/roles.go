@@ -485,7 +485,7 @@ func (c adminAuthPolicyController) DeleteInheritance(w http.ResponseWriter, r *h
 	// Data to be injected into template
 	data := PageRenderData{
 		PageTitle:    fmt.Sprintf("Delete %s", c.schemaName),
-		SectionTitle: fmt.Sprintf("Are you sure you wish to delete inheritance: %s?", fmt.Sprintf("%s inherits from %s", role, inherits)),
+		SectionTitle: fmt.Sprintf("Are you sure you wish to delete: %s?", fmt.Sprintf("%s inherits from %s", role, inherits)),
 		SidebarList:  sidebar,
 		SchemaHome:   c.adminHomeUrl,
 		PageType: PageType{

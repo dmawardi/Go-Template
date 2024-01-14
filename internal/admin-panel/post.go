@@ -459,7 +459,6 @@ func (c adminPostController) extractCreateFormSubmission(r *http.Request) (model
 		Body:  r.FormValue("body"),
 		User:  db.User{ID: uint(userId)},
 	}
-	fmt.Printf("Extracted form to validate: %v\n", toValidate)
 
 	return toValidate, nil
 }
