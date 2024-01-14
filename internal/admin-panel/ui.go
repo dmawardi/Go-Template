@@ -61,7 +61,7 @@ type PageType struct {
 	DeletePage  bool
 	SuccessPage bool
 	// Used for customized forms for roles and users
-	Mode string // eg. "roles", "users", or "general" (all other shcmeas)
+	Mode string // eg. "policy", "users", or "general" (all other shcmeas)
 }
 
 // Data table
@@ -242,6 +242,7 @@ func BuildRoleInheritanceTableData(policySlice []map[string]string, adminSchemaB
 	// Loop through policy slice to build table rows
 	for _, policy := range policySlice {
 		var rowData []TableCell
+		policySlug := fmt.Sprintf("%s,%s", policy["role"], policy["inherits_from"])
 
 		// Iterate through tableheaders
 		for _, header := range tableHeaders {
@@ -255,7 +256,7 @@ func BuildRoleInheritanceTableData(policySlice []map[string]string, adminSchemaB
 		}
 
 		// Append to table rows
-		tableRows = append(tableRows, TableRow{Data: rowData})
+		tableRows = append(tableRows, TableRow{Data: rowData, Edit: EditInfo{DeleteUrl: fmt.Sprintf("%s/delete-inheritance/%s", adminSchemaBaseUrl, policySlug)}})
 	}
 	return TableData{
 		AdminSchemaUrl: adminSchemaBaseUrl, // You can set this value as needed

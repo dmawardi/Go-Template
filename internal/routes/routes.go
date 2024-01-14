@@ -211,6 +211,10 @@ func (a api) AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension str
 		mux.Get(fmt.Sprintf("/admin/%s/create-inheritance", urlExtension), controller.CreateInheritance)
 		mux.Post(fmt.Sprintf("/admin/%s/create-inheritance", urlExtension), controller.CreateInheritance)
 		mux.Get(fmt.Sprintf("/admin/%s/create-inheritance/success", urlExtension), controller.CreateInheritanceSuccess)
+		// Delete Inheritance
+		mux.Get(fmt.Sprintf("/admin/%s/delete-inheritance/{inherit-slug}", urlExtension), controller.DeleteInheritance)
+		mux.Post(fmt.Sprintf("/admin/%s/delete-inheritance/{inherit-slug}", urlExtension), controller.DeleteInheritance)
+		mux.Get(fmt.Sprintf("/admin/%s/delete-inheritance/success", urlExtension), controller.DeleteInheritanceSuccess)
 
 		// mux.Post(fmt.Sprintf("/admin/%s/delete/{id}", urlExtension), controller.Delete)
 		// mux.Get(fmt.Sprintf("/admin/%s/delete/success", urlExtension), controller.DeleteSuccess)

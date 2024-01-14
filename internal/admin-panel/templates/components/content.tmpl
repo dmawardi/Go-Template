@@ -1,86 +1,94 @@
 {{define "content"}}
 {{/* Find / Edit */}}
 {{if .PageType.EditPage}}
-  {{if eq .PageType.Mode "policy"}}
-    {{template "policy-edit-form" .}}
-  {{else}}
-    {{template "form" .}}
-  {{end}}
-  {{/* Find All */}}
+{{if eq .PageType.Mode "policy"}}
+{{template "policy-edit-form" .}}
+{{else}}
+{{template "form" .}}
+{{ end }}
+{{/* Find All */}}
 {{else if .PageType.ReadPage}}
-  
-  {{if eq .PageType.Mode "policy"}}
-  <div class="content-container">
+
+{{if eq .PageType.Mode "policy"}}
+<div class="content-container">
   <div class="row">
     <div>
       <h1>{{.SectionTitle}}</h1>
-   
-
       <!-- Data table (includes action box) -->
       {{ template "groups-table" . }}
     </div>
   </div>
 </div>
-  {{else}}
+{{else if eq .PageType.Mode "policy:inheritance"}}
 <div class="content-container">
   <div class="row">
     <div>
       <h1>{{.SectionTitle}}</h1>
-      <!-- Search box -->
-      {{template "search" .}}
-
       <!-- Data table (includes action box) -->
-      {{ template "data-table" . }}
+      {{ template "inheritance-table" . }}
     </div>
   </div>
-</div>
-  {{end}}
-{{/* Create */}}
-{{else if .PageType.CreatePage}}
-  {{if eq .PageType.Mode "policy"}}
-    {{template "policy-form" .}}
   {{else}}
-    {{template "form" .}}
-  {{end}}
+  <div class="content-container">
+    <div class="row">
+      <div>
+        <h1>{{.SectionTitle}}</h1>
+        <!-- Search box -->
+        {{template "search" .}}
 
-{{/* Delete */}}
-{{else if .PageType.DeletePage}}
-<div class="content-container">
-  <div class="row">
-    <div>
-      <h1>{{.SectionTitle}}</h1>
-      <div class="delete-box">
-        <form
-          class="delete-form"
-          action="{{.FormData.FormDetails.FormAction}}"
-          method="{{.FormData.FormDetails.FormMethod}}"
-        >
-          <a href="{{.SchemaHome}}" class="delete-cancel-button">Cancel</a>
-          <button type="submit" class="delete-button">Delete</button>
-        </form>
+        <!-- Data table (includes action box) -->
+        {{ template "data-table" . }}
       </div>
     </div>
   </div>
-</div>
-{{/* Success */}}
-{{else if .PageType.SuccessPage}}
-<div class="content-container">
-  <div class="row">
-    <div>
-      <h1>{{.SectionTitle}}</h1>
-    </div>
-  </div>
-</div>
-{{/* Error */}}
-{{else}}
-<div class="content-container">
-  <div>
-    <div>
-      <h1>Whoops! Sorry!</h1>
-      <p>We couldn't find that page!</p>
-    </div>
-  </div>
-</div>
-{{ end }}
+  {{ end }}
+  {{/* Create */}}
+  {{else if .PageType.CreatePage}}
+  {{if eq .PageType.Mode "policy"}}
+  {{template "policy-form" .}}
+  {{else}}
+  {{template "form" .}}
+  {{ end }}
 
-{{ end }}
+  {{/* Delete */}}
+  {{else if .PageType.DeletePage}}
+  <div class="content-container">
+    <div class="row">
+      <div>
+        <h1>{{.SectionTitle}}</h1>
+        <div class="delete-box">
+          <form
+            class="delete-form"
+            action="{{.FormData.FormDetails.FormAction}}"
+            method="{{.FormData.FormDetails.FormMethod}}"
+          >
+            <a href="{{.SchemaHome}}" class="delete-cancel-button">Cancel</a>
+            <button type="submit" class="delete-button">Delete</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{/* Success */}}
+  {{else if .PageType.SuccessPage}}
+  <div class="content-container">
+    <div class="row">
+      <div>
+        <h1>{{.SectionTitle}}</h1>
+      </div>
+    </div>
+  </div>
+  {{/* Error */}}
+  {{else}}
+  <div class="content-container">
+    <div>
+      <div>
+        <h1>Whoops! Sorry!</h1>
+        <p>We couldn't find that page!</p>
+      </div>
+    </div>
+  </div>
+  {{ end }}
+
+  {{ end }}
+</div>
