@@ -258,7 +258,6 @@ func (c adminPostController) Edit(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
 		}
-		fmt.Printf("Field map: %+v\n", fieldMap)
 		// Populate previously entered values (Avoids password)
 		err = populateValuesWithForm(&editForm, fieldMap)
 		if err != nil {

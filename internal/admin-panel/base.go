@@ -110,7 +110,17 @@ func (c adminBaseController) Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (c adminBaseController) Logout(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("This is the admin logout page"))
+	http.SetCookie(w, &http.Cookie{
+		Name:     "jwt_token", // Use the name of your auth cookie
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   true, // Set to false if not using HTTPS
+	})
+
+	// Redirect to the login page, or return a success message
+	http.Redirect(w, r, "/admin", http.StatusFound)
 }
 func (c adminBaseController) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("This is the admin logout page"))

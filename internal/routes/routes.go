@@ -242,6 +242,9 @@ func (a api) AddBasicAdminRoutes(router *chi.Mux, controller adminpanel.AdminBas
 		mux.Get("/admin/login", controller.Login)
 		mux.Post("/admin/login", controller.Login)
 
+		// admin logout
+		mux.Get("/admin/logout", controller.Logout)
+
 		// Private routes
 		mux.Group(func(mux chi.Router) {
 			mux.Use(auth.AuthenticateJWT)
@@ -252,8 +255,6 @@ func (a api) AddBasicAdminRoutes(router *chi.Mux, controller adminpanel.AdminBas
 			mux.Get("/admin/home", controller.Home)
 			// Change password
 			mux.Get("/admin/change-password", controller.ChangePassword)
-			// admin logout
-			mux.Get("/admin/logout", controller.Logout)
 
 		})
 
