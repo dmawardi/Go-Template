@@ -105,8 +105,20 @@ func ValidateAndParseToken(w http.ResponseWriter, r *http.Request) (tokenData *A
 
 	// If token string is empty
 	if tokenString == "" {
-		err := errors.New("Authentication Token not detected")
-		return nil, err
+		// Check if found in cookie (Admin Panel SSR)
+		cookie, err := r.Cookie("jwt_token")
+		// If error found
+		if err != nil {
+			// And error is no cookie found
+			if err == http.ErrNoCookie {
+				// No token in the Authorization header and no cookie
+				return nil, errors.New("Authentication Token not detected")
+			}
+			// Else, return other error
+			return nil, err
+		}
+		// Else, set token string from found cookie
+		tokenString = cookie.Value
 	}
 
 	// Parse token string and claims. Filter through auth token

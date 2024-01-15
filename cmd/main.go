@@ -137,7 +137,7 @@ func ApiSetup(client *gorm.DB) routes.Api {
 	selectorService := adminpanel.NewSelectorService(client, groupService)
 	// Admin panel
 	adminController := adminpanel.NewAdminController(
-		adminpanel.NewAdminBaseController(),
+		adminpanel.NewAdminBaseController(userService),
 		adminpanel.NewAdminUserController(userService, selectorService),
 		adminpanel.NewAdminPostController(postService, selectorService),
 		adminpanel.NewAdminAuthPolicyController(groupService, selectorService))

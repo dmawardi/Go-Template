@@ -11,7 +11,6 @@ import (
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserController interface {
@@ -404,36 +403,17 @@ func (c userController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// else, validation passes and allow through
-	// Check if user exists in db
-	found, err := c.service.FindByEmail(login.Email)
+	tokenString, err := c.service.LoginUser(&login)
 	if err != nil {
-		fmt.Println("Invalid credentials detected")
+		fmt.Printf("Error logging in: %s", err)
 		http.Error(w, "Invalid Credentials", http.StatusUnauthorized)
 		return
 	}
 
-	// If user is found
-	// Compare stored (hashed) password with input password
-	err = bcrypt.CompareHashAndPassword([]byte(found.Password), []byte(login.Password))
-	if err != nil {
-		http.Error(w, "Incorrect username/password", http.StatusUnauthorized)
-		return
-	}
-
-	// If match found (no errors)
-	if err == nil {
-		fmt.Println("User logging in: ", found.Email)
-		// Set login status to true
-		tokenString, err := auth.GenerateJWT(int(found.ID), found.Email, found.Role)
-		if err != nil {
-			fmt.Println("Failed to create JWT")
-		}
-		// Build login response
-		var loginResponse = models.LoginResponse{Token: tokenString}
-		// Send to user in body
-		helpers.WriteAsJSON(w, loginResponse)
-		return
-	}
+	// Build login response
+	var loginResponse = models.LoginResponse{Token: tokenString}
+	// Send to user in body
+	helpers.WriteAsJSON(w, loginResponse)
 }
 
 // Reset password

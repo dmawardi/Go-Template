@@ -1,11 +1,13 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"os"
 	"time"
 
+	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/email"
 	"github.com/dmawardi/Go-Template/internal/helpers"
@@ -22,6 +24,8 @@ type UserService interface {
 	Update(int, *models.UpdateUser) (*models.UserWithRole, error)
 	Delete(int) error
 	BulkDelete([]int) error
+	// Login
+	LoginUser(login *models.Login) (string, error)
 	// Takes an email and if the email is found in the database, will reset the password and send an email to the user with the new password
 	ResetPasswordAndSendEmail(email string) error
 	// Verifies user email in database
@@ -261,6 +265,35 @@ func (s *userService) ResetPasswordAndSendEmail(userEmail string) error {
 
 	// Return no error found
 	return nil
+}
+
+func (s *userService) LoginUser(login *models.Login) (token string, err error) {
+	// Init token string
+	tokenString := ""
+
+	// Find user by email
+	found, err := s.FindByEmail(login.Email)
+	if err != nil {
+		return "", errors.New("invalid credentials")
+	}
+
+	// If user is found
+	// Compare stored (hashed) password with input password
+	err = bcrypt.CompareHashAndPassword([]byte(found.Password), []byte(login.Password))
+	if err != nil {
+		return "", errors.New("incorrect username/password")
+	}
+
+	// If match found provide the token string for the user
+	if err == nil {
+		fmt.Println("User logging in: ", found.Email)
+		// Set login status to true
+		tokenString, err = auth.GenerateJWT(int(found.ID), found.Email, found.Role)
+		if err != nil {
+			fmt.Println("Failed to create JWT")
+		}
+	}
+	return tokenString, nil
 }
 
 // Verifies user email in database

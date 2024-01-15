@@ -20,7 +20,7 @@ type CreateUser struct {
 	Name     string `json:"name" valid:"length(6|80),required"`
 	Email    string `json:"email" valid:"email,required"`
 	Verified bool   `json:"verified,omitempty"`
-	Role     string `json:"role,omitempty" valid:"required"`
+	Role     string `json:"role,omitempty" valid:""`
 }
 
 // Created user (for admin use)

@@ -239,6 +239,8 @@ func (a api) AddBasicAdminRoutes(router *chi.Mux, controller adminpanel.AdminBas
 		// @tag.name Public Routes
 		// @tag.description Unprotected routes
 		mux.Get("/admin", controller.Login)
+		mux.Get("/admin/login", controller.Login)
+		mux.Post("/admin/login", controller.Login)
 
 		// Private routes
 		mux.Group(func(mux chi.Router) {

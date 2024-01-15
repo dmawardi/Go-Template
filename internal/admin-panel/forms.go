@@ -87,8 +87,28 @@ func populateValuesWithForm(form *[]FormField, fieldMap map[string]string) error
 	for i := range *form {
 		// Get pointer to field
 		field := &(*form)[i]
+		fmt.Printf("Field: %+v\n", field)
 		// If the field exists in the map, populate the placeholder
 		if val, ok := fieldMap[field.DbLabel]; ok {
+			fmt.Printf("Value: %+v\n", val)
+			field.Value = val
+		} else {
+			return fmt.Errorf("field: %s not found in map", field.DbLabel)
+		}
+	}
+	return nil
+}
+
+// Populate form field placeholders with data from database (that has been converted to map[string]string)
+func populateValuesWithFormName(form *[]FormField, fieldMap map[string]string) error {
+	// Loop through fields in the form and populate placeholders
+	for i := range *form {
+		// Get pointer to field
+		field := &(*form)[i]
+		fmt.Printf("Field: %+v\n", field)
+		// If the field exists in the map, populate the placeholder
+		if val, ok := fieldMap[field.Name]; ok {
+			fmt.Printf("Value: %+v\n", val)
 			field.Value = val
 		} else {
 			return fmt.Errorf("field: %s not found in map", field.DbLabel)
