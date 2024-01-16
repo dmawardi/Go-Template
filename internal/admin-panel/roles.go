@@ -133,7 +133,7 @@ func (c adminAuthPolicyController) FindAll(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Execute the template with data and write to response
-	err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	err = app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -187,7 +187,7 @@ func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter,
 	}
 
 	// Execute the template with data and write to response
-	err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	err = app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -241,7 +241,7 @@ func (c adminAuthPolicyController) FindAllRoles(w http.ResponseWriter, r *http.R
 	}
 
 	// Execute the template with data and write to response
-	err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	err = app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -314,7 +314,7 @@ func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request
 	}
 
 	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	err := app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -391,7 +391,7 @@ func (c adminAuthPolicyController) CreateRole(w http.ResponseWriter, r *http.Req
 	}
 
 	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	err := app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return

@@ -28,6 +28,11 @@ p,admin,/api/auth/roles,read
 p,admin,/api/auth/roles,update
 p,admin,/api/auth/roles,delete
 p,admin,/api/auth/roles,read
+# Admin panel
+p,admin,/admin/**,create
+p,admin,/admin/**,read
+p,admin,/admin/**,update
+p,admin,/admin/**,delete
 
 
 # User Roles

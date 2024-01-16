@@ -1,0 +1,54 @@
+{{define "policy-content"}}
+{{/* Find / Edit */}}
+{{if .PageType.EditPage}}
+{{template "policy-edit-form" .}}
+
+{{/* Find All */}}
+{{else if .PageType.ReadPage}}
+{{if eq .PageType.Mode "policy"}}
+<div class="content-container">
+  <div class="row">
+    <div>
+      <h1>{{.SectionTitle}}</h1>
+      <!-- Data table (includes action box) -->
+      {{ template "groups-table" . }}
+    </div>
+  </div>
+</div>
+{{else if eq .PageType.Mode "policy:inheritance"}}
+<div class="content-container">
+  <div class="row">
+    <div>
+      <h1>{{.SectionTitle}}</h1>
+      <!-- Data table (includes action box) -->
+      {{ template "inheritance-table" . }}
+    </div>
+  </div>
+  {{ end }}
+
+  {{/* Create */}}
+  {{else if .PageType.CreatePage}}
+  {{template "policy-form" .}}
+
+  {{/* Delete */}}
+  {{else if .PageType.DeletePage}}
+  {{template "delete" .}}
+
+  {{/* Success */}}
+  {{else if .PageType.SuccessPage}}
+  {{ template "success" . }}
+
+  {{/* Error */}}
+  {{else}}
+  <div class="content-container">
+    <div>
+      <div>
+        <h1>Whoops! Sorry!</h1>
+        <p>We couldn't find that page!</p>
+      </div>
+    </div>
+  </div>
+  {{ end }}
+
+  {{ end }}
+</div>
