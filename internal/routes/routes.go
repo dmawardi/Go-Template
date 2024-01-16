@@ -64,7 +64,7 @@ func (a api) Routes() http.Handler {
 	// mux = a.AddAdminCrudRoutes(mux, true, "users", a.Admin.User)
 	mux = a.AddAdminRouteSet(mux, false, "users", a.Admin.User)
 	mux = a.AddAdminRouteSet(mux, false, "posts", a.Admin.Post)
-	mux = a.AddAdminPolicySet(mux, false, "policy", a.Admin.Auth)
+	mux = a.AddAdminPolicySet(mux, true, "policy", a.Admin.Auth)
 
 	// Serve API Swagger docs at built URL from config state
 	mux.Get("/swagger/*", httpSwagger.Handler(
