@@ -1,19 +1,31 @@
-{{define "groups-table"}}
-    <div class="container">
-   {{template "role-search" .}}
+{{define "inheritance-table"}}
+<div>
+  <form class="action-form" id="action-form" action="">
+   {{template "policy-search" .}}
     <!-- Table -->
     <div class="data-table-container">
       <table class="data-table">
         <!-- Headers -->
         <thead>
           <tr>
+           
             {{
               range.TableData.TableHeaders
             }}
-            <th>{{.Label}}</th>
+
+            {{/* Sortable table headers if sortable is true */}}
+            <th>
+            {{if .Sortable}}
+            <a href="#" onclick="sortTable('{{.ColumnSortLabel}}')">{{.Label}}</a>
+            {{else}}
+            {{.Label}}
+            {{end}}
+            </th>
             {{
               end
             }}
+            
+            <th>Actions</th>
           </tr>
         </thead>
         <!-- Table Body -->
@@ -23,19 +35,17 @@
           }}
           <tr>
             <!-- For each row -->
+           
             {{
-              range $index, $element := .Data
+              range $row.Data
             }}
-            <td {{if ge $element.RowSpan 1}} rowspan="{{.RowSpan}}" {{end}}>
-              {{if and (eq $index 0) (gt (len $row.Data) 2)}}
-                <a href="policy/{{$element.EditLink}}">{{$element.Label}}</a>
-              {{else}}
-                {{$element.Label}}
-              {{end}}
-            </td>
+            <td>{{.Label}}</td>
             {{
               end
             }}
+            <td>
+              <a href="{{.Edit.DeleteUrl}}">Delete</a>
+            </td>
           </tr>
           {{
             end
@@ -43,6 +53,6 @@
         </tbody>
       </table>
     </div>
-    </div>
-{{end}}
-`
+  </form>
+</div>
+{{ end }}

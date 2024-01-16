@@ -12,6 +12,7 @@ import (
 var app *config.AppConfig
 
 var header = HeaderSection{
+	HomeUrl:           "#",
 	ViewSiteUrl:       "#",
 	LogOutUrl:         "#",
 	ChangePasswordUrl: "#",
@@ -21,6 +22,7 @@ var header = HeaderSection{
 func SetStateInAdminPanel(a *config.AppConfig) {
 	app = a
 	// Set header urls after setting state
+	header.HomeUrl = template.URL("http://" + app.BaseURL + "/admin/home")
 	header.ChangePasswordUrl = template.URL("http://" + app.BaseURL + "/admin/change-password")
 	header.LogOutUrl = template.URL("http://" + app.BaseURL + "/admin/logout")
 	header.ViewSiteUrl = template.URL("http://" + app.BaseURL)

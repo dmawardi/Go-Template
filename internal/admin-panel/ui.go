@@ -31,6 +31,7 @@ type PageRenderData struct {
 }
 
 type HeaderSection struct {
+	HomeUrl           template.URL
 	ViewSiteUrl       template.URL
 	ChangePasswordUrl template.URL
 	LogOutUrl         template.URL

@@ -1,27 +1,27 @@
-{{define "content"}}
+{{define "policy-content"}}
 {{/* Find / Edit */}}
 {{if .PageType.EditPage}}
-{{template "form" .}}
+{{template "policy-edit-form" .}}
 
 {{/* Find All */}}
 {{else if .PageType.ReadPage}}
-  {{template "find-all" .}}
+{{template "policy-find-all" .}}
 
   {{/* Create */}}
   {{else if .PageType.CreatePage}}
-    {{template "form" .}}
+  {{template "policy-form" .}}
 
   {{/* Delete */}}
   {{else if .PageType.DeletePage}}
-    {{template "delete" .}}
+  {{template "delete" .}}
 
   {{/* Success */}}
   {{else if .PageType.SuccessPage}}
-    {{template "success" .}}
-  
-  {{/* Error (No page state detected) */}}
+  {{ template "success" . }}
+
+  {{/* Error */}}
   {{else}}
-    {{template "fail"}}
+  {{template "fail"}}
   {{ end }}
 
   {{ end }}
