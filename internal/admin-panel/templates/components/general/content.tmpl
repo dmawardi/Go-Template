@@ -1,6 +1,10 @@
 {{define "content"}}
+{{/* Home Page */}}
+{{if .PageType.HomePage}}
+{{template "home" .}}
+
 {{/* Find / Edit */}}
-{{if .PageType.EditPage}}
+{{else if .PageType.EditPage}}
 {{template "form" .}}
 
 {{/* Find All */}}

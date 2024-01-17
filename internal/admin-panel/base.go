@@ -30,7 +30,20 @@ func NewAdminBaseController(userService service.UserService) AdminBaseController
 
 // RECEIVER FUNCTIONS
 func (c adminBaseController) Home(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("This is the admin main home page"))
+	// Execute the template with data and write to response
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", PageRenderData{
+		SidebarList: sidebar,
+		PageType: PageType{
+			HomePage: true,
+		},
+		// The section title is used on this page, to display login errors
+		SectionTitle:  "Welcome to the admin panel",
+		HeaderSection: header,
+	})
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 }
 
 // Admin login page

@@ -153,7 +153,7 @@ func GenerateAndSetAdminSidebar(adminCont AdminController) {
 func BuildAuthSidebarSection() []sidebarItem {
 	return []sidebarItem{
 		{
-			Name:        "Policies",
+			Name:        "Permissions",
 			FindAllLink: "/admin/policy",
 			AddLink:     "/admin/policy/create",
 		},
