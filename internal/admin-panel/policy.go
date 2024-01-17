@@ -120,7 +120,7 @@ func (c adminAuthPolicyController) FindAll(w http.ResponseWriter, r *http.Reques
 			ReadPage:   true,
 			CreatePage: false,
 			DeletePage: false,
-			Mode:       "policy",
+			PolicyMode: "policy",
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{
@@ -174,7 +174,7 @@ func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter,
 			ReadPage:   true,
 			CreatePage: false,
 			DeletePage: false,
-			Mode:       "policy:inheritance",
+			PolicyMode: "inheritance",
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{
@@ -228,7 +228,7 @@ func (c adminAuthPolicyController) FindAllRoles(w http.ResponseWriter, r *http.R
 			ReadPage:   true,
 			CreatePage: false,
 			DeletePage: false,
-			Mode:       "policy",
+			PolicyMode: "policy",
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{
@@ -301,7 +301,7 @@ func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request
 			ReadPage:   false,
 			CreatePage: true,
 			DeletePage: false,
-			Mode:       "policy",
+			PolicyMode: "policy",
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{
@@ -378,7 +378,7 @@ func (c adminAuthPolicyController) CreateRole(w http.ResponseWriter, r *http.Req
 			ReadPage:   false,
 			CreatePage: true,
 			DeletePage: false,
-			Mode:       "policy",
+			PolicyMode: "policy",
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{
@@ -445,7 +445,7 @@ func (c adminAuthPolicyController) CreateInheritance(w http.ResponseWriter, r *h
 			ReadPage:   false,
 			CreatePage: true,
 			DeletePage: false,
-			Mode:       "policy",
+			PolicyMode: "policy",
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{
@@ -499,7 +499,7 @@ func (c adminAuthPolicyController) DeleteInheritance(w http.ResponseWriter, r *h
 			ReadPage:   false,
 			CreatePage: false,
 			DeletePage: true,
-			Mode:       "policy",
+			PolicyMode: "policy",
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{
@@ -595,7 +595,7 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 			ReadPage:   false,
 			CreatePage: false,
 			DeletePage: false,
-			Mode:       "policy",
+			PolicyMode: "policy",
 		},
 		PolicySection: PolicySection{
 			FocusedPolicies: policies,

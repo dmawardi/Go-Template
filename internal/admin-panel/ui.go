@@ -64,13 +64,14 @@ type PolicyActionCell struct {
 
 // Page type (Used for content selection)
 type PageType struct {
+	HomePage    bool
 	EditPage    bool
 	ReadPage    bool
 	CreatePage  bool
 	DeletePage  bool
 	SuccessPage bool
-	// Used for customized forms for roles and users
-	Mode string // eg. "policy", "users", or "general" (all other shcmeas)
+	// Used for policy section
+	PolicyMode string // eg. "policy" or "inheritance"
 }
 
 // Data table
