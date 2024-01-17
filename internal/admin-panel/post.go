@@ -424,7 +424,7 @@ func (c adminPostController) DeleteSuccess(w http.ResponseWriter, r *http.Reques
 func (c adminPostController) generateCreateForm() []FormField {
 	return []FormField{
 		{DbLabel: "Title", Label: "Title", Name: "title", Placeholder: "", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Body", Label: "Body", Name: "body", Placeholder: "", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "Body", Label: "Body", Name: "body", Placeholder: "", Value: "", Type: "textarea", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "User", Label: "User", Name: "user", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.UserSelection()},
 	}
 }
@@ -433,7 +433,7 @@ func (c adminPostController) generateCreateForm() []FormField {
 func (c adminPostController) generateEditForm() []FormField {
 	return []FormField{
 		{DbLabel: "Title", Label: "Title", Name: "title", Placeholder: "", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Body", Label: "Body", Name: "body", Placeholder: "", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "Body", Label: "Body", Name: "body", Placeholder: "", Value: "", Type: "textarea", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "User", Label: "User", Name: "user", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.UserSelection()},
 	}
 }
