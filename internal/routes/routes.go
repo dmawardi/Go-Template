@@ -67,6 +67,7 @@ func (a api) Routes() http.Handler {
 	mux = a.AddAdminPolicySet(mux, true, "policy", a.Admin.Auth)
 
 	// Serve API Swagger docs at built URL from config state
+	fmt.Printf("Serving Swagger docs at %s/swagger/index.html\n", app.BaseURL)
 	mux.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL(fmt.Sprintf("%s/static/docs/swagger.json", app.BaseURL)), //The url pointing to API definition
 	))
@@ -255,6 +256,9 @@ func (a api) AddBasicAdminRoutes(router *chi.Mux, controller adminpanel.AdminBas
 			mux.Get("/admin/home", controller.Home)
 			// Change password
 			mux.Get("/admin/change-password", controller.ChangePassword)
+			mux.Post("/admin/change-password", controller.ChangePassword)
+
+			mux.Get("/admin/change-password-success", controller.ChangePasswordSuccess)
 
 		})
 

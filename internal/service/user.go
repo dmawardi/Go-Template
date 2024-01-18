@@ -24,6 +24,7 @@ type UserService interface {
 	Update(int, *models.UpdateUser) (*models.UserWithRole, error)
 	Delete(int) error
 	BulkDelete([]int) error
+	CheckPasswordMatch(id int, password []byte) bool
 	// Login
 	LoginUser(login *models.Login) (string, error)
 	// Takes an email and if the email is found in the database, will reset the password and send an email to the user with the new password
@@ -48,7 +49,7 @@ func NewUserService(repo repository.UserRepository, auth repository.AuthPolicyRe
 // Creates a user in the database
 func (s *userService) Create(user *models.CreateUser) (*models.UserWithRole, error) {
 	// Build hashed password from user password input
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt password: %w", err)
 	}
@@ -294,6 +295,25 @@ func (s *userService) LoginUser(login *models.Login) (token string, err error) {
 		}
 	}
 	return tokenString, nil
+}
+
+func (s *userService) CheckPasswordMatch(id int, password []byte) bool {
+	// Find user by id
+	user, err := s.repo.FindById(id)
+	if err != nil {
+		fmt.Println("error in finding user: ", err)
+		return false
+	}
+	fmt.Printf("user: %+v\n", user)
+	fmt.Printf("Comparing. user password: %v, input password: %v\n", user.Password, password)
+	// Compare stored (hashed) password with input password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), password)
+	if err != nil {
+		fmt.Println("error in comparing passwords: ", err)
+		return false
+	}
+	// else
+	return true
 }
 
 // Verifies user email in database

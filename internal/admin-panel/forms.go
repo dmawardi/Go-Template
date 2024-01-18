@@ -105,7 +105,6 @@ func populateValuesWithFormName(form *[]FormField, fieldMap map[string]string) e
 		field := &(*form)[i]
 		// If the field exists in the map, populate the placeholder
 		if val, ok := fieldMap[field.Name]; ok {
-			fmt.Printf("Value: %+v\n", val)
 			field.Value = val
 		} else {
 			return fmt.Errorf("field: %s not found in map", field.DbLabel)
@@ -130,7 +129,7 @@ func populatePlaceholdersWithDBData(form *[]FormField, fieldMap map[string]strin
 				// Populate placeholder as value from field map
 				field.Placeholder = val
 			} else {
-				return fmt.Errorf("field: %s not found in map", field.DbLabel)
+				field.Placeholder = ""
 			}
 		}
 	}

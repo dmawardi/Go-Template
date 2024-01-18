@@ -14,8 +14,9 @@ type PageRenderData struct {
 	// In HEAD
 	PageTitle string
 	// In BODY
-	SectionTitle string
-	SidebarList  AdminSideBar
+	SectionTitle  string
+	SectionDetail template.HTML
+	SidebarList   AdminSideBar
 	// Schema home used to return to the schema home page from delete
 	SchemaHome string // eg. /admin/users/
 	// Page type (Used for content selection)

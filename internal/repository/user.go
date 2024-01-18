@@ -70,7 +70,7 @@ func (r *userRepository) FindById(userId int) (*db.User, error) {
 	// Create an empty ref object of type user
 	user := db.User{}
 	// Check if user exists in db
-	result := r.DB.Select("ID", "name", "username", "email", "role", "verified").First(&user, userId)
+	result := r.DB.Select("ID", "name", "username", "email", "role", "verified", "password").First(&user, userId)
 
 	// If error detected
 	if result.Error != nil {
@@ -123,7 +123,7 @@ func (r *userRepository) Update(id int, user *db.User) (*db.User, error) {
 	// If password from update object is not empty, use bcrypt to encrypt
 	if user.Password != "" {
 		// Build hashed password
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 		if err != nil {
 			return nil, err
 		}

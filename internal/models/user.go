@@ -12,6 +12,12 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
+type ChangePassword struct {
+	CurrentPassword    string `json:"current_password" valid:"length(6|30),required"`
+	NewPassword        string `json:"new_password" valid:"length(6|30),required"`
+	ConfirmNewPassword string `json:"confirm_new_password" valid:"length(6|30),required"`
+}
+
 // Users
 // Create User structure for Data transfer.
 type CreateUser struct {

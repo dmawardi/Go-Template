@@ -8,6 +8,7 @@
         action="{{.FormData.FormDetails.FormAction}}"
         method="{{.FormData.FormDetails.FormMethod}}"
       >
+      {{.SectionDetail}}
         {{/* Form Fields */}}
         {{ range.FormData.FormFields }}
         <div class="form-group">

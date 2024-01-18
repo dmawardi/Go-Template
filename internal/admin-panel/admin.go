@@ -25,7 +25,7 @@ func SetStateInAdminPanel(a *config.AppConfig) {
 	header.HomeUrl = template.URL("http://" + app.BaseURL + "/admin/home")
 	header.ChangePasswordUrl = template.URL("http://" + app.BaseURL + "/admin/change-password")
 	header.LogOutUrl = template.URL("http://" + app.BaseURL + "/admin/logout")
-	header.ViewSiteUrl = template.URL("http://" + app.BaseURL)
+	header.ViewSiteUrl = template.URL("http://" + app.BaseURL + "/swagger/index.html")
 }
 
 // Build item list for sidebar (Add for every module)
