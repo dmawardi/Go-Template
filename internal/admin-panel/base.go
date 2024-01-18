@@ -1,7 +1,6 @@
 package adminpanel
 
 import (
-	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -17,10 +16,15 @@ import (
 
 // Admin base controller (non-schema related routes)
 type AdminBaseController interface {
+	// Admin home handler
 	Home(w http.ResponseWriter, r *http.Request)
+	// Admin login handler
 	Login(w http.ResponseWriter, r *http.Request)
+	// Admin logout handler
 	Logout(w http.ResponseWriter, r *http.Request)
+	// Change Password handler
 	ChangePassword(w http.ResponseWriter, r *http.Request)
+	// Change Password Success handler
 	ChangePasswordSuccess(w http.ResponseWriter, r *http.Request)
 }
 
@@ -34,6 +38,7 @@ func NewAdminBaseController(userService service.UserService) AdminBaseController
 }
 
 // RECEIVER FUNCTIONS
+// Admin home page
 func (c adminBaseController) Home(w http.ResponseWriter, r *http.Request) {
 	// Execute the template with data and write to response
 	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", PageRenderData{
@@ -63,10 +68,15 @@ func (c adminBaseController) Login(w http.ResponseWriter, r *http.Request) {
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Extract form data
-		login, err := c.extractLoginFormSubmission(r)
+		loginMap, err := parseFormToMap(r)
 		if err != nil {
 			fmt.Println(err.Error())
 			return
+		}
+		// Build to login struct
+		login := models.Login{
+			Email:    loginMap["email"],
+			Password: loginMap["password"],
 		}
 		// Validate form data
 		// Validate struct
@@ -84,11 +94,9 @@ func (c adminBaseController) Login(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, "/admin/home", http.StatusSeeOther)
 				return
 			}
-
 			// Else if login fails
 			fmt.Printf("Error logging in for email: %s\n", login.Email)
 			loginErrorMsg = "Invalid email or password"
-
 		}
 
 		// Else if validation fails
@@ -96,7 +104,7 @@ func (c adminBaseController) Login(w http.ResponseWriter, r *http.Request) {
 		SetValidationErrorsInForm(loginForm, *valErrors)
 
 		// Extract form submission from request and build into map[string]string
-		formFieldMap, err := extractLoginFormAsMap(r)
+		formFieldMap, err := parseFormToMap(r)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
@@ -127,6 +135,8 @@ func (c adminBaseController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+// Admin logout page
 func (c adminBaseController) Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "jwt_token", // Use the name of your auth cookie
@@ -140,6 +150,8 @@ func (c adminBaseController) Logout(w http.ResponseWriter, r *http.Request) {
 	// Redirect to the login page, or return a success message
 	http.Redirect(w, r, "/admin", http.StatusFound)
 }
+
+// Change Password
 func (c adminBaseController) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	// Init notification string
 	notification := ""
@@ -242,27 +254,11 @@ func (c adminBaseController) ChangePassword(w http.ResponseWriter, r *http.Reque
 		return
 	}
 }
-
 func (c adminBaseController) ChangePasswordSuccess(w http.ResponseWriter, r *http.Request) {
 	serveAdminSuccess(w, "Change Password Success - Admin", "Change Password Success")
 }
 
-func (c adminBaseController) extractLoginFormSubmission(r *http.Request) (models.Login, error) {
-	// Parse the form
-	err := r.ParseForm()
-	if err != nil {
-		return models.Login{}, errors.New("Error parsing form")
-	}
-
-	// Build struct for validation
-	toValidate := models.Login{
-		Email:    r.FormValue("email"),
-		Password: r.FormValue("password"),
-	}
-
-	return toValidate, nil
-}
-
+// Form generators
 func (c adminBaseController) generateLoginForm() []FormField {
 	return []FormField{
 		{DbLabel: "Email", Label: "Email", Name: "email", Placeholder: "", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
@@ -275,29 +271,4 @@ func (c adminBaseController) generateChangePasswordForm() []FormField {
 		{DbLabel: "Password", Label: "New Password", Name: "newPassword", Placeholder: "", Value: "", Type: "password", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Password", Label: "Confirm new Password", Name: "confirmNewPassword", Placeholder: "", Value: "", Type: "password", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 	}
-}
-
-func createAndSetHeaderCookie(w http.ResponseWriter, tokenString string) {
-	// Create the cookie
-	expire := time.Now().Add(24 * time.Hour)
-	cookie := http.Cookie{
-		Name:     "jwt_token",
-		Value:    tokenString,
-		Expires:  expire,
-		HttpOnly: true,
-		Secure:   true, // Set to false if not using HTTPS
-		Path:     "/",
-	}
-
-	// Set the cookie in the response header
-	http.SetCookie(w, &cookie)
-}
-
-func extractLoginFormAsMap(r *http.Request) (map[string]string, error) {
-	// Extract form submission from request and build into map[string]string
-	formFieldMap := make(map[string]string)
-	for k, v := range r.Form {
-		formFieldMap[k] = v[0]
-	}
-	return formFieldMap, nil
 }

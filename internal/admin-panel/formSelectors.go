@@ -19,12 +19,15 @@ type selectorService struct {
 	Auth service.AuthPolicyService
 }
 
+// Constructor
 func NewSelectorService(db *gorm.DB, auth service.AuthPolicyService) SelectorService {
 	return &selectorService{DB: db, Auth: auth}
 }
 
 // Form Selectors
 // For role selection in form
+var possibleActions = []string{"create", "read", "update", "delete"}
+
 func (c selectorService) RoleSelection() []FormFieldSelector {
 	roles, err := c.Auth.FindAllRoles()
 	if err != nil {
@@ -76,6 +79,7 @@ func (c selectorService) ActionSelection() []FormFieldSelector {
 	}
 }
 
+// Helpers
 // Takes a slice of FormFieldSelector and sets the Selected field to true for the value that matches valueToSelect
 func setDefaultSelected(selector []FormFieldSelector, valueToSelect string) {
 	for i, s := range selector {

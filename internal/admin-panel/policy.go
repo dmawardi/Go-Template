@@ -14,7 +14,7 @@ import (
 	"github.com/go-chi/chi"
 )
 
-// Table headers to show on find all page
+// Table headers to show on find all pages
 var authPolicyTableHeaders = []TableHeader{
 	{Label: "resource", ColumnSortLabel: "resource", Pointer: false, DataType: "string"},
 	{Label: "role", ColumnSortLabel: "role", Pointer: false, DataType: "string"},
@@ -30,8 +30,7 @@ var roleTableHeaders = []TableHeader{
 	{Label: "role", ColumnSortLabel: "role", Pointer: false, DataType: "string", Sortable: false},
 }
 
-var possibleActions = []string{"create", "read", "update", "delete"}
-
+// Constructor
 func NewAdminAuthPolicyController(service service.AuthPolicyService, selectorService SelectorService) AdminAuthPolicyController {
 	return &adminAuthPolicyController{
 		service: service,
@@ -46,6 +45,26 @@ func NewAdminAuthPolicyController(service service.AuthPolicyService, selectorSer
 	}
 }
 
+type AdminAuthPolicyController interface {
+	// Policy
+	FindAll(w http.ResponseWriter, r *http.Request)
+	Create(w http.ResponseWriter, r *http.Request)
+	CreateSuccess(w http.ResponseWriter, r *http.Request)
+	// Edit is also used to view the record details
+	Edit(w http.ResponseWriter, r *http.Request)
+	// Roles
+	FindAllRoles(w http.ResponseWriter, r *http.Request)
+	CreateRole(w http.ResponseWriter, r *http.Request)
+	CreateRoleSuccess(w http.ResponseWriter, r *http.Request)
+	// Inheritance
+	FindAllRoleInheritance(w http.ResponseWriter, r *http.Request)
+	CreateInheritance(w http.ResponseWriter, r *http.Request)
+	DeleteInheritance(w http.ResponseWriter, r *http.Request)
+	CreateInheritanceSuccess(w http.ResponseWriter, r *http.Request)
+	DeleteInheritanceSuccess(w http.ResponseWriter, r *http.Request)
+	// For sidebar
+	ObtainFields() BasicAdminController
+}
 type adminAuthPolicyController struct {
 	service service.AuthPolicyService
 	// For links
@@ -60,26 +79,6 @@ type adminAuthPolicyController struct {
 
 	// Form selectors
 	formSelectors SelectorService
-}
-
-type AdminAuthPolicyController interface {
-	FindAll(w http.ResponseWriter, r *http.Request)
-	FindAllRoles(w http.ResponseWriter, r *http.Request)
-	FindAllRoleInheritance(w http.ResponseWriter, r *http.Request)
-	Create(w http.ResponseWriter, r *http.Request)
-	CreateRole(w http.ResponseWriter, r *http.Request)
-	CreateInheritance(w http.ResponseWriter, r *http.Request)
-	DeleteInheritance(w http.ResponseWriter, r *http.Request)
-	// Edit is also used to view the record details
-	Edit(w http.ResponseWriter, r *http.Request)
-	// Success pages
-	CreateSuccess(w http.ResponseWriter, r *http.Request)
-	CreateRoleSuccess(w http.ResponseWriter, r *http.Request)
-	CreateInheritanceSuccess(w http.ResponseWriter, r *http.Request)
-	DeleteInheritanceSuccess(w http.ResponseWriter, r *http.Request)
-	// EditSuccess(w http.ResponseWriter, r *http.Request)
-	// For sidebar
-	ObtainFields() BasicAdminController
 }
 
 // CRUD handlers
@@ -646,7 +645,6 @@ func (c adminAuthPolicyController) generateCreateForm() []FormField {
 		{DbLabel: "Action", Label: "Action", Name: "action", Placeholder: "", Value: "", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.ActionSelection()},
 	}
 }
-
 func (c adminAuthPolicyController) generateCreateRoleForm() []FormField {
 	return []FormField{
 		{DbLabel: "Role", Label: "New Role Name", Name: "role", Placeholder: "eg. 'Moderator'", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
