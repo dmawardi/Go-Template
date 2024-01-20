@@ -1,15 +1,16 @@
 {{define "policy-content"}}
-{{/* Find / Edit */}}
-{{if .PageType.EditPage}}
-{{template "policy-edit-form" .}}
+  {{/* Find / Edit */}}
+  <h1>Policy Edit form</h1>
+  {{if .PageType.EditPage}}
+  {{template "policy-edit-form" .}}
 
-{{/* Find All */}}
-{{else if .PageType.ReadPage}}
-{{template "policy-find-all" .}}
+  {{/* Find All */}}
+  {{else if .PageType.ReadPage}}
+  {{template "policy-find-all" .}}
 
   {{/* Create */}}
   {{else if .PageType.CreatePage}}
-  {{template "policy-form" .}}
+  {{template "policy-create-form" .}}
 
   {{/* Delete */}}
   {{else if .PageType.DeletePage}}

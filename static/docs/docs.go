@@ -59,6 +59,182 @@ const docTemplate = `{
                 }
             }
         },
+        "/policy": {
+            "get": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "Returns list of policies",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "Find a list of policies",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Can't find policies",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "Update a specific policy using the current policy",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "Update a policy",
+                "responses": {
+                    "200": {
+                        "description": "Policy update successful!",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Can't update policy",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "Create a specific policy using the current policy",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "Create a policy",
+                "responses": {
+                    "200": {
+                        "description": "Policy creation successful!",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Can't create policy",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "Delete a specific policy using the current policy",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "Delete a policy",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Can't delete policy",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/policy/roles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
+                "description": "Returns list of roles",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Policy"
+                ],
+                "summary": "Find a list of roles",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Can't find roles",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/posts": {
             "post": {
                 "description": "Creates a new post",
@@ -620,9 +796,6 @@ const docTemplate = `{
                         "$ref": "#/definitions/db.Post"
                     }
                 },
-                "role": {
-                    "type": "string"
-                },
                 "updated_at": {
                     "type": "string"
                 },
@@ -750,9 +923,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/db.Post"
                     }
                 },
-                "meta": {
-                    "$ref": "#/definitions/models.SchemaMetaData"
-                }
+                "meta": {}
             }
         },
         "models.PaginatedUsers": {
@@ -764,9 +935,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/db.User"
                     }
                 },
-                "meta": {
-                    "$ref": "#/definitions/models.SchemaMetaData"
-                }
+                "meta": {}
             }
         },
         "models.PartialUser": {
@@ -783,31 +952,9 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
-                }
-            }
-        },
-        "models.SchemaMetaData": {
-            "type": "object",
-            "properties": {
-                "current_page": {
-                    "description": "Current page number",
-                    "type": "integer"
                 },
-                "next_page": {
-                    "description": "Next page number (null if there is no next page)",
-                    "type": "integer"
-                },
-                "prev_page": {
-                    "description": "Previous page number (null if there is no previous page)",
-                    "type": "integer"
-                },
-                "records_per_page": {
-                    "description": "Number of records displayed per page",
-                    "type": "integer"
-                },
-                "total_records": {
-                    "description": "Total number of records in the entire dataset",
-                    "type": "integer"
+                "verified": {
+                    "type": "boolean"
                 }
             }
         },
@@ -897,7 +1044,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "This is a template API server.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {

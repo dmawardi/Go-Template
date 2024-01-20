@@ -37,8 +37,6 @@ definitions:
         items:
           $ref: '#/definitions/db.Post'
         type: array
-      role:
-        type: string
       updated_at:
         type: string
       username:
@@ -122,8 +120,7 @@ definitions:
         items:
           $ref: '#/definitions/db.Post'
         type: array
-      meta:
-        $ref: '#/definitions/models.SchemaMetaData'
+      meta: {}
     type: object
   models.PaginatedUsers:
     properties:
@@ -131,8 +128,7 @@ definitions:
         items:
           $ref: '#/definitions/db.User'
         type: array
-      meta:
-        $ref: '#/definitions/models.SchemaMetaData'
+      meta: {}
     type: object
   models.PartialUser:
     properties:
@@ -144,24 +140,8 @@ definitions:
         type: string
       username:
         type: string
-    type: object
-  models.SchemaMetaData:
-    properties:
-      current_page:
-        description: Current page number
-        type: integer
-      next_page:
-        description: Next page number (null if there is no next page)
-        type: integer
-      prev_page:
-        description: Previous page number (null if there is no previous page)
-        type: integer
-      records_per_page:
-        description: Number of records displayed per page
-        type: integer
-      total_records:
-        description: Total number of records in the entire dataset
-        type: integer
+      verified:
+        type: boolean
     type: object
   models.UpdatePost:
     properties:
@@ -241,6 +221,116 @@ paths:
       summary: Get my user profile details
       tags:
       - User
+  /policy:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a specific policy using the current policy
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Can't delete policy
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Delete a policy
+      tags:
+      - Policy
+    get:
+      consumes:
+      - application/json
+      description: Returns list of policies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items:
+                type: string
+              type: array
+            type: array
+        "400":
+          description: Can't find policies
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Find a list of policies
+      tags:
+      - Policy
+    post:
+      consumes:
+      - application/json
+      description: Create a specific policy using the current policy
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Policy creation successful!
+          schema:
+            type: string
+        "400":
+          description: Can't create policy
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Create a policy
+      tags:
+      - Policy
+    put:
+      consumes:
+      - application/json
+      description: Update a specific policy using the current policy
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Policy update successful!
+          schema:
+            type: string
+        "400":
+          description: Can't update policy
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Update a policy
+      tags:
+      - Policy
+  /policy/roles:
+    get:
+      consumes:
+      - application/json
+      description: Returns list of roles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Can't find roles
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Find a list of roles
+      tags:
+      - Policy
   /posts:
     post:
       consumes:

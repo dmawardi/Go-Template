@@ -67,7 +67,7 @@ type AdminAuthPolicyController interface {
 }
 type adminAuthPolicyController struct {
 	service service.AuthPolicyService
-	// For links
+	// For link generation
 	adminHomeUrl string
 	// For HTML text rendering
 	schemaName       string
@@ -81,29 +81,29 @@ type adminAuthPolicyController struct {
 	formSelectors SelectorService
 }
 
-// CRUD handlers
+// POLICIES
 func (c adminAuthPolicyController) FindAll(w http.ResponseWriter, r *http.Request) {
-	// Grab query parameters
+	// Grab search parameter
 	searchQuery := r.URL.Query().Get("search")
 
-	// Find all with options from database
+	// Find all policies from database
 	groupsSlice, err := c.service.FindAll()
 	if err != nil {
 		http.Error(w, "Error finding data", http.StatusInternalServerError)
 		return
 	}
-	// Filter by search query
+	// Filter policies []map[string]interface{} by search query
 	groupsSlice = searchPoliciesByResource(groupsSlice, searchQuery)
 
 	// Sort by resource alphabetically
 	sort.Slice(groupsSlice, func(i, j int) bool {
 		// Give two items to compare to role resource alpha sorter
-		return sortByRoleResourceAlphabetically(groupsSlice[i], groupsSlice[j])
+		return sortMapStringInterfaceAlphabetically(groupsSlice[i], groupsSlice[j], "resource")
 	})
 
 	// Build the roles table data
 	tableData := BuildPolicyTableData(groupsSlice, c.adminHomeUrl, c.tableHeaders)
-	// Add the row span attribute to the table based on resource grouping
+	// Add the row span attribute to the table based on resource grouping (for UX)
 	editTableDataRowSpan(tableData.TableRows)
 
 	// Data to be injected into template
@@ -138,49 +138,93 @@ func (c adminAuthPolicyController) FindAll(w http.ResponseWriter, r *http.Reques
 		return
 	}
 }
-func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter, r *http.Request) {
-	// Grab query parameters
-	searchQuery := r.URL.Query().Get("search")
+func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) {
+	// Grab slug from URL
+	policySlug := chi.URLParam(r, "id")
+	// Unslug
+	policyUnslug := UnslugifyResourceName(policySlug)
+	// Detect request method
+	method := r.Method
 
-	// Find all with options from database
-	inheritanceSlice, err := c.service.FindAllRoleInheritance()
+	// If form is being submitted (method = POST)
+	if method == "POST" || method == "DELETE" {
+		// Init new policy
+		pol := &models.PolicyRule{}
+		// Decode request body as JSON and store
+		err := json.NewDecoder(r.Body).Decode(&pol)
+		if err != nil {
+			http.Error(w, "Invalid policy", http.StatusBadRequest)
+			return
+		}
+
+		// Validate the incoming DTO
+		pass, _ := helpers.GoValidateStruct(pol)
+
+		// If passes
+		if pass {
+			// and method is post
+			if method == "POST" {
+				// Create policy
+				err = c.service.Create(*pol)
+				if err != nil {
+					http.Error(w, fmt.Sprintf("Error creating %s", c.schemaName), http.StatusInternalServerError)
+					return
+				}
+			} else if method == "DELETE" {
+				// Else if method is delete
+				// Delete policy
+				err = c.service.Delete(*pol)
+				if err != nil {
+					http.Error(w, fmt.Sprintf("Error deleting %s", c.schemaName), http.StatusInternalServerError)
+					return
+				}
+			}
+			// Redirect or render a success message
+			http.Redirect(w, r, fmt.Sprintf("%s/%s", c.adminHomeUrl, policySlug), http.StatusSeeOther)
+			return
+		}
+	}
+
+	// If not POST, ie. GET
+	// Find all policies
+	found, err := c.service.FindAll()
 	if err != nil {
-		http.Error(w, "Error finding data", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("%s not found", c.schemaName), http.StatusNotFound)
 		return
 	}
-	// // Filter by search query
-	inheritanceSlice = searchMapUsingKeys(inheritanceSlice, []string{"inherits_from", "role"}, searchQuery)
 
-	// Sort by resource alphabetically
-	sort.Slice(inheritanceSlice, func(i, j int) bool {
-		// Give two items to compare to alphabetic sorter
-		return sortByKeyAlphabetically(inheritanceSlice[i], inheritanceSlice[j], "role")
-	})
+	// Filter by search query
+	groupsSlice := searchPoliciesForExactResouceMatch(found, policyUnslug)
+	// Prepare policies for rendering
+	policies := convertMapToPolicyRule(groupsSlice)
 
-	// // Build the roles table data
-	tableData := BuildRoleInheritanceTableData(inheritanceSlice, c.adminHomeUrl, c.inheritanceTableHeaders)
+	// Init new role selector values
+	rolesCurrentlyInPolicy := c.formSelectors.RoleSelection()
+	// Remove roles that are already in the policy
+	rolesCurrentlyInPolicy = buildOnlyMissingRoleSelector(policies, rolesCurrentlyInPolicy)
 
 	// Data to be injected into template
 	data := PageRenderData{
-		PageTitle:    "Admin: " + c.pluralSchemaName,
-		SectionTitle: fmt.Sprintf("Select a %s to edit", c.schemaName),
+		PageTitle:    fmt.Sprintf("Edit %s: %s", c.schemaName, policyUnslug),
+		SectionTitle: fmt.Sprintf("Edit %s: %s", c.schemaName, policyUnslug),
 		SidebarList:  sidebar,
-		TableData:    tableData,
-		SchemaHome:   c.adminHomeUrl,
-		SearchTerm:   searchQuery,
 		PageType: PageType{
-			EditPage:   false,
-			ReadPage:   true,
+			EditPage:   true,
+			ReadPage:   false,
 			CreatePage: false,
 			DeletePage: false,
-			PolicyMode: "inheritance",
+			PolicyMode: "policy",
+		},
+		PolicySection: PolicySection{
+			FocusedPolicies: policies,
+			PolicyResource:  policyUnslug,
+			Selectors: PolicyEditSelectors{
+				RoleSelection:   rolesCurrentlyInPolicy,
+				ActionSelection: c.formSelectors.ActionSelection()},
 		},
 		FormData: FormData{
-			FormDetails: FormDetails{
-				FormAction: c.adminHomeUrl + "/inheritance",
-				FormMethod: "get",
-			},
-			FormFields: []FormField{},
+			FormDetails: FormDetails{},
+			FormFields:  []FormField{},
 		},
 		HeaderSection: header,
 	}
@@ -192,6 +236,89 @@ func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter,
 		return
 	}
 }
+func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request) {
+	// Init new form
+	createForm := c.generateCreateForm()
+
+	// If form is being submitted (method = POST)
+	if r.Method == "POST" {
+		// Extract form submission
+		formFieldMap, err := parseFormToMap(r)
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+		// Convert to policy rule struct
+		toValidate := models.PolicyRule{
+			Role:     formFieldMap["role"],
+			Resource: formFieldMap["resource"],
+			Action:   formFieldMap["action"],
+		}
+
+		// Validate struct
+		pass, valErrors := helpers.GoValidateStruct(toValidate)
+		// If failure detected
+		// If validation passes
+		if pass {
+			// Create
+			err = c.service.Create(toValidate)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Error creating %s", c.schemaName), http.StatusInternalServerError)
+				return
+			}
+			// Redirect or render a success message
+			http.Redirect(w, r, fmt.Sprintf("%s/create/success", c.adminHomeUrl), http.StatusSeeOther)
+			return
+		}
+
+		// If validation fails
+		// Populate form field with errors
+		SetValidationErrorsInForm(createForm, *valErrors)
+	}
+
+	// Render preparation
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    fmt.Sprintf("Create %s", c.schemaName),
+		SectionTitle: fmt.Sprintf("Create a new %s", c.schemaName),
+		SidebarList:  sidebar,
+		PageType: PageType{
+			EditPage:   false,
+			ReadPage:   false,
+			CreatePage: true,
+			DeletePage: false,
+			PolicyMode: "policy",
+		},
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: fmt.Sprintf("%s/create", c.adminHomeUrl),
+				FormMethod: "post",
+			},
+			FormFields: createForm,
+		},
+		HeaderSection: header,
+	}
+
+	// Execute the template with data and write to response
+	err := app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+func (c adminAuthPolicyController) CreateSuccess(w http.ResponseWriter, r *http.Request) {
+	// Serve admin success page
+	serveAdminSuccess(w, fmt.Sprintf("Create %s", c.schemaName), fmt.Sprintf("%s Created Successfully!", c.schemaName))
+}
+func (c adminAuthPolicyController) generateCreateForm() []FormField {
+	return []FormField{
+		{DbLabel: "Resource", Label: "Resource", Name: "resource", Placeholder: "eg. '/api/posts'", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "Role", Label: "First Role", Name: "role", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.RoleSelection()},
+		{DbLabel: "Action", Label: "Action", Name: "action", Placeholder: "", Value: "", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.ActionSelection()},
+	}
+}
+
+// Roles
 func (c adminAuthPolicyController) FindAllRoles(w http.ResponseWriter, r *http.Request) {
 	// Grab query parameters
 	searchQuery := r.URL.Query().Get("search")
@@ -246,18 +373,20 @@ func (c adminAuthPolicyController) FindAllRoles(w http.ResponseWriter, r *http.R
 		return
 	}
 }
-
-func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request) {
+func (c adminAuthPolicyController) CreateRole(w http.ResponseWriter, r *http.Request) {
 	// Init new form
-	createForm := c.generateCreateForm()
-
+	createForm := c.generateCreateRoleForm()
+	formFieldMap, err := parseFormToMap(r)
+	if err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
-		// Extract user form submission
-		toValidate, err := c.extractCreateFormSubmission(r)
-		if err != nil {
-			http.Error(w, "Error parsing form", http.StatusBadRequest)
-			return
+		// Convert to role assignment struct
+		toValidate := models.CasbinRoleAssignment{
+			Role:   formFieldMap["role"],
+			UserId: formFieldMap["user"],
 		}
 
 		// Validate struct
@@ -266,80 +395,7 @@ func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request
 		// If validation passes
 		if pass {
 			// Create
-			err = c.service.Create(toValidate)
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Error creating %s", c.schemaName), http.StatusInternalServerError)
-				return
-			}
-			// Redirect or render a success message
-			http.Redirect(w, r, fmt.Sprintf("%s/create/success", c.adminHomeUrl), http.StatusSeeOther)
-			return
-		}
-
-		// If validation fails
-		// Populate form field errors
-		SetValidationErrorsInForm(createForm, *valErrors)
-
-		// Extract form submission from request and build into map[string]string
-		formFieldMap, err := c.extractFormFromRequest(r)
-		if err != nil {
-			http.Error(w, "Error parsing form", http.StatusBadRequest)
-			return
-		}
-		fmt.Printf("formFieldMap: %+v\n", formFieldMap)
-	}
-
-	// Render preparation
-	// Data to be injected into template
-	data := PageRenderData{
-		PageTitle:    fmt.Sprintf("Create %s", c.schemaName),
-		SectionTitle: fmt.Sprintf("Create a new %s", c.schemaName),
-		SidebarList:  sidebar,
-		PageType: PageType{
-			EditPage:   false,
-			ReadPage:   false,
-			CreatePage: true,
-			DeletePage: false,
-			PolicyMode: "policy",
-		},
-		FormData: FormData{
-			FormDetails: FormDetails{
-				FormAction: fmt.Sprintf("%s/create", c.adminHomeUrl),
-				FormMethod: "post",
-			},
-			FormFields: createForm,
-		},
-		HeaderSection: header,
-	}
-
-	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-}
-
-func (c adminAuthPolicyController) CreateRole(w http.ResponseWriter, r *http.Request) {
-	// Init new form
-	createForm := c.generateCreateRoleForm()
-
-	// If form is being submitted (method = POST)
-	if r.Method == "POST" {
-		// Extract user form submission
-		submittedForm, err := c.extractCreateRoleFormSubmission(r)
-		if err != nil {
-			http.Error(w, "Error parsing form", http.StatusBadRequest)
-			return
-		}
-
-		// Validate struct
-		pass, valErrors := helpers.GoValidateStruct(submittedForm)
-		// If failure detected
-		// If validation passes
-		if pass {
-			// Create
-			success, err := c.service.AssignUserRole(submittedForm.UserId, submittedForm.Role)
+			success, err := c.service.AssignUserRole(toValidate.UserId, toValidate.Role)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Error assigning role %s", c.schemaName), http.StatusInternalServerError)
 				return
@@ -356,14 +412,6 @@ func (c adminAuthPolicyController) CreateRole(w http.ResponseWriter, r *http.Req
 		// If validation fails
 		// Populate form field errors
 		SetValidationErrorsInForm(createForm, *valErrors)
-
-		// Extract form submission from request and build into map[string]string
-		formFieldMap, err := c.extractFormFromRequest(r)
-		if err != nil {
-			http.Error(w, "Error parsing form", http.StatusBadRequest)
-			return
-		}
-		fmt.Printf("formFieldMap: %+v\n", formFieldMap)
 	}
 
 	// Render preparation
@@ -390,13 +438,78 @@ func (c adminAuthPolicyController) CreateRole(w http.ResponseWriter, r *http.Req
 	}
 
 	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
+	err = app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 }
+func (c adminAuthPolicyController) CreateRoleSuccess(w http.ResponseWriter, r *http.Request) {
+	// Serve admin success page
+	serveAdminSuccess(w, fmt.Sprintf("Create %s Role", c.schemaName), fmt.Sprintf("%s Role Created Successfully!", c.schemaName))
+}
+func (c adminAuthPolicyController) generateCreateRoleForm() []FormField {
+	return []FormField{
+		{DbLabel: "Role", Label: "New Role Name", Name: "role", Placeholder: "eg. 'Moderator'", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "User", Label: "First Member", Name: "user", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.UserSelection()},
+	}
+}
 
+// Inheritance
+func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter, r *http.Request) {
+	// Grab query parameters
+	searchQuery := r.URL.Query().Get("search")
+
+	// Find all with options from database
+	inheritanceSlice, err := c.service.FindAllRoleInheritance()
+	if err != nil {
+		http.Error(w, "Error finding data", http.StatusInternalServerError)
+		return
+	}
+	// // Filter by search query
+	inheritanceSlice = searchMapUsingKeys(inheritanceSlice, []string{"inherits_from", "role"}, searchQuery)
+
+	// Sort by resource alphabetically
+	sort.Slice(inheritanceSlice, func(i, j int) bool {
+		// Give two items to compare to alphabetic sorter
+		return sortMapStringStringAlphabetically(inheritanceSlice[i], inheritanceSlice[j], "role")
+	})
+
+	// // Build the roles table data
+	tableData := BuildRoleInheritanceTableData(inheritanceSlice, c.adminHomeUrl, c.inheritanceTableHeaders)
+
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    "Admin: " + c.pluralSchemaName,
+		SectionTitle: fmt.Sprintf("Select a %s to edit", c.schemaName),
+		SidebarList:  sidebar,
+		TableData:    tableData,
+		SchemaHome:   c.adminHomeUrl,
+		SearchTerm:   searchQuery,
+		PageType: PageType{
+			EditPage:   false,
+			ReadPage:   true,
+			CreatePage: false,
+			DeletePage: false,
+			PolicyMode: "inheritance",
+		},
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: c.adminHomeUrl + "/inheritance",
+				FormMethod: "get",
+			},
+			FormFields: []FormField{},
+		},
+		HeaderSection: header,
+	}
+
+	// Execute the template with data and write to response
+	err = app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
 func (c adminAuthPolicyController) CreateInheritance(w http.ResponseWriter, r *http.Request) {
 	// Init new form
 	createForm := c.generateCreateInheritanceForm()
@@ -457,13 +570,12 @@ func (c adminAuthPolicyController) CreateInheritance(w http.ResponseWriter, r *h
 	}
 
 	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	err := app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 }
-
 func (c adminAuthPolicyController) DeleteInheritance(w http.ResponseWriter, r *http.Request) {
 	// Grab params from URL
 	inheritSlug := chi.URLParam(r, "inherit-slug")
@@ -511,122 +623,14 @@ func (c adminAuthPolicyController) DeleteInheritance(w http.ResponseWriter, r *h
 	}
 
 	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
-}
-
-func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) {
-	// Grab slug from URL
-	policySlug := chi.URLParam(r, "id")
-	// Unslug
-	policyUnslug := UnslugifyResourceName(policySlug)
-	// Detect request method
-	method := r.Method
-
-	// If form is being submitted (method = POST)
-	if method == "POST" || method == "DELETE" {
-		// Extract from request body, json policy
-		pol := &models.PolicyRule{}
-
-		// Decode request body as JSON and store in login
-		err := json.NewDecoder(r.Body).Decode(&pol)
-		if err != nil {
-			http.Error(w, "Invalid policy", http.StatusBadRequest)
-			return
-		}
-
-		// Validate the incoming DTO
-		pass, _ := helpers.GoValidateStruct(pol)
-
-		// If passes
-		if pass {
-			if method == "POST" {
-				// Create policy
-				err = c.service.Create(*pol)
-				if err != nil {
-					http.Error(w, fmt.Sprintf("Error creating %s", c.schemaName), http.StatusInternalServerError)
-					return
-				}
-			} else if method == "DELETE" {
-				// Delete policy
-				err = c.service.Delete(*pol)
-				if err != nil {
-					http.Error(w, fmt.Sprintf("Error deleting %s", c.schemaName), http.StatusInternalServerError)
-					return
-				}
-			}
-			// Redirect or render a success message
-			http.Redirect(w, r, fmt.Sprintf("%s/%s", c.adminHomeUrl, policySlug), http.StatusSeeOther)
-			return
-		}
-
-	}
-
-	// If not POST, ie. GET
-	// Find all policies
-	found, err := c.service.FindAll()
-	if err != nil {
-		http.Error(w, fmt.Sprintf("%s not found", c.schemaName), http.StatusNotFound)
-		return
-	}
-
-	// Filter by search query
-	groupsSlice := searchPoliciesForExactResouceMatch(found, policyUnslug)
-	// Prepare policies for rendering
-	policies := convertMapToPolicyRule(groupsSlice)
-
-	// Init new role selector values
-	rolesCurrentlyInPolicy := c.formSelectors.RoleSelection()
-	// Remove roles that are already in the policy
-	rolesCurrentlyInPolicy = buildOnlyMissingRoleSelector(policies, rolesCurrentlyInPolicy)
-
-	// Data to be injected into template
-	data := PageRenderData{
-		PageTitle:    fmt.Sprintf("Edit %s: %s", c.schemaName, policyUnslug),
-		SectionTitle: fmt.Sprintf("Edit %s: %s", c.schemaName, policyUnslug),
-		SidebarList:  sidebar,
-		PageType: PageType{
-			EditPage:   true,
-			ReadPage:   false,
-			CreatePage: false,
-			DeletePage: false,
-			PolicyMode: "policy",
-		},
-		PolicySection: PolicySection{
-			FocusedPolicies: policies,
-			PolicyResource:  policyUnslug,
-			Selectors: PolicyEditSelectors{
-				RoleSelection:   rolesCurrentlyInPolicy,
-				ActionSelection: c.formSelectors.ActionSelection()},
-		},
-		FormData: FormData{
-			FormDetails: FormDetails{},
-			FormFields:  []FormField{},
-		},
-		HeaderSection: header,
-	}
-
-	// Execute the template with data and write to response
-	err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	err := app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 }
 
-// Success handlers
-func (c adminAuthPolicyController) CreateSuccess(w http.ResponseWriter, r *http.Request) {
-	// Serve admin success page
-	serveAdminSuccess(w, fmt.Sprintf("Create %s", c.schemaName), fmt.Sprintf("%s Created Successfully!", c.schemaName))
-}
-func (c adminAuthPolicyController) CreateRoleSuccess(w http.ResponseWriter, r *http.Request) {
-	// Serve admin success page
-	serveAdminSuccess(w, fmt.Sprintf("Create %s Role", c.schemaName), fmt.Sprintf("%s Role Created Successfully!", c.schemaName))
-}
+// Success
 func (c adminAuthPolicyController) CreateInheritanceSuccess(w http.ResponseWriter, r *http.Request) {
 	// Serve admin success page
 	serveAdminSuccess(w, fmt.Sprintf("Create %s Role Inheritance", c.schemaName), fmt.Sprintf("%s Role Inheritance Created Successfully!", c.schemaName))
@@ -636,21 +640,7 @@ func (c adminAuthPolicyController) DeleteInheritanceSuccess(w http.ResponseWrite
 	serveAdminSuccess(w, fmt.Sprintf("Delete %s Inheritance Inheritance", c.schemaName), fmt.Sprintf("%s Inheritance Inheritance Created Successfully!", c.schemaName))
 }
 
-// Form generation
-// Used to build Create form
-func (c adminAuthPolicyController) generateCreateForm() []FormField {
-	return []FormField{
-		{DbLabel: "Resource", Label: "Resource", Name: "resource", Placeholder: "eg. '/api/posts'", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Role", Label: "First Role", Name: "role", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.RoleSelection()},
-		{DbLabel: "Action", Label: "Action", Name: "action", Placeholder: "", Value: "", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.ActionSelection()},
-	}
-}
-func (c adminAuthPolicyController) generateCreateRoleForm() []FormField {
-	return []FormField{
-		{DbLabel: "Role", Label: "New Role Name", Name: "role", Placeholder: "eg. 'Moderator'", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "User", Label: "First Member", Name: "user", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.UserSelection()},
-	}
-}
+// Form
 func (c adminAuthPolicyController) generateCreateInheritanceForm() []FormField {
 	return []FormField{
 		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.RoleSelection()},
@@ -659,38 +649,6 @@ func (c adminAuthPolicyController) generateCreateInheritanceForm() []FormField {
 }
 
 // Extract forms
-// Used to extract form submission from request and build into service-ready format
-func (c adminAuthPolicyController) extractCreateFormSubmission(r *http.Request) (models.PolicyRule, error) {
-	// Parse the form
-	err := r.ParseForm()
-	if err != nil {
-		return models.PolicyRule{}, errors.New("Error parsing form")
-	}
-
-	// Build struct for validation
-	toValidate := models.PolicyRule{
-		Role:     r.FormValue("role"),
-		Resource: r.FormValue("resource"),
-		Action:   r.FormValue("action"),
-	}
-
-	return toValidate, nil
-}
-func (c adminAuthPolicyController) extractCreateRoleFormSubmission(r *http.Request) (models.CasbinRoleAssignment, error) {
-	// Parse the form
-	err := r.ParseForm()
-	if err != nil {
-		return models.CasbinRoleAssignment{}, errors.New("Error parsing form")
-	}
-
-	// Build struct for validation
-	toValidate := models.CasbinRoleAssignment{
-		Role:   r.FormValue("role"),
-		UserId: r.FormValue("user"),
-	}
-
-	return toValidate, nil
-}
 func (c adminAuthPolicyController) extractCreateInheritanceFormSubmission(r *http.Request) (models.G2Record, error) {
 	// Parse the form
 	err := r.ParseForm()

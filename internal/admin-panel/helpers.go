@@ -38,9 +38,9 @@ func arrayContainsString(arr []string, target string) bool {
 // SORT FUNCTIONS
 //
 // Function to sort permissions data from enforcer
-func sortByRoleResourceAlphabetically(a, b map[string]interface{}) bool {
-	resourceA, okA := a["resource"].(string)
-	resourceB, okB := b["resource"].(string)
+func sortMapStringInterfaceAlphabetically(a, b map[string]interface{}, key string) bool {
+	resourceA, okA := a[key].(string)
+	resourceB, okB := b[key].(string)
 
 	// If either of the elements doesn't have a valid "resource" string, consider it greater (move it to the end)
 	if !okA || !okB {
@@ -52,7 +52,7 @@ func sortByRoleResourceAlphabetically(a, b map[string]interface{}) bool {
 }
 
 // Function to sort a map[string]string by a given key
-func sortByKeyAlphabetically(a, b map[string]string, key string) bool {
+func sortMapStringStringAlphabetically(a, b map[string]string, key string) bool {
 	valueA, okA := a[key]
 	valueB, okB := b[key]
 
