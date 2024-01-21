@@ -109,9 +109,9 @@ func (c adminBaseController) Login(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
 		}
-
+		fmt.Printf("formFieldMap: %v\nLogin form: %+v", formFieldMap, loginForm)
 		// Populate previously entered values (Avoids password)
-		err = populateValuesWithFormName(&loginForm, formFieldMap)
+		err = populateFormValuesWithSubmittedFormMap(&loginForm, formFieldMap)
 		if err != nil {
 			http.Error(w, "Error populating form", http.StatusInternalServerError)
 			return
@@ -261,8 +261,8 @@ func (c adminBaseController) ChangePasswordSuccess(w http.ResponseWriter, r *htt
 // Form generators
 func (c adminBaseController) generateLoginForm() []FormField {
 	return []FormField{
-		{DbLabel: "Email", Label: "Email", Name: "email", Placeholder: "", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Password", Label: "Password", Name: "password", Placeholder: "", Value: "", Type: "password", Required: true, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "email", Label: "Email", Name: "email", Placeholder: "", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
+		{DbLabel: "password", Label: "Password", Name: "password", Placeholder: "", Value: "", Type: "password", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 	}
 }
 func (c adminBaseController) generateChangePasswordForm() []FormField {

@@ -12,7 +12,6 @@ import (
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
-	"github.com/pkg/errors"
 )
 
 // Table headers to show on find all page
@@ -138,13 +137,27 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
+		// Preparation for validation
 		// Extract user form submission
-		toValidate, err := c.extractCreateFormSubmission(r)
+		formFieldMap, err := parseFormToMap(r)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
 		}
 
+		verified := false
+		if formFieldMap["verified"] != "" {
+			verified = true
+		}
+		// Build struct for validation
+		toValidate := models.CreateUser{
+			Name:     formFieldMap["name"],
+			Username: formFieldMap["username"],
+			Email:    formFieldMap["email"],
+			Password: formFieldMap["password"],
+			Role:     formFieldMap["role"],
+			Verified: verified,
+		}
 		// Validate struct
 		pass, valErrors := helpers.GoValidateStruct(toValidate)
 		// If failure detected
@@ -165,14 +178,8 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 		// Populate form field errors
 		SetValidationErrorsInForm(createForm, *valErrors)
 
-		// Extract form submission from request and build into map[string]string
-		formFieldMap, err := c.extractFormFromRequest(r)
-		if err != nil {
-			http.Error(w, "Error parsing form", http.StatusBadRequest)
-			return
-		}
 		// Populate previously entered values (Avoids password)
-		populateValuesWithForm(&createForm, formFieldMap)
+		populateFormValuesWithSubmittedFormMap(&createForm, formFieldMap)
 	}
 
 	// Render preparation
@@ -219,19 +226,31 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Extract user form submission
-		userToValidate, err := c.extractUpdateFormSubmission(r)
+		formFieldMap, err := parseFormToMap(r)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
 		}
+		verified := false
+		if formFieldMap["verified"] != "" {
+			verified = true
+		}
+		toValidate := models.UpdateUser{
+			Name:     formFieldMap["name"],
+			Username: formFieldMap["username"],
+			Email:    formFieldMap["email"],
+			Password: formFieldMap["password"],
+			Role:     formFieldMap["role"],
+			Verified: verified,
+		}
 
 		// Validate struct
-		pass, valErrors := helpers.GoValidateStruct(userToValidate)
+		pass, valErrors := helpers.GoValidateStruct(toValidate)
 		// If failure detected
 		// If validation passes
 		if pass {
 			// Update user
-			_, err = c.service.Update(idParameter, &userToValidate)
+			_, err = c.service.Update(idParameter, &toValidate)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Error updating %s", c.schemaName), http.StatusInternalServerError)
 				return
@@ -245,18 +264,14 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		// Populate form field errors
 		SetValidationErrorsInForm(editForm, *valErrors)
 
-		// Extract form submission from request and build into map[string]string
-		fieldMap, err := c.extractFormFromRequest(r)
-		if err != nil {
-			http.Error(w, "Error parsing form", http.StatusBadRequest)
-			return
-		}
 		// Populate previously entered values (Avoids password)
-		err = populateValuesWithForm(&editForm, fieldMap)
+		err = populateFormValuesWithSubmittedFormMap(&editForm, formFieldMap)
 		if err != nil {
+			fmt.Printf("Error populating form: %s", err.Error())
 			http.Error(w, "Error populating form", http.StatusInternalServerError)
 			return
 		}
+		fmt.Printf("Form: %+v", editForm)
 	}
 
 	// If not POST, ie. GET
@@ -443,82 +458,6 @@ func (c adminUserController) generateEditForm() []FormField {
 }
 
 // Extract forms
-// Used to extract form submission from request and build into models.CreateUser
-func (c adminUserController) extractCreateFormSubmission(r *http.Request) (models.CreateUser, error) {
-	// Parse the form
-	err := r.ParseForm()
-	if err != nil {
-		return models.CreateUser{}, errors.New("Error parsing form")
-	}
-
-	// Preparation for validation
-	// Parse the verified attribute from the form
-	verified := false
-	// If the verified attribute is present in the form (ie. true)
-	if r.FormValue("verified") != "" {
-		// Set verified to true
-		verified = true
-	}
-	// Build struct for validation
-	userToValidate := models.CreateUser{
-		Name:     r.FormValue("name"),
-		Username: r.FormValue("username"),
-		Email:    r.FormValue("email"),
-		Password: r.FormValue("password"),
-		Role:     r.FormValue("role"),
-		Verified: verified,
-	}
-
-	return userToValidate, nil
-}
-
-// Used to extract form submission from request and build into models.UpdateUser
-func (c adminUserController) extractUpdateFormSubmission(r *http.Request) (models.UpdateUser, error) {
-	// Parse the form
-	err := r.ParseForm()
-	if err != nil {
-		return models.UpdateUser{}, errors.New("Error parsing form")
-	}
-
-	// Preparation for validation
-	// Parse the verified attribute from the form
-	verified := false
-	// If the verified attribute is present in the form (ie. true)
-	if r.FormValue("verified") != "" {
-		// Set verified to true
-		verified = true
-	}
-	// Build struct for validation
-	userToValidate := models.UpdateUser{
-		Name:     r.FormValue("name"),
-		Username: r.FormValue("username"),
-		Email:    r.FormValue("email"),
-		Password: r.FormValue("password"),
-		Role:     r.FormValue("role"),
-		Verified: verified,
-	}
-
-	return userToValidate, nil
-}
-
-// Basic helper functions
-// Used to extract form submission from request and build into map[string]string (Used in populateValuesWithForm)
-func (c adminUserController) extractFormFromRequest(r *http.Request) (map[string]string, error) {
-	// Parse the form
-	err := r.ParseForm()
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error parsing form: %s", err.Error()))
-	}
-	// Map of user fields
-	fieldMap := map[string]string{
-		"Name":     r.FormValue("name"),
-		"Username": r.FormValue("username"),
-		"Email":    r.FormValue("email"),
-		"Role":     r.FormValue("role"),
-		"Verified": r.FormValue("verified"),
-	}
-	return fieldMap, nil
-}
 
 // For dynamic data iteration: takes a user and returns a map for easier dynamic access
 func (c adminUserController) getValuesUsingFieldMap(user models.UserWithRole) map[string]string {

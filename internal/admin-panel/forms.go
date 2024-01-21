@@ -22,7 +22,8 @@ type FormData struct {
 // Data for each form field
 type FormField struct {
 	// Label above input
-	Label   string
+	Label string
+	// Labed used for populating values and placeholders
 	DbLabel string
 	// Used for form submission
 	Name string
@@ -85,32 +86,20 @@ func SetValidationErrorsInForm(form []FormField, validationErrors models.Validat
 }
 
 // Used to populate FormField values with placeholder values found from previously submitted form
-func populateValuesWithForm(form *[]FormField, fieldMap map[string]string) error {
+func populateFormValuesWithSubmittedFormMap(form *[]FormField, fieldMap map[string]string) error {
 	// Loop through fields in the form and populate placeholders
 	for i := range *form {
 		// Get pointer to field
 		field := &(*form)[i]
-		// If the field exists in the map, populate the placeholder
-		if val, ok := fieldMap[field.DbLabel]; ok {
-			field.Value = val
-		} else {
-			return fmt.Errorf("field: %s not found in map", field.DbLabel)
-		}
-	}
-	return nil
-}
-
-// Populate form field placeholders with data from database (that has been converted to map[string]string)
-func populateValuesWithFormName(form *[]FormField, fieldMap map[string]string) error {
-	// Loop through fields in the form and populate placeholders
-	for i := range *form {
-		// Get pointer to field
-		field := &(*form)[i]
-		// If the field exists in the map, populate the placeholder
-		if val, ok := fieldMap[field.Name]; ok {
-			field.Value = val
-		} else {
-			return fmt.Errorf("field: %s not found in map", field.DbLabel)
+		// Only if field is not a password field
+		if field.Type != "password" {
+			// If the field exists in the map, populate the placeholder
+			if val, ok := fieldMap[field.DbLabel]; ok {
+				field.Value = val
+			} else {
+				// field.Value = ""
+				return fmt.Errorf("field: %s not found in map", field.DbLabel)
+			}
 		}
 	}
 	return nil

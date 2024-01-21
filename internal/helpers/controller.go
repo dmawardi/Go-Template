@@ -133,7 +133,7 @@ func ExtractBasicFindAllQueryParams(r *http.Request) (models.BaseFindAllQueryPar
 	}, nil
 }
 
-// Converts orderby paramter to SQL format
+// Converts orderby paramter to SQL ready format
 func convertToSQLOrderBy(orderBy string) (string, error) {
 	parts := strings.Split(orderBy, "_")
 	// Assign first item as column name

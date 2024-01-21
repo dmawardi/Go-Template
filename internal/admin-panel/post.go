@@ -174,7 +174,7 @@ func (c adminPostController) Create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Populate previously entered values (Avoids password)
-		err = populateValuesWithForm(&createForm, formFieldMap)
+		err = populateFormValuesWithSubmittedFormMap(&createForm, formFieldMap)
 		if err != nil {
 			http.Error(w, "Error populating form", http.StatusInternalServerError)
 			return
@@ -259,7 +259,7 @@ func (c adminPostController) Edit(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Populate previously entered values (Avoids password)
-		err = populateValuesWithForm(&editForm, fieldMap)
+		err = populateFormValuesWithSubmittedFormMap(&editForm, fieldMap)
 		if err != nil {
 			fmt.Printf("Error populating form: %v\n", err)
 			http.Error(w, "Error populating form", http.StatusInternalServerError)
@@ -492,7 +492,7 @@ func (c adminPostController) extractUpdateFormSubmission(r *http.Request) (model
 }
 
 // Basic helper functions
-// Used to extract form submission from request and build into map[string]string (Used in populateValuesWithForm)
+// Used to extract form submission from request and build into map[string]string (Used in populateFormValuesWithSubmittedFormMap)
 func (c adminPostController) extractFormFromRequest(r *http.Request) (map[string]string, error) {
 	// Parse the form
 	err := r.ParseForm()

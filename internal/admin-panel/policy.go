@@ -2,7 +2,6 @@ package adminpanel
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"sort"
@@ -196,12 +195,12 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 	// Filter by search query
 	groupsSlice := searchPoliciesForExactResouceMatch(found, policyUnslug)
 	// Prepare policies for rendering
-	policies := convertMapToPolicyRule(groupsSlice)
+	policies := buildEditPolicyTable(groupsSlice)
 
 	// Init new role selector values
 	rolesCurrentlyInPolicy := c.formSelectors.RoleSelection()
 	// Remove roles that are already in the policy
-	rolesCurrentlyInPolicy = buildOnlyMissingRoleSelector(policies, rolesCurrentlyInPolicy)
+	rolesCurrentlyInPolicy = genRolesLeftOnlySelection(policies, rolesCurrentlyInPolicy)
 
 	// Data to be injected into template
 	data := PageRenderData{
@@ -467,7 +466,7 @@ func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter,
 		return
 	}
 	// // Filter by search query
-	inheritanceSlice = searchMapUsingKeys(inheritanceSlice, []string{"inherits_from", "role"}, searchQuery)
+	inheritanceSlice = searchMapKeysFor(inheritanceSlice, []string{"inherits_from", "role"}, searchQuery)
 
 	// Sort by resource alphabetically
 	sort.Slice(inheritanceSlice, func(i, j int) bool {
@@ -513,17 +512,19 @@ func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter,
 func (c adminAuthPolicyController) CreateInheritance(w http.ResponseWriter, r *http.Request) {
 	// Init new form
 	createForm := c.generateCreateInheritanceForm()
-
+	// Extract user form submission
+	formFieldMap, err := parseFormToMap(r)
+	if err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
-		// Extract user form submission
-		submittedForm, err := c.extractCreateInheritanceFormSubmission(r)
-		if err != nil {
-			http.Error(w, "Error parsing form", http.StatusBadRequest)
-			return
+		// Convert to role assignment struct
+		submittedForm := models.G2Record{
+			Role:         formFieldMap["role"],
+			InheritsFrom: formFieldMap["inherits_from"],
 		}
-		fmt.Printf("submittedForm: %+v\n", submittedForm)
-
 		// Validate struct
 		pass, valErrors := helpers.GoValidateStruct(submittedForm)
 		// If failure detected
@@ -570,7 +571,7 @@ func (c adminAuthPolicyController) CreateInheritance(w http.ResponseWriter, r *h
 	}
 
 	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
+	err = app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -629,8 +630,6 @@ func (c adminAuthPolicyController) DeleteInheritance(w http.ResponseWriter, r *h
 		return
 	}
 }
-
-// Success
 func (c adminAuthPolicyController) CreateInheritanceSuccess(w http.ResponseWriter, r *http.Request) {
 	// Serve admin success page
 	serveAdminSuccess(w, fmt.Sprintf("Create %s Role Inheritance", c.schemaName), fmt.Sprintf("%s Role Inheritance Created Successfully!", c.schemaName))
@@ -648,41 +647,7 @@ func (c adminAuthPolicyController) generateCreateInheritanceForm() []FormField {
 	}
 }
 
-// Extract forms
-func (c adminAuthPolicyController) extractCreateInheritanceFormSubmission(r *http.Request) (models.G2Record, error) {
-	// Parse the form
-	err := r.ParseForm()
-	if err != nil {
-		return models.G2Record{}, errors.New("Error parsing form")
-	}
-
-	// Build struct for validation
-	toValidate := models.G2Record{
-		Role:         r.FormValue("role"),
-		InheritsFrom: r.FormValue("inherits_from"),
-	}
-
-	return toValidate, nil
-}
-
 // Basic helper functions
-// Used to extract form submission from request and build into map[string]string (Used in populateValuesWithForm)
-func (c adminAuthPolicyController) extractFormFromRequest(r *http.Request) (map[string]string, error) {
-	// Parse the form
-	err := r.ParseForm()
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error parsing form: %s", err.Error()))
-	}
-	// Map of user fields
-	fieldMap := map[string]string{
-		"Name":     r.FormValue("name"),
-		"Username": r.FormValue("username"),
-		"Email":    r.FormValue("email"),
-		"Role":     r.FormValue("role"),
-		"Verified": r.FormValue("verified"),
-	}
-	return fieldMap, nil
-}
 
 // Used to build standardize controller fields for admin panel sidebar generation
 func (c adminAuthPolicyController) ObtainFields() BasicAdminController {
@@ -711,7 +676,8 @@ func searchPoliciesByResource(maps []map[string]interface{}, searchTerm string) 
 	return result
 }
 
-func searchMapUsingKeys(maps []map[string]string, mapKeysToSearch []string, searchTerm string) []map[string]string {
+// Searches a list of maps for a given key based on search term
+func searchMapKeysFor(maps []map[string]string, mapKeysToSearch []string, searchTerm string) []map[string]string {
 	var result []map[string]string
 	// Init to record if already added to results
 	addedToResult := false
@@ -755,7 +721,7 @@ func searchPoliciesForExactResouceMatch(maps []map[string]interface{}, searchTer
 }
 
 // Convert the map received from the service to a slice of models.PolicyRule
-func convertMapToPolicyRule(m []map[string]interface{}) []PolicyEditDataRow {
+func buildEditPolicyTable(m []map[string]interface{}) []PolicyEditDataRow {
 	var policies []PolicyEditDataRow
 	// Iterate through map of policies
 	for _, policy := range m {
@@ -793,7 +759,7 @@ func convertMapToPolicyRule(m []map[string]interface{}) []PolicyEditDataRow {
 }
 
 // Takes a slice of PolicyEditDataRow and role selector and returns a slice of role selector with only missing roles
-func buildOnlyMissingRoleSelector(policies []PolicyEditDataRow, roleSelector []FormFieldSelector) []FormFieldSelector {
+func genRolesLeftOnlySelection(policies []PolicyEditDataRow, roleSelector []FormFieldSelector) []FormFieldSelector {
 	for _, p := range policies {
 		// Iterate through roleSelector
 		for i, role := range roleSelector {
