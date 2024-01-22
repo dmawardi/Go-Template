@@ -3,6 +3,7 @@ package auth
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
@@ -11,22 +12,30 @@ import (
 // Middleware to check whether user is authenticated
 func AuthenticateJWT(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Grab Http Method
+		httpMethod := r.Method
+		// Determine associated action based on HTTP method
+		action := ActionFromMethod(httpMethod)
+		// Extract current URL being accessed
+		object := helpers.ExtractBasePath(r)
 
 		// Validate the token
 		tokenData, err := ValidateAndParseToken(w, r)
 		// If error detected
 		if err != nil {
-			http.Error(w, "Error parsing authentication token", http.StatusForbidden)
+			// Determine Redirect URL based on object
+			redirectURL := determineInvalidTokenRedirectURL(object)
+			fmt.Printf("Redirect URL: %s\n", redirectURL)
+			// If redirect URL is  empty
+			if redirectURL == "" {
+				http.Error(w, "Error parsing authentication token", http.StatusForbidden)
+				return
+			}
+			// Else, redirect to invalid token page
+			http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 			return
 		}
 
-		// Extract current URL being accessed
-		object := helpers.ExtractBasePath(r)
-
-		// Grab Http Method
-		httpMethod := r.Method
-		// Determine associated action based on HTTP method
-		action := ActionFromMethod(httpMethod)
 		// Enforce RBAC policy and determine if user is authorized to perform action
 		allowed := Authorize(tokenData.UserID, object, action)
 
@@ -39,6 +48,18 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 		// Else, allow through
 		next.ServeHTTP(w, r)
 	})
+}
+
+func determineInvalidTokenRedirectURL(object string) string {
+	// Split string
+	stringArray := strings.Split(object, "/")
+	// If user currently in admin section
+	if stringArray[1] == "admin" {
+		// Set redirect URL to admin login page
+		return "/admin"
+	} else {
+		return ""
+	}
 }
 
 // Middleware to check whether user is authorized

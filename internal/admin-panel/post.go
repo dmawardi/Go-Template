@@ -13,7 +13,6 @@ import (
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
-	"github.com/pkg/errors"
 )
 
 // Table headers to show on find all page
@@ -135,16 +134,27 @@ func (c adminPostController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (c adminPostController) Create(w http.ResponseWriter, r *http.Request) {
-	// Init new User Create form
+	// Init new Create form
 	createForm := c.generateCreateForm()
 
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
-		// Extract user form submission
-		toValidate, err := c.extractCreateFormSubmission(r)
+		// Extract form submission
+		formFieldMap, err := parseFormToMap(r)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
+		}
+		// Convert relationsip to int
+		userId, err := strconv.Atoi(formFieldMap["user"])
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+		toValidate := models.CreatePost{
+			Title: formFieldMap["title"],
+			Body:  formFieldMap["body"],
+			User:  db.User{ID: uint(userId)},
 		}
 
 		// Validate struct
@@ -152,7 +162,7 @@ func (c adminPostController) Create(w http.ResponseWriter, r *http.Request) {
 		// If failure detected
 		// If validation passes
 		if pass {
-			// Create user
+			// Create
 			_, err = c.service.Create(&toValidate)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Error creating %s", c.schemaName), http.StatusInternalServerError)
@@ -167,13 +177,7 @@ func (c adminPostController) Create(w http.ResponseWriter, r *http.Request) {
 		// Populate form field errors
 		SetValidationErrorsInForm(createForm, *valErrors)
 
-		// Extract form submission from request and build into map[string]string
-		formFieldMap, err := c.extractFormFromRequest(r)
-		if err != nil {
-			http.Error(w, "Error parsing form", http.StatusBadRequest)
-			return
-		}
-		// Populate previously entered values (Avoids password)
+		// Populate previously entered values (Avoids password inputs)
 		err = populateFormValuesWithSubmittedFormMap(&createForm, formFieldMap)
 		if err != nil {
 			http.Error(w, "Error populating form", http.StatusInternalServerError)
@@ -211,7 +215,7 @@ func (c adminPostController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (c adminPostController) Edit(w http.ResponseWriter, r *http.Request) {
-	// Init new User Edit form
+	// Init new form
 	editForm := c.generateEditForm()
 
 	// Grab URL parameter
@@ -225,20 +229,31 @@ func (c adminPostController) Edit(w http.ResponseWriter, r *http.Request) {
 
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
-		// Extract user form submission
-		userToValidate, err := c.extractUpdateFormSubmission(r)
+		// Extract form submission
+		formFieldMap, err := parseFormToMap(r)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
 		}
+		// Convert relationsip to int
+		userId, err := strconv.Atoi(formFieldMap["user"])
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+		toValidate := models.UpdatePost{
+			Title: formFieldMap["title"],
+			Body:  formFieldMap["body"],
+			User:  db.User{ID: uint(userId)},
+		}
 
 		// Validate struct
-		pass, valErrors := helpers.GoValidateStruct(userToValidate)
+		pass, valErrors := helpers.GoValidateStruct(toValidate)
 		// If failure detected
 		// If validation passes
 		if pass {
-			// Update user
-			_, err = c.service.Update(idParameter, &userToValidate)
+			// Update
+			_, err = c.service.Update(idParameter, &toValidate)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Error updating %s", c.schemaName), http.StatusInternalServerError)
 				return
@@ -252,14 +267,8 @@ func (c adminPostController) Edit(w http.ResponseWriter, r *http.Request) {
 		// Populate form field errors
 		SetValidationErrorsInForm(editForm, *valErrors)
 
-		// Extract form submission from request and build into map[string]string
-		fieldMap, err := c.extractFormFromRequest(r)
-		if err != nil {
-			http.Error(w, "Error parsing form", http.StatusBadRequest)
-			return
-		}
 		// Populate previously entered values (Avoids password)
-		err = populateFormValuesWithSubmittedFormMap(&editForm, fieldMap)
+		err = populateFormValuesWithSubmittedFormMap(&editForm, formFieldMap)
 		if err != nil {
 			fmt.Printf("Error populating form: %v\n", err)
 			http.Error(w, "Error populating form", http.StatusInternalServerError)
@@ -338,7 +347,7 @@ func (c adminPostController) Delete(w http.ResponseWriter, r *http.Request) {
 	// Data to be injected into template
 	data := PageRenderData{
 		PageTitle:    fmt.Sprintf("Delete %s", c.schemaName),
-		SectionTitle: fmt.Sprintf("Are you sure you wish to delete user: %s?", stringParameter),
+		SectionTitle: fmt.Sprintf("Are you sure you wish to delete %s: %s?", c.schemaName, stringParameter),
 		SidebarList:  sidebar,
 		SchemaHome:   c.adminHomeUrl,
 		PageType: PageType{
@@ -376,7 +385,7 @@ func (c adminPostController) BulkDelete(w http.ResponseWriter, r *http.Request) 
 		Errors:         []error{},
 	}
 
-	// Decode request body as JSON and store in login
+	// Decode request body as JSON and store
 	err := json.NewDecoder(r.Body).Decode(&listOfIds)
 	if err != nil {
 		fmt.Println("Decoding error: ", err)
@@ -391,7 +400,7 @@ func (c adminPostController) BulkDelete(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Bulk Delete users
+	// Bulk Delete
 	err = c.service.BulkDelete(intIdList)
 	// If error detected send error response
 	if err != nil {
@@ -420,7 +429,7 @@ func (c adminPostController) DeleteSuccess(w http.ResponseWriter, r *http.Reques
 }
 
 // Form generation
-// Used to build Create user form
+// Used to build Create form
 func (c adminPostController) generateCreateForm() []FormField {
 	return []FormField{
 		{DbLabel: "Title", Label: "Title", Name: "title", Placeholder: "", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
@@ -429,7 +438,7 @@ func (c adminPostController) generateCreateForm() []FormField {
 	}
 }
 
-// Used to build Edit user form
+// Used to build Edit form
 func (c adminPostController) generateEditForm() []FormField {
 	return []FormField{
 		{DbLabel: "Title", Label: "Title", Name: "title", Placeholder: "", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
@@ -439,76 +448,10 @@ func (c adminPostController) generateEditForm() []FormField {
 }
 
 // Extract forms
-// Used to extract form submission from request and build into models.CreatePost
-func (c adminPostController) extractCreateFormSubmission(r *http.Request) (models.CreatePost, error) {
-	// Parse the form
-	err := r.ParseForm()
-	if err != nil {
-		fmt.Printf("Error parsing form: %v\n", err)
-		return models.CreatePost{}, errors.New("Error parsing form")
-	}
-
-	user := r.FormValue("user")
-	// Convert to int
-	userId, err := strconv.Atoi(user)
-	if err != nil {
-		fmt.Printf("Error converting to int: %v\n", err)
-		return models.CreatePost{}, errors.New("Error parsing form")
-	}
-
-	// Build struct for validation
-	toValidate := models.CreatePost{
-		Title: r.FormValue("title"),
-		Body:  r.FormValue("body"),
-		User:  db.User{ID: uint(userId)},
-	}
-
-	return toValidate, nil
-}
-
-// Used to extract form submission from request and build into models.UpdateUser
-func (c adminPostController) extractUpdateFormSubmission(r *http.Request) (models.UpdatePost, error) {
-	// Parse the form
-	err := r.ParseForm()
-	if err != nil {
-		return models.UpdatePost{}, errors.New("Error parsing form")
-	}
-
-	// Extract user
-	user := r.FormValue("user")
-	// Convert to int
-	userId, err := strconv.Atoi(user)
-	if err != nil {
-		return models.UpdatePost{}, errors.New("Error parsing form")
-	}
-	// Build struct for validation
-	toValidate := models.UpdatePost{
-		Title: r.FormValue("title"),
-		Body:  r.FormValue("body"),
-		User:  db.User{ID: uint(userId)},
-	}
-
-	return toValidate, nil
-}
 
 // Basic helper functions
-// Used to extract form submission from request and build into map[string]string (Used in populateFormValuesWithSubmittedFormMap)
-func (c adminPostController) extractFormFromRequest(r *http.Request) (map[string]string, error) {
-	// Parse the form
-	err := r.ParseForm()
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error parsing form: %s", err.Error()))
-	}
-	// Map of user fields
-	fieldMap := map[string]string{
-		"Title": r.FormValue("title"),
-		"Body":  r.FormValue("body"),
-		"User":  r.FormValue("user"),
-	}
-	return fieldMap, nil
-}
-
-// For dynamic data iteration: takes a user and returns a map for easier dynamic access
+// For dynamic data iteration: takes a db struct and returns a map for easier dynamic access
+// Used prior to populating form placeholders
 func (c adminPostController) getValuesUsingFieldMap(post db.Post) map[string]string {
 	// Map of user fields
 	fieldMap := map[string]string{

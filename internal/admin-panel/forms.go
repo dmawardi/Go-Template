@@ -94,11 +94,10 @@ func populateFormValuesWithSubmittedFormMap(form *[]FormField, fieldMap map[stri
 		// Only if field is not a password field
 		if field.Type != "password" {
 			// If the field exists in the map, populate the placeholder
-			if val, ok := fieldMap[field.DbLabel]; ok {
+			if val, ok := fieldMap[field.Name]; ok {
 				field.Value = val
 			} else {
-				// field.Value = ""
-				return fmt.Errorf("field: %s not found in map", field.DbLabel)
+				field.Value = ""
 			}
 		}
 	}

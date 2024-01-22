@@ -338,7 +338,7 @@ func (c userController) GetMyUserDetails(w http.ResponseWriter, r *http.Request)
 	tokenData, err := auth.ValidateAndParseToken(w, r)
 	// If error detected
 	if err != nil {
-		http.Error(w, "Error parsing authentication token:1", http.StatusForbidden)
+		http.Error(w, "Error parsing authentication token", http.StatusForbidden)
 		return
 	}
 
@@ -346,7 +346,7 @@ func (c userController) GetMyUserDetails(w http.ResponseWriter, r *http.Request)
 	idParameter, err := strconv.Atoi(tokenData.UserID)
 	// If error detected
 	if err != nil {
-		http.Error(w, "Error parsing authentication token:2", http.StatusForbidden)
+		http.Error(w, "Error parsing authentication token", http.StatusForbidden)
 		return
 	}
 

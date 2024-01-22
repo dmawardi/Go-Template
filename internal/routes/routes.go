@@ -69,7 +69,7 @@ func (a api) Routes() http.Handler {
 	// Serve API Swagger docs at built URL from config state
 	fmt.Printf("Serving Swagger docs at %s/swagger/index.html\n", app.BaseURL)
 	mux.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL(fmt.Sprintf("%s/static/docs/swagger.json", app.BaseURL)), //The url pointing to API definition
+		httpSwagger.URL(fmt.Sprintf("http://%s/static/docs/swagger.json", app.BaseURL)), //The url pointing to API definition
 	))
 
 	// Build fileserver using static directory

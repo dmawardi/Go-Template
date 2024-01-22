@@ -103,7 +103,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Data to be injected into template
 	data := PageRenderData{
 		PageTitle:    "Admin: " + c.pluralSchemaName,
-		SectionTitle: "Select a user to edit",
+		SectionTitle: fmt.Sprintf("Select a %s to edit", c.schemaName),
 		SidebarList:  sidebar,
 		TableData:    tableData,
 		SchemaHome:   c.adminHomeUrl,
@@ -132,13 +132,13 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
-	// Init new User Create form
+	// Init new Create form
 	createForm := c.generateCreateForm()
 
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Preparation for validation
-		// Extract user form submission
+		// Extract form submission
 		formFieldMap, err := parseFormToMap(r)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
@@ -179,7 +179,11 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 		SetValidationErrorsInForm(createForm, *valErrors)
 
 		// Populate previously entered values (Avoids password)
-		populateFormValuesWithSubmittedFormMap(&createForm, formFieldMap)
+		err = populateFormValuesWithSubmittedFormMap(&createForm, formFieldMap)
+		if err != nil {
+			http.Error(w, "Error populating form", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Render preparation
@@ -267,11 +271,9 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		// Populate previously entered values (Avoids password)
 		err = populateFormValuesWithSubmittedFormMap(&editForm, formFieldMap)
 		if err != nil {
-			fmt.Printf("Error populating form: %s", err.Error())
 			http.Error(w, "Error populating form", http.StatusInternalServerError)
 			return
 		}
-		fmt.Printf("Form: %+v", editForm)
 	}
 
 	// If not POST, ie. GET
@@ -284,9 +286,10 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("%s not found", c.schemaName), http.StatusNotFound)
 		return
 	}
-	// Remove password from struct for field population
+	// Remove password from struct for field population (Usually, this is done during JSON marshalling)
 	found.Password = ""
-	// Populate form field placeholders with data from database
+
+	// Convert db struct to map for placeholder population
 	currentData := c.getValuesUsingFieldMap(*found)
 	// Populate form field placeholders with data from database
 	err = populatePlaceholdersWithDBData(&editForm, currentData)
@@ -332,7 +335,7 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
-		// Delete user
+		// Delete
 		err = c.service.Delete(idParameter)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error deleting %s", c.schemaName), http.StatusInternalServerError)
@@ -384,7 +387,7 @@ func (c adminUserController) BulkDelete(w http.ResponseWriter, r *http.Request) 
 		Errors:         []error{},
 	}
 
-	// Decode request body as JSON and store in login
+	// Decode request body as JSON and store
 	err := json.NewDecoder(r.Body).Decode(&listOfIds)
 	if err != nil {
 		fmt.Println("Decoding error: ", err)
@@ -399,7 +402,7 @@ func (c adminUserController) BulkDelete(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Bulk Delete users
+	// Bulk Delete
 	err = c.service.BulkDelete(intIdList)
 	// If error detected send error response
 	if err != nil {
@@ -428,7 +431,7 @@ func (c adminUserController) DeleteSuccess(w http.ResponseWriter, r *http.Reques
 }
 
 // Form generation
-// Used to build Create user form
+// Used to build Create form
 func (c adminUserController) generateCreateForm() []FormField {
 	return []FormField{
 		{DbLabel: "Name", Label: "Name", Name: "name", Placeholder: "Enter name", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
@@ -440,10 +443,9 @@ func (c adminUserController) generateCreateForm() []FormField {
 	}
 }
 
-// Used to build Edit user form
+// Used to build Edit form
 func (c adminUserController) generateEditForm() []FormField {
 	return []FormField{
-		{DbLabel: "ID", Label: "ID", Name: "id", Placeholder: "", Value: "", Type: "number", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 		{DbLabel: "Name", Label: "Name", Name: "name", Placeholder: "Enter name", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Email", Label: "Email", Name: "email", Placeholder: "Enter email", Value: "", Type: "email", Required: false, Disabled: false, Errors: []ErrorMessage{}},
