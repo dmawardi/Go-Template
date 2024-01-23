@@ -7,13 +7,13 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/dmawardi/Go-Template/internal/config"
+	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/golang-jwt/jwt/v4"
 	"gorm.io/gorm"
 )
@@ -50,7 +50,7 @@ func EnforcerSetup(db *gorm.DB) (*config.AuthEnforcer, error) {
 	}
 
 	// Build path to policy model
-	rbacModelPath := buildPathToPolicyModel()
+	rbacModelPath := helpers.BuildPathFromWorkingDirectory("/internal/auth/rbac_model.conf")
 
 	// Initialize RBAC Authorization
 	enforcer, err := casbin.NewEnforcer(rbacModelPath, adapter)
@@ -173,7 +173,8 @@ func ActionFromMethod(httpMethod string) string {
 
 // Set up policy settings in DB for casbin rules
 func SetupDefaultCasbinPolicy(enforcer *casbin.Enforcer) {
-	pathToPolicies := buildPathToDefaultPolicies()
+	// Build path to default policies CSV file
+	pathToPolicies := helpers.BuildPathFromWorkingDirectory("/internal/auth/rbac_policy.csv")
 	// Open the CSV file
 	f, err := os.Open(pathToPolicies)
 	if err != nil {
@@ -276,53 +277,4 @@ func SetupDefaultCasbinPolicy(enforcer *casbin.Enforcer) {
 			}
 		}
 	}
-}
-
-// Extracts user id from authentication token
-func ExtractIdFromToken(w http.ResponseWriter, r *http.Request) (*int, error) {
-	// Validate and parse the token
-	tokenData, err := ValidateAndParseToken(w, r)
-	// If error detected
-	if err != nil {
-		return nil, err
-	}
-	// Convert to int
-	userId, err := strconv.Atoi(tokenData.UserID)
-	if err != nil {
-		return nil, err
-	}
-
-	return &userId, nil
-}
-
-// Returns a string that is agnostic for test and production usage
-func buildPathToPolicyModel() string {
-	// generate path
-	dirPath, err := os.Getwd()
-	if err != nil {
-		log.Fatal("Could not get working directory")
-	}
-
-	// Split path to remove excess path when running tests
-	splitPath := strings.Split(dirPath, "internal")
-
-	// Grab initial part of path and join with path from project root directory
-	rbacModelPath := splitPath[0] + "/internal/auth/rbac_model.conf"
-	return rbacModelPath
-}
-
-// Returns a string that is agnostic for test and production usage
-func buildPathToDefaultPolicies() string {
-	// generate path
-	dirPath, err := os.Getwd()
-	if err != nil {
-		log.Fatal("Could not get working directory")
-	}
-
-	// Split path to remove excess path when running tests
-	splitPath := strings.Split(dirPath, "internal")
-
-	// Grab initial part of path and join with path from project root directory
-	rbacModelPath := splitPath[0] + "/internal/auth/rbac_policy.csv"
-	return rbacModelPath
 }

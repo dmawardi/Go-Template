@@ -25,7 +25,6 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 		if err != nil {
 			// Determine Redirect URL based on object
 			redirectURL := determineInvalidTokenRedirectURL(object)
-			fmt.Printf("Redirect URL: %s\n", redirectURL)
 			// If redirect URL is  empty
 			if redirectURL == "" {
 				http.Error(w, "Error parsing authentication token", http.StatusForbidden)
@@ -50,6 +49,7 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 	})
 }
 
+// Dependent on if in admin section or other section, redirect to home associated
 func determineInvalidTokenRedirectURL(object string) string {
 	// Split string
 	stringArray := strings.Split(object, "/")

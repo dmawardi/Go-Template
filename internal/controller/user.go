@@ -288,6 +288,7 @@ func (c userController) UpdateMyProfile(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		fmt.Println("Decoding error: ", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
 	}
 
 	// Validate the incoming DTO
@@ -303,13 +304,20 @@ func (c userController) UpdateMyProfile(w http.ResponseWriter, r *http.Request) 
 	// else, validation passes and allow through
 
 	// Extract the user's id from their authentication token
-	userId, err := auth.ExtractIdFromToken(w, r)
+	tokenData, err := auth.ValidateAndParseToken(w, r)
 	if err != nil {
 		http.Error(w, "Authentication Token not detected", http.StatusForbidden)
+		return
+	}
+	// Convert to int
+	userId, err := strconv.Atoi(tokenData.UserID)
+	if err != nil {
+		http.Error(w, "Authentication Token not detected", http.StatusForbidden)
+		return
 	}
 
 	// Update user
-	updated, createErr := c.service.Update(*userId, &toUpdate)
+	updated, createErr := c.service.Update(userId, &toUpdate)
 	if createErr != nil {
 		http.Error(w, fmt.Sprintf("Failed user update: %s", createErr), http.StatusBadRequest)
 		return
