@@ -26,6 +26,8 @@ type AdminBaseController interface {
 	ChangePassword(w http.ResponseWriter, r *http.Request)
 	// Change Password Success handler
 	ChangePasswordSuccess(w http.ResponseWriter, r *http.Request)
+	// Admin redirect handler
+	AdminRedirectBasedOnLoginStatus(w http.ResponseWriter, r *http.Request)
 }
 
 type adminBaseController struct {
@@ -256,6 +258,18 @@ func (c adminBaseController) ChangePassword(w http.ResponseWriter, r *http.Reque
 }
 func (c adminBaseController) ChangePasswordSuccess(w http.ResponseWriter, r *http.Request) {
 	serveAdminSuccess(w, "Change Password Success - Admin", "Change Password Success")
+}
+
+// Redirect
+func (c adminBaseController) AdminRedirectBasedOnLoginStatus(w http.ResponseWriter, r *http.Request) {
+	_, err := auth.ValidateAndParseToken(w, r)
+	if err != nil {
+		http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
+		return
+	} else {
+		http.Redirect(w, r, "/admin/home", http.StatusSeeOther)
+		return
+	}
 }
 
 // Form generators
