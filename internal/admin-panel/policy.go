@@ -86,19 +86,11 @@ func (c adminAuthPolicyController) FindAll(w http.ResponseWriter, r *http.Reques
 	searchQuery := r.URL.Query().Get("search")
 
 	// Find all policies from database
-	groupsSlice, err := c.service.FindAll()
+	groupsSlice, err := c.service.FindAll(searchQuery)
 	if err != nil {
 		http.Error(w, "Error finding data", http.StatusInternalServerError)
 		return
 	}
-	// Filter policies []map[string]interface{} by search query
-	groupsSlice = searchPoliciesByResource(groupsSlice, searchQuery)
-
-	// Sort by resource alphabetically
-	sort.Slice(groupsSlice, func(i, j int) bool {
-		// Give two items to compare to role resource alpha sorter
-		return helpers.SortMapStringInterfaceAlphabetically(groupsSlice[i], groupsSlice[j], "resource")
-	})
 
 	// Build the roles table data
 	tableData := BuildPolicyTableData(groupsSlice, c.adminHomeUrl, c.tableHeaders)
@@ -186,16 +178,13 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 
 	// If not POST, ie. GET
 	// Find all policies
-	found, err := c.service.FindAll()
+	found, err := c.service.FindByResource(policyUnslug)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("%s not found", c.schemaName), http.StatusNotFound)
+		http.Error(w, "Error finding data", http.StatusInternalServerError)
 		return
 	}
-
-	// Filter by search query
-	groupsSlice := searchPoliciesForExactResouceMatch(found, policyUnslug)
 	// Prepare policies for rendering
-	policies := buildEditPolicyTable(groupsSlice)
+	policies := buildEditPolicyTable(found)
 
 	// Init new role selector values
 	rolesCurrentlyInPolicy := c.formSelectors.RoleSelection()
@@ -466,7 +455,7 @@ func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter,
 		return
 	}
 	// // Filter by search query
-	inheritanceSlice = searchMapKeysFor(inheritanceSlice, []string{"inherits_from", "role"}, searchQuery)
+	inheritanceSlice = helpers.SearchMapKeysFor(inheritanceSlice, []string{"inherits_from", "role"}, searchQuery)
 
 	// Sort by resource alphabetically
 	sort.Slice(inheritanceSlice, func(i, j int) bool {
@@ -659,67 +648,6 @@ func (c adminAuthPolicyController) ObtainFields() BasicAdminController {
 }
 
 // Search helpers
-// Searches a list of policies for a given resource based on search term
-func searchPoliciesByResource(maps []map[string]interface{}, searchTerm string) []map[string]interface{} {
-	var result []map[string]interface{}
-
-	// Iterate through map of policies
-	for _, m := range maps {
-		// Grab resource
-		resource, ok := m["resource"].(string)
-		// If success and resource contains search term
-		if ok && helpers.ContainsString(resource, searchTerm) {
-			result = append(result, m)
-		}
-	}
-
-	return result
-}
-
-// Searches a list of maps for a given key based on search term
-func searchMapKeysFor(maps []map[string]string, mapKeysToSearch []string, searchTerm string) []map[string]string {
-	var result []map[string]string
-	// Init to record if already added to results
-	addedToResult := false
-
-	// Iterate through map of policies
-	for _, m := range maps {
-		// Reset added to result
-		addedToResult = false
-		// Iterate through list of keys to search for term
-		for _, keyToSearch := range mapKeysToSearch {
-			// Grab value
-			value, ok := m[keyToSearch]
-			// If success, and the record hasn't been added already and value contains search term
-			if ok && helpers.ContainsString(value, searchTerm) && !addedToResult {
-				// Append
-				result = append(result, m)
-				// Set added to true
-				addedToResult = true
-			}
-		}
-	}
-
-	return result
-}
-
-// Searches a list of policies for a given resource based on search term
-func searchPoliciesForExactResouceMatch(maps []map[string]interface{}, searchTerm string) []map[string]interface{} {
-	var result []map[string]interface{}
-
-	// Iterate through map of policies
-	for _, m := range maps {
-		// Grab resource
-		resource, ok := m["resource"].(string)
-		// If success and resource contains search term
-		if ok && resource == searchTerm {
-			result = append(result, m)
-		}
-	}
-
-	return result
-}
-
 // Convert the map received from the service to a slice of models.PolicyRule
 func buildEditPolicyTable(m []map[string]interface{}) []PolicyEditDataRow {
 	var policies []PolicyEditDataRow

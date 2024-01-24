@@ -2,14 +2,17 @@ package service
 
 import (
 	"fmt"
+	"sort"
 
+	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/repository"
 )
 
 type AuthPolicyService interface {
 	// Policies
-	FindAll() ([]map[string]interface{}, error)
+	FindAll(searchQuery string) ([]map[string]interface{}, error)
+	FindByResource(policyResource string) ([]map[string]interface{}, error)
 	Create(policy models.PolicyRule) error
 	Update(oldPolicy, newPolicy models.PolicyRule) error
 	Delete(policy models.PolicyRule) error
@@ -35,15 +38,40 @@ func NewAuthPolicyService(repo repository.AuthPolicyRepository) AuthPolicyServic
 // Policies
 //
 
-func (s *authPolicyService) FindAll() ([]map[string]interface{}, error) {
+func (s *authPolicyService) FindAll(searchQuery string) ([]map[string]interface{}, error) {
 	data, err := s.repo.FindAll()
 	if err != nil {
 		return nil, err
 	}
-	// Transform data
-	organizedData := transformDataToResponse(data)
 
-	return organizedData["policies"], nil
+	// Transform data for easier consumption
+	groupsSlice := transformDataToResponse(data)
+
+	if searchQuery != "" {
+		// Filter policies []map[string]interface{} by search query
+		groupsSlice = helpers.SearchPoliciesByResource(groupsSlice, searchQuery)
+	}
+
+	// Sort by resource alphabetically
+	sort.Slice(groupsSlice, func(i, j int) bool {
+		// Give two items to compare to role resource alpha sorter
+		return helpers.SortMapStringInterfaceAlphabetically(groupsSlice[i], groupsSlice[j], "resource")
+	})
+
+	return groupsSlice, nil
+}
+func (s *authPolicyService) FindByResource(policyResource string) ([]map[string]interface{}, error) {
+	data, err := s.repo.FindAll()
+	if err != nil {
+		return nil, err
+	}
+
+	// Transform data for easier consumption
+	organizedData := transformDataToResponse(data)
+	// Filter by search query
+	resourceMatchRecords := helpers.SearchPoliciesForExactResouceMatch(organizedData, policyResource)
+
+	return resourceMatchRecords, nil
 }
 func (s *authPolicyService) Create(policy models.PolicyRule) error {
 	casbinPolicy := models.CasbinRule{
@@ -128,7 +156,7 @@ func (s *authPolicyService) DeleteInheritance(inherit models.G2Record) error {
 }
 
 // Transform data from enforcer policies to User friendly response
-func transformDataToResponse(data [][]string) map[string][]map[string]interface{} {
+func transformDataToResponse(data [][]string) []map[string]interface{} {
 	// Response format
 	response := make(map[string][]map[string]interface{})
 	// Init policy dictionary for sorting
@@ -159,5 +187,5 @@ func transformDataToResponse(data [][]string) map[string][]map[string]interface{
 		response["policies"] = append(response["policies"], policy)
 	}
 
-	return response
+	return response["policies"]
 }

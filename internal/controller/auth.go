@@ -43,8 +43,10 @@ func NewAuthPolicyController(service service.AuthPolicyService) AuthPolicyContro
 // @Router       /policy [get]
 // @Security BearerToken
 func (c authPolicyController) FindAll(w http.ResponseWriter, r *http.Request) {
+	// Grab search query
+	searchQuery := r.URL.Query().Get("searchQuery")
 	// Find all
-	policies, err := c.service.FindAll()
+	policies, err := c.service.FindAll(searchQuery)
 	if err != nil {
 		http.Error(w, "Can't find policies", http.StatusBadRequest)
 		return
