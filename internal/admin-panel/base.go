@@ -90,7 +90,7 @@ func (c adminBaseController) Login(w http.ResponseWriter, r *http.Request) {
 			tokenString, err = c.service.LoginUser(&login)
 			if err == nil {
 				// Set token in cookie
-				createAndSetHeaderCookie(w, tokenString)
+				auth.CreateAndSetHeaderCookie(w, tokenString)
 
 				// Redirect or render a success message
 				http.Redirect(w, r, "/admin/home", http.StatusSeeOther)

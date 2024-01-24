@@ -278,3 +278,22 @@ func SetupDefaultCasbinPolicy(enforcer *casbin.Enforcer) {
 		}
 	}
 }
+
+// Used to set header in admin panel for SSR authentication
+// Create and set jwt token for SSR authentication
+func CreateAndSetHeaderCookie(w http.ResponseWriter, tokenString string) {
+	// Create the cookie
+	expire := time.Now().Add(24 * time.Hour)
+	cookie := http.Cookie{
+		Name: "jwt_token",
+		// Token string contians user info
+		Value:    tokenString,
+		Expires:  expire,
+		HttpOnly: true,
+		Secure:   true, // Set to false if not using HTTPS
+		Path:     "/",
+	}
+
+	// Set the cookie in the response header
+	http.SetCookie(w, &cookie)
+}

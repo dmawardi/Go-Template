@@ -53,63 +53,6 @@ func (c authPolicyController) FindAll(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteAsJSON(w, policies)
 }
 
-// Find a list of roles
-// @Summary      Find a list of roles
-// @Description  Returns list of roles
-// @Tags         Policy
-// @Accept       json
-// @Produce      json
-// @Success      200 {object} []string
-// @Failure      400 {string} string "Can't find roles"
-// @Router       /policy/roles [get]
-// @Security BearerToken
-func (c authPolicyController) FindAllRoles(w http.ResponseWriter, r *http.Request) {
-	// Find all roles
-	roles, err := c.service.FindAllRoles()
-	if err != nil {
-		http.Error(w, "Can't find roles", http.StatusBadRequest)
-		return
-	}
-	// Return posts
-	helpers.WriteAsJSON(w, roles)
-}
-
-func (c authPolicyController) AssignUserRole(w http.ResponseWriter, r *http.Request) {
-	// Grab request body as models.CasbinRule
-	var pol models.CasbinRoleAssignment
-	err := json.NewDecoder(r.Body).Decode(&pol)
-	if err != nil {
-		http.Error(w, "Invalid policy", http.StatusBadRequest)
-		return
-	}
-
-	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&pol)
-	// If failure detected
-	if !pass {
-		// Write bad request header
-		w.WriteHeader(http.StatusBadRequest)
-		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
-		return
-	}
-	// else, validation passes and allow through
-
-	success, err := c.service.AssignUserRole(pol.UserId, pol.Role)
-	if err != nil {
-		http.Error(w, "Can't assign user", http.StatusBadRequest)
-		return
-	}
-	if !*success {
-		http.Error(w, "Can't assign user", http.StatusBadRequest)
-		return
-	}
-
-	// Return success
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("User assigned role successfully!"))
-}
-
 // Delete a policy
 // @Summary      Delete a policy
 // @Description  Delete a specific policy using the current policy
@@ -222,4 +165,65 @@ func (c authPolicyController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Policy update successful!"))
+}
+
+// ROLES
+//
+
+// Find a list of roles
+// @Summary      Find a list of roles
+// @Description  Returns list of roles
+// @Tags         Policy
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} []string
+// @Failure      400 {string} string "Can't find roles"
+// @Router       /policy/roles [get]
+// @Security BearerToken
+func (c authPolicyController) FindAllRoles(w http.ResponseWriter, r *http.Request) {
+	// Find all roles
+	roles, err := c.service.FindAllRoles()
+	if err != nil {
+		http.Error(w, "Can't find roles", http.StatusBadRequest)
+		return
+	}
+	// Return posts
+	helpers.WriteAsJSON(w, roles)
+}
+
+// Assigns a role to a user or creates a new role for a user
+func (c authPolicyController) AssignUserRole(w http.ResponseWriter, r *http.Request) {
+	// Grab request body as models.CasbinRule
+	var pol models.CasbinRoleAssignment
+	err := json.NewDecoder(r.Body).Decode(&pol)
+	if err != nil {
+		http.Error(w, "Invalid policy", http.StatusBadRequest)
+		return
+	}
+
+	// Validate the incoming DTO
+	pass, valErrors := helpers.GoValidateStruct(&pol)
+	// If failure detected
+	if !pass {
+		// Write bad request header
+		w.WriteHeader(http.StatusBadRequest)
+		// Write validation errors to JSON
+		helpers.WriteAsJSON(w, valErrors)
+		return
+	}
+	// else, validation passes and allow through
+
+	success, err := c.service.AssignUserRole(pol.UserId, pol.Role)
+	if err != nil {
+		http.Error(w, "Can't assign user", http.StatusBadRequest)
+		return
+	}
+	if !*success {
+		http.Error(w, "Can't assign user", http.StatusBadRequest)
+		return
+	}
+
+	// Return success
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("User assigned role successfully!"))
 }

@@ -394,7 +394,7 @@ func (c adminUserController) BulkDelete(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Convert string slice to int slice
-	intIdList, err := convertStringSliceToIntSlice(listOfIds.SelectedItems)
+	intIdList, err := helpers.ConvertStringSliceToIntSlice(listOfIds.SelectedItems)
 	if err != nil {
 		bulkResponse.Errors = append(bulkResponse.Errors, err)
 		bulkResponse.Success = false

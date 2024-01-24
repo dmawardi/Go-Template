@@ -97,7 +97,7 @@ func (c adminAuthPolicyController) FindAll(w http.ResponseWriter, r *http.Reques
 	// Sort by resource alphabetically
 	sort.Slice(groupsSlice, func(i, j int) bool {
 		// Give two items to compare to role resource alpha sorter
-		return sortMapStringInterfaceAlphabetically(groupsSlice[i], groupsSlice[j], "resource")
+		return helpers.SortMapStringInterfaceAlphabetically(groupsSlice[i], groupsSlice[j], "resource")
 	})
 
 	// Build the roles table data
@@ -332,7 +332,7 @@ func (c adminAuthPolicyController) FindAllRoles(w http.ResponseWriter, r *http.R
 	filteredSlice := []string{}
 	// Iterate through roles slice and remove items that do not match search query
 	for _, role := range rolesSlice {
-		if containsString(role, searchQuery) {
+		if helpers.ContainsString(role, searchQuery) {
 			filteredSlice = append(filteredSlice, role)
 		}
 	}
@@ -471,7 +471,7 @@ func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter,
 	// Sort by resource alphabetically
 	sort.Slice(inheritanceSlice, func(i, j int) bool {
 		// Give two items to compare to alphabetic sorter
-		return sortMapStringStringAlphabetically(inheritanceSlice[i], inheritanceSlice[j], "role")
+		return helpers.SortMapStringStringAlphabetically(inheritanceSlice[i], inheritanceSlice[j], "role")
 	})
 
 	// // Build the roles table data
@@ -668,7 +668,7 @@ func searchPoliciesByResource(maps []map[string]interface{}, searchTerm string) 
 		// Grab resource
 		resource, ok := m["resource"].(string)
 		// If success and resource contains search term
-		if ok && containsString(resource, searchTerm) {
+		if ok && helpers.ContainsString(resource, searchTerm) {
 			result = append(result, m)
 		}
 	}
@@ -691,7 +691,7 @@ func searchMapKeysFor(maps []map[string]string, mapKeysToSearch []string, search
 			// Grab value
 			value, ok := m[keyToSearch]
 			// If success, and the record hasn't been added already and value contains search term
-			if ok && containsString(value, searchTerm) && !addedToResult {
+			if ok && helpers.ContainsString(value, searchTerm) && !addedToResult {
 				// Append
 				result = append(result, m)
 				// Set added to true
@@ -737,7 +737,7 @@ func buildEditPolicyTable(m []map[string]interface{}) []PolicyEditDataRow {
 			}
 
 			// Check if array contains a string
-			if arrayContainsString(policy["action"].([]string), action) {
+			if helpers.ArrayContainsString(policy["action"].([]string), action) {
 				actionToAdd.Granted = true
 			}
 
