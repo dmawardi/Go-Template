@@ -1,5 +1,7 @@
 package helpers
 
+import "strings"
+
 // Policy search helpers
 // Searches a list of policies for a given resource based on search term
 func SearchPoliciesByResource(maps []map[string]interface{}, searchTerm string) []map[string]interface{} {
@@ -60,4 +62,9 @@ func SearchPoliciesForExactResouceMatch(maps []map[string]interface{}, searchTer
 	}
 
 	return result
+}
+
+// Function to unslugify a resource name
+func UnslugifyResourceName(slugifiedResourceName string) string {
+	return strings.ReplaceAll(slugifiedResourceName, "-", "/")
 }

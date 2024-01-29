@@ -133,7 +133,7 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 	// Grab slug from URL
 	policySlug := chi.URLParam(r, "id")
 	// Unslug
-	policyUnslug := UnslugifyResourceName(policySlug)
+	policyUnslug := helpers.UnslugifyResourceName(policySlug)
 	// Detect request method
 	method := r.Method
 

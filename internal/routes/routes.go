@@ -133,14 +133,21 @@ func (a api) AddAuthRBACApiRoutes(router *chi.Mux) *chi.Mux {
 
 			// @tag.name Private routes
 			// @tag.description Protected routes
-			// Auth
+			// AUTH
+			//
+			// Policies
 			mux.Get("/api/auth", a.Policy.FindAll)
-			mux.Get("/api/auth/roles", a.Policy.FindAllRoles)
-			mux.Put("/api/auth/roles", a.Policy.AssignUserRole)
-
+			mux.Get("/api/auth/{policySlug}", a.Policy.FindByResource)
 			mux.Post("/api/auth", a.Policy.Create)
 			mux.Put("/api/auth", a.Policy.Update)
 			mux.Delete("/api/auth", a.Policy.Delete)
+			// Roles
+			mux.Get("/api/auth/roles", a.Policy.FindAllRoles)
+			mux.Put("/api/auth/roles", a.Policy.AssignUserRole)
+			// Inheritance
+			mux.Get("/api/auth/inheritance", a.Policy.FindAllRoleInheritance)
+			mux.Post("/api/auth/inheritance", a.Policy.CreateInheritance)
+			mux.Delete("/api/auth/inheritance", a.Policy.DeleteInheritance)
 		})
 
 	})

@@ -8,19 +8,23 @@ import (
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
+	"github.com/go-chi/chi"
 )
 
 type AuthPolicyController interface {
 	// Roles
-	// Find a list of available roles
 	FindAllRoles(w http.ResponseWriter, r *http.Request)
-	// Assigns a role to a user
 	AssignUserRole(w http.ResponseWriter, r *http.Request)
 	// Policies
 	FindAll(w http.ResponseWriter, r *http.Request)
+	FindByResource(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
 	Create(w http.ResponseWriter, r *http.Request)
 	Update(w http.ResponseWriter, r *http.Request)
+	// Inheritance
+	FindAllRoleInheritance(w http.ResponseWriter, r *http.Request)
+	CreateInheritance(w http.ResponseWriter, r *http.Request)
+	DeleteInheritance(w http.ResponseWriter, r *http.Request)
 }
 
 type authPolicyController struct {
@@ -32,12 +36,17 @@ func NewAuthPolicyController(service service.AuthPolicyService) AuthPolicyContro
 }
 
 // API/POLICY
+
+// POLICIES
+//
+
 // Find a list of policies
 // @Summary      Find a list of policies
 // @Description  Returns list of policies
 // @Tags         Policy
 // @Accept       json
 // @Produce      json
+// @Param        order   query      int  false  "order by"
 // @Success      200 {object} [][]string
 // @Failure      400 {string} string "Can't find policies"
 // @Router       /policy [get]
@@ -48,6 +57,33 @@ func (c authPolicyController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Find all
 	policies, err := c.service.FindAll(searchQuery)
 	if err != nil {
+		http.Error(w, "Can't find policies", http.StatusBadRequest)
+		return
+	}
+	// Return
+	helpers.WriteAsJSON(w, policies)
+}
+
+// @Summary      Find policies asssociated with a resource
+// @Description  Returns list of policies associated with a resource
+// @Tags         Policy
+// @Accept       json
+// @Produce      json
+// @Param        policy-slug   path      string  true  "Policy Slug"
+// @Success      200 {object} [][]string
+// @Failure      400 {string} string "Can't find policies"
+// @Router       /policy [get]
+// @Security BearerToken
+func (c authPolicyController) FindByResource(w http.ResponseWriter, r *http.Request) {
+	// Grab search query
+	policyResource := chi.URLParam(r, "policySlug")
+
+	// Unslugify
+	policyResource = helpers.UnslugifyResourceName(policyResource)
+
+	// Find all
+	policies, err := c.service.FindByResource(policyResource)
+	if err != nil || len(policies) == 0 {
 		http.Error(w, "Can't find policies", http.StatusBadRequest)
 		return
 	}
@@ -228,4 +264,82 @@ func (c authPolicyController) AssignUserRole(w http.ResponseWriter, r *http.Requ
 	// Return success
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("User assigned role successfully!"))
+}
+
+// INHERITANCE
+//
+
+func (c authPolicyController) FindAllRoleInheritance(w http.ResponseWriter, r *http.Request) {
+	// Find all roles
+	roles, err := c.service.FindAllRoleInheritance()
+	if err != nil {
+		http.Error(w, "Can't find roles", http.StatusBadRequest)
+		return
+	}
+	// Return posts
+	helpers.WriteAsJSON(w, roles)
+}
+
+func (c authPolicyController) CreateInheritance(w http.ResponseWriter, r *http.Request) {
+	// Grab request body as models.CasbinRule
+	var pol models.G2Record
+	err := json.NewDecoder(r.Body).Decode(&pol)
+	if err != nil {
+		http.Error(w, "Invalid policy", http.StatusBadRequest)
+		return
+	}
+
+	// Validate the incoming DTO
+	pass, valErrors := helpers.GoValidateStruct(&pol)
+	// If failure detected
+	if !pass {
+		// Write bad request header
+		w.WriteHeader(http.StatusBadRequest)
+		// Write validation errors to JSON
+		helpers.WriteAsJSON(w, valErrors)
+		return
+	}
+	// else, validation passes and allow through
+
+	err = c.service.CreateInheritance(pol)
+	if err != nil {
+		http.Error(w, "Can't create inheritance", http.StatusBadRequest)
+		return
+	}
+
+	// Return success
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte("Inheritance creation successful!"))
+}
+
+func (c authPolicyController) DeleteInheritance(w http.ResponseWriter, r *http.Request) {
+	// Grab request body as models.CasbinRule
+	var pol models.G2Record
+	err := json.NewDecoder(r.Body).Decode(&pol)
+	if err != nil {
+		http.Error(w, "Invalid policy", http.StatusBadRequest)
+		return
+	}
+
+	// Validate the incoming DTO
+	pass, valErrors := helpers.GoValidateStruct(&pol)
+	// If failure detected
+	if !pass {
+		// Write bad request header
+		w.WriteHeader(http.StatusBadRequest)
+		// Write validation errors to JSON
+		helpers.WriteAsJSON(w, valErrors)
+		return
+	}
+	// else, validation passes and allow through
+
+	err = c.service.DeleteInheritance(pol)
+	if err != nil {
+		http.Error(w, "Can't delete inheritance", http.StatusBadRequest)
+		return
+	}
+
+	// Return success
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Inheritance deletion successful!"))
 }
