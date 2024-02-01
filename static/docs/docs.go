@@ -39,7 +39,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "My Profile"
                 ],
                 "summary": "Get my user profile details",
                 "responses": {
@@ -77,7 +77,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "My Profile"
                 ],
                 "summary": "Update my profile",
                 "parameters": [
@@ -494,7 +494,7 @@ const docTemplate = `{
             }
         },
         "/users/forgot-password": {
-            "get": {
+            "post": {
                 "description": "Reset password",
                 "consumes": [
                     "application/json"
@@ -503,7 +503,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Login"
                 ],
                 "summary": "Reset password",
                 "parameters": [
@@ -587,6 +587,11 @@ const docTemplate = `{
         },
         "/users/send-verification-email": {
             "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
                 "description": "Send Verification Email",
                 "consumes": [
                     "application/json"
@@ -595,20 +600,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Login"
                 ],
                 "summary": "Send Verification Email",
-                "parameters": [
-                    {
-                        "description": "Email",
-                        "name": "email",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Email sent successfully",
@@ -641,7 +635,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Login"
                 ],
                 "summary": "Email Verification",
                 "parameters": [

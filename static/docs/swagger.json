@@ -33,7 +33,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "My Profile"
                 ],
                 "summary": "Get my user profile details",
                 "responses": {
@@ -71,7 +71,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "My Profile"
                 ],
                 "summary": "Update my profile",
                 "parameters": [
@@ -488,7 +488,7 @@
             }
         },
         "/users/forgot-password": {
-            "get": {
+            "post": {
                 "description": "Reset password",
                 "consumes": [
                     "application/json"
@@ -497,7 +497,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Login"
                 ],
                 "summary": "Reset password",
                 "parameters": [
@@ -581,6 +581,11 @@
         },
         "/users/send-verification-email": {
             "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
                 "description": "Send Verification Email",
                 "consumes": [
                     "application/json"
@@ -589,20 +594,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Login"
                 ],
                 "summary": "Send Verification Email",
-                "parameters": [
-                    {
-                        "description": "Email",
-                        "name": "email",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Email sent successfully",
@@ -635,7 +629,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "User"
+                    "Login"
                 ],
                 "summary": "Email Verification",
                 "parameters": [

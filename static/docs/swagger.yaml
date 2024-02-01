@@ -230,7 +230,7 @@ paths:
       - BearerToken: []
       summary: Get my user profile details
       tags:
-      - User
+      - My Profile
     put:
       consumes:
       - application/json
@@ -261,7 +261,7 @@ paths:
       - BearerToken: []
       summary: Update my profile
       tags:
-      - User
+      - My Profile
   /posts:
     get:
       consumes:
@@ -599,7 +599,7 @@ paths:
       tags:
       - User
   /users/forgot-password:
-    get:
+    post:
       consumes:
       - application/json
       description: Reset password
@@ -623,7 +623,7 @@ paths:
             $ref: '#/definitions/models.ValidationError'
       summary: Reset password
       tags:
-      - User
+      - Login
   /users/login:
     post:
       consumes:
@@ -663,13 +663,6 @@ paths:
       consumes:
       - application/json
       description: Send Verification Email
-      parameters:
-      - description: Email
-        in: body
-        name: email
-        required: true
-        schema:
-          type: string
       produces:
       - application/json
       responses:
@@ -685,9 +678,11 @@ paths:
           description: Email already verified
           schema:
             type: string
+      security:
+      - BearerToken: []
       summary: Send Verification Email
       tags:
-      - User
+      - Login
   /users/verify-email/{token}:
     get:
       consumes:
@@ -716,7 +711,7 @@ paths:
             type: string
       summary: Email Verification
       tags:
-      - User
+      - Login
 securityDefinitions:
   BearerToken:
     in: header

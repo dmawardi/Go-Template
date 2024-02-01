@@ -274,7 +274,7 @@ func (c userController) Delete(w http.ResponseWriter, r *http.Request) {
 //
 // @Summary      Update my profile
 // @Description  Updates the currently logged in user
-// @Tags         User
+// @Tags         My Profile
 // @Accept       json
 // @Produce      json
 // @Param        user body models.UpdateUser true "Update User"
@@ -295,6 +295,8 @@ func (c userController) UpdateMyProfile(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
+
+	toUpdate.Role = "" // Prevent role from being updated
 
 	// Validate the incoming DTO
 	pass, valErrors := helpers.GoValidateStruct(&toUpdate)
@@ -338,7 +340,7 @@ func (c userController) UpdateMyProfile(w http.ResponseWriter, r *http.Request) 
 // Detail to display a user's profile details
 // @Summary      Get my user profile details
 // @Description  Return my user details
-// @Tags         User
+// @Tags         My Profile
 // @Accept       json
 // @Produce      json
 // @Success      200 {object} models.UserWithRole
@@ -435,7 +437,7 @@ func (c userController) Login(w http.ResponseWriter, r *http.Request) {
 // Handler to reset password
 // @Summary      Reset password
 // @Description  Reset password
-// @Tags         User
+// @Tags         Login
 // @Accept       json
 // @Produce      json
 // @Param        email body models.ResetPasswordAndEmailVerification true "Reset Password Form"
@@ -478,7 +480,7 @@ func (c userController) ResetPassword(w http.ResponseWriter, r *http.Request) {
 // Email Verification
 // @Summary      Email Verification
 // @Description  Email Verification
-// @Tags         User
+// @Tags         Login
 // @Accept       json
 // @Produce      json
 // @Param		token path string true "Token"
@@ -511,16 +513,16 @@ func (c userController) EmailVerification(w http.ResponseWriter, r *http.Request
 // Send Verification Email
 // @Summary      Send Verification Email
 // @Description  Send Verification Email
-// @Tags         User
+// @Tags         Login
 // @Accept       json
 // @Produce      json
-// @Param        email body models.ResetPasswordAndEmailVerification true "Email"
 // @Success      200 {string} string "Email sent successfully"
 // @Failure      401 {string} string "Invalid email"
 // @Failure      401 {string} string "Email already verified"
 // @Failure      400 {string} string "Verification request failed"
 // @Failure      400 {object} models.ValidationError "Validation Errors"
 // @Router       /users/send-verification-email [post]
+// @Security BearerToken
 func (c userController) ResendVerificationEmail(w http.ResponseWriter, r *http.Request) {
 	tokenData, err := auth.ValidateAndParseToken(w, r)
 	if err != nil {
