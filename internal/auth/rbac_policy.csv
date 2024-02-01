@@ -2,6 +2,8 @@
 p,user,/api/me,read
 p,user,/api/me,update
 p,user,/api/posts,read
+# Email Verification
+p,user,/api/users/send-verification-email,create
 
 # Moderator Policies
 p,moderator,/api/users,read

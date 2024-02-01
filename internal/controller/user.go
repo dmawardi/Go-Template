@@ -54,20 +54,24 @@ func UserConditionQueryParams() map[string]string {
 // API/USERS
 // Find a list of users
 // @Summary      Find a list of users
-// @Description  Accepts limit, offset, order, search and field_name query parameters to find a list of users. Search is applied to all string fields.
+// @Description  Accepts limit, offset, order, search and field names (eg. email=) query parameters to find a list of users. Search is applied to all string fields.
 // @Tags         User
 // @Accept       json
 // @Produce      json
 // @Param        limit   query      int  true  "limit"
 // @Param        offset   query      int  false  "offset"
 // @Param        order   query      int  false  "order by eg. (asc) "id" (desc) "id_desc" )"
-// @Param        search   query      int  false  "search (added to all string conditions as LIKE SQL search)"
-// @Param        field_name   query      int  false  "Add any field name currently in the queried table with a value to add specific condition"
-// @Success      200 {object} []models.PaginatedUsers
+// @Param        search   query      string  false  "search (added to all string conditions as LIKE SQL search)"
+// @Param        email query string false "email"
+// @Param        name query string false "name"
+// @Param        username query string false "username"
+// @Param        verified query bool false "verified"
+// @Param        role query string false "role"
+// @Success      200 {object} models.PaginatedUsersWithRole
 // @Failure      400 {string} string "Can't find users"
 // @Failure      400 {string} string "Must include limit parameter with a max value of 50"
 // @Failure      400 {string} string "Error extracting query params"
-// @Router       /users/{id} [get]
+// @Router       /users [get]
 // @Security BearerToken
 func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab basic query params
@@ -113,7 +117,7 @@ func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "User ID"
-// @Success      200 {object} models.CreatedUser
+// @Success      200 {object} models.UserWithRole
 // @Failure      400 {string} string "Can't find user"
 // @Router       /users/{id} [get]
 // @Security BearerToken
@@ -145,8 +149,9 @@ func (c userController) Find(w http.ResponseWriter, r *http.Request) {
 // @Tags         User
 // @Accept       json
 // @Produce      plain
-// @Param        user body models.CreateUser true "NewUserJson"
+// @Param        user body models.CreateUser true "New User"
 // @Success      201 {string} string "User creation successful!"
+// @Failure      400 {object} models.ValidationError "Validation Errors"
 // @Failure      400 {string} string "User creation failed."
 // @Router       /users [post]
 func (c userController) Create(w http.ResponseWriter, r *http.Request) {
@@ -189,9 +194,10 @@ func (c userController) Create(w http.ResponseWriter, r *http.Request) {
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        user body models.UpdateUser true "Update User Json"
+// @Param        user body models.UpdateUser true "Update User"
 // @Param        id   path      int  true  "User ID"
 // @Success      200 {object} models.UpdatedUser
+// @Failure      400 {object} models.ValidationError "Validation Errors"
 // @Failure      400 {string} string "Failed user update"
 // @Failure      403 {string} string "Authentication Token not detected"
 // @Router       /users/{id} [put]
@@ -238,7 +244,7 @@ func (c userController) Update(w http.ResponseWriter, r *http.Request) {
 // Delete user (using URL parameter id)
 // @Summary      Delete User
 // @Description  Deletes an existing user
-// @Tags         Admin
+// @Tags         User
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "User ID"
@@ -266,19 +272,18 @@ func (c userController) Delete(w http.ResponseWriter, r *http.Request) {
 
 // API/ME
 //
-// Update the user's profile (using id from bearer token)
 // @Summary      Update my profile
 // @Description  Updates the currently logged in user
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        user body models.UpdateUser true "Update User Json"
-// @Param        id   path      int  true  "User ID"
-// @Success      200 {object} models.PartialUser
+// @Param        user body models.UpdateUser true "Update User"
+// @Success      200 {object} models.UserWithRole
+// @Failure      400 {object} models.ValidationError "Validation Errors"
 // @Failure      400 {string} string "Failed user update"
 // @Failure      403 {string} string "Authentication Token not detected"
 // @Failure      400 {string} string "Bad request"
-// @Router       /user/{id} [put]
+// @Router       /me [put]
 // @Security BearerToken
 func (c userController) UpdateMyProfile(w http.ResponseWriter, r *http.Request) {
 	// grab id parameter
@@ -336,8 +341,9 @@ func (c userController) UpdateMyProfile(w http.ResponseWriter, r *http.Request) 
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Success      200 {object} db.User
+// @Success      200 {object} models.UserWithRole
 // @Failure      400 {string} string "Can't find user details"
+// @Failure      403 {string} string "Error parsing authentication token"
 // @Router       /me [get]
 // @Security BearerToken
 func (c userController) GetMyUserDetails(w http.ResponseWriter, r *http.Request) {
@@ -380,11 +386,12 @@ func (c userController) GetMyUserDetails(w http.ResponseWriter, r *http.Request)
 // @Tags         Login
 // @Accept       json
 // @Produce      json
-// @Param        user body models.Login true "Login JSON"
+// @Param        user body models.Login true "Login Form"
 // @Success      200 {object} models.LoginResponse
+// @Failure      400 {object} models.ValidationError "Validation Errors"
 // @Failure      401 {string} string "Invalid Credentials"
 // @Failure      405 {string} string "Method not supported"
-// @Router       /user/login [post]
+// @Router       /users/login [post]
 func (c userController) Login(w http.ResponseWriter, r *http.Request) {
 	// Deny any request that is not a post
 	if r.Method != "POST" {
@@ -431,10 +438,11 @@ func (c userController) Login(w http.ResponseWriter, r *http.Request) {
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        email body string true "Email"
+// @Param        email body models.ResetPasswordAndEmailVerification true "Reset Password Form"
 // @Success      200 {string} string "Password reset request successful!"
 // @Failure      400 {string} string "Password reset request failed"
-// @Router       /user/reset [post]
+// @Failure      400 {object} models.ValidationError "Validation Errors"
+// @Router       /users/forgot-password [post]
 func (c userController) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	// Grab email from request body
 	var resetPassword models.ResetPasswordAndEmailVerification
@@ -477,7 +485,7 @@ func (c userController) ResetPassword(w http.ResponseWriter, r *http.Request) {
 // @Success      200 {string} string "Email verified successfully"
 // @Failure      400 {string} string "Token is required"
 // @Failure      401 {string} string "Invalid or expired token"
-// EmailVerification is the HTTP handler for the email verification endpoint
+// @Router       /users/verify-email/{token} [get]
 func (c userController) EmailVerification(w http.ResponseWriter, r *http.Request) {
 	// The token is expected to be in the query string, e.g., /verify-email?token=12345
 	token := chi.URLParam(r, "token")
@@ -506,36 +514,22 @@ func (c userController) EmailVerification(w http.ResponseWriter, r *http.Request
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        email body string true "Email"
+// @Param        email body models.ResetPasswordAndEmailVerification true "Email"
 // @Success      200 {string} string "Email sent successfully"
-// @Failure      400 {string} string "Email is required"
 // @Failure      401 {string} string "Invalid email"
 // @Failure      401 {string} string "Email already verified"
-// EmailVerification is the HTTP handler for the email verification endpoint
+// @Failure      400 {string} string "Verification request failed"
+// @Failure      400 {object} models.ValidationError "Validation Errors"
+// @Router       /users/send-verification-email [post]
 func (c userController) ResendVerificationEmail(w http.ResponseWriter, r *http.Request) {
-	// Grab email from request body
-	var verifyEmail models.ResetPasswordAndEmailVerification
-	// Decode request body as JSON and store in login
-	err := json.NewDecoder(r.Body).Decode(&verifyEmail)
+	tokenData, err := auth.ValidateAndParseToken(w, r)
 	if err != nil {
-		fmt.Println("Decoding error: ", err)
-		http.Error(w, "Password reset request failed", http.StatusBadRequest)
-		return
-	}
-
-	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&verifyEmail)
-	// If failure detected
-	if !pass {
-		// Write bad request header
-		w.WriteHeader(http.StatusBadRequest)
-		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
+		http.Error(w, "Authentication Token not detected", http.StatusForbidden)
 		return
 	}
 
 	// If validation passes
-	found, err := c.service.FindByEmail(verifyEmail.Email)
+	found, err := c.service.FindByEmail(tokenData.Email)
 	if err != nil {
 		http.Error(w, "Invalid email", http.StatusUnauthorized)
 		return

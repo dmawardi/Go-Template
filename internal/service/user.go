@@ -373,10 +373,10 @@ func (s *userService) ResendEmailVerification(id int) error {
 	if err != nil {
 		return err
 	}
-	// Build data for email template
-	baseUrl := fmt.Sprintf("%s:%s", os.Getenv("SERVER_BASE_URL"), os.Getenv("SERVER_PORT"))
+	// Build data for email template (SERVER_PORT prefixed with :)
+	baseUrl := fmt.Sprintf("%s%s", os.Getenv("SERVER_BASE_URL"), os.Getenv("SERVER_PORT"))
 	// Build URL for verification
-	tokenUrl := template.URL("http://" + baseUrl + "/api/users/verify-email/token=" + tokenCode)
+	tokenUrl := template.URL("http://" + baseUrl + "/api/users/verify-email/" + tokenCode)
 	data := struct {
 		Name     string
 		TokenUrl template.URL

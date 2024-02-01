@@ -40,17 +40,6 @@ func NewAuthPolicyController(service service.AuthPolicyService) AuthPolicyContro
 // POLICIES
 //
 
-// Find a list of policies
-// @Summary      Find a list of policies
-// @Description  Returns list of policies
-// @Tags         Policy
-// @Accept       json
-// @Produce      json
-// @Param        order   query      int  false  "order by"
-// @Success      200 {object} [][]string
-// @Failure      400 {string} string "Can't find policies"
-// @Router       /policy [get]
-// @Security BearerToken
 func (c authPolicyController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab search query
 	searchQuery := r.URL.Query().Get("searchQuery")
@@ -64,19 +53,9 @@ func (c authPolicyController) FindAll(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteAsJSON(w, policies)
 }
 
-// @Summary      Find policies asssociated with a resource
-// @Description  Returns list of policies associated with a resource
-// @Tags         Policy
-// @Accept       json
-// @Produce      json
-// @Param        policy-slug   path      string  true  "Policy Slug"
-// @Success      200 {object} [][]string
-// @Failure      400 {string} string "Can't find policies"
-// @Router       /policy [get]
-// @Security BearerToken
 func (c authPolicyController) FindByResource(w http.ResponseWriter, r *http.Request) {
 	// Grab search query
-	policyResource := chi.URLParam(r, "policySlug")
+	policyResource := chi.URLParam(r, "policy-slug")
 
 	// Unslugify
 	policyResource = helpers.UnslugifyResourceName(policyResource)
@@ -84,23 +63,13 @@ func (c authPolicyController) FindByResource(w http.ResponseWriter, r *http.Requ
 	// Find all
 	policies, err := c.service.FindByResource(policyResource)
 	if err != nil || len(policies) == 0 {
-		http.Error(w, "Can't find policies", http.StatusBadRequest)
+		http.Error(w, "Can't find policies for resource", http.StatusBadRequest)
 		return
 	}
 	// Return
 	helpers.WriteAsJSON(w, policies)
 }
 
-// Delete a policy
-// @Summary      Delete a policy
-// @Description  Delete a specific policy using the current policy
-// @Tags         Policy
-// @Accept       json
-// @Produce      json
-// @Success      200 {object} []string
-// @Failure      400 {string} string "Can't delete policy"
-// @Router       /policy [delete]
-// @Security BearerToken
 func (c authPolicyController) Delete(w http.ResponseWriter, r *http.Request) {
 	// Grab request body as models.CasbinRule
 	var pol models.PolicyRule
@@ -121,16 +90,6 @@ func (c authPolicyController) Delete(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Policy deletion successful!"))
 }
 
-// Create a policy
-// @Summary      Create a policy
-// @Description  Create a specific policy using the current policy
-// @Tags         Policy
-// @Accept       json
-// @Produce      json
-// @Success      200 {object} string "Policy creation successful!"
-// @Failure      400 {string} string "Can't create policy"
-// @Router       /policy [post]
-// @Security BearerToken
 func (c authPolicyController) Create(w http.ResponseWriter, r *http.Request) {
 	// Grab request body as models.CasbinRule
 	var pol models.PolicyRule
@@ -164,16 +123,6 @@ func (c authPolicyController) Create(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Policy creation successful!"))
 }
 
-// Update a policy
-// @Summary      Update a policy
-// @Description  Update a specific policy using the current policy
-// @Tags         Policy
-// @Accept       json
-// @Produce      json
-// @Success      200 {object} string "Policy update successful!"
-// @Failure      400 {string} string "Can't update policy"
-// @Router       /policy [put]
-// @Security BearerToken
 func (c authPolicyController) Update(w http.ResponseWriter, r *http.Request) {
 	// Grab request body as models.CasbinRule
 	var pol models.UpdateCasbinRule
@@ -208,16 +157,6 @@ func (c authPolicyController) Update(w http.ResponseWriter, r *http.Request) {
 // ROLES
 //
 
-// Find a list of roles
-// @Summary      Find a list of roles
-// @Description  Returns list of roles
-// @Tags         Policy
-// @Accept       json
-// @Produce      json
-// @Success      200 {object} []string
-// @Failure      400 {string} string "Can't find roles"
-// @Router       /policy/roles [get]
-// @Security BearerToken
 func (c authPolicyController) FindAllRoles(w http.ResponseWriter, r *http.Request) {
 	// Find all roles
 	roles, err := c.service.FindAllRoles()
@@ -229,7 +168,6 @@ func (c authPolicyController) FindAllRoles(w http.ResponseWriter, r *http.Reques
 	helpers.WriteAsJSON(w, roles)
 }
 
-// Assigns a role to a user or creates a new role for a user
 func (c authPolicyController) AssignUserRole(w http.ResponseWriter, r *http.Request) {
 	// Grab request body as models.CasbinRule
 	var pol models.CasbinRoleAssignment

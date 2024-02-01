@@ -38,19 +38,22 @@ func PostConditionQueryParams() map[string]string {
 }
 
 // API/POSTS
-// Find a list of posts
-// @Summary      Find a list of posts
+// @Summary      Finds a list of posts
 // @Description  Accepts limit, offset, and order params and returns list of posts
 // @Tags         Post
 // @Accept       json
 // @Produce      json
 // @Param        limit   query      int  true  "limit"
 // @Param        offset   query      int  false  "offset"
-// @Param        order   query      int  false  "order by"
-// @Success      200 {object} []models.PaginatedPosts
+// @Param        order   query      int  false  "order by eg. (asc) "id" (desc) "id_desc" )"
+// @Param        search   query      string  false  "search (added to all string conditions as LIKE SQL search)"
+// @Param        title   query      string  false  "title"
+// @Param        body   query      string  false  "body"
+// @Success      200 {object} models.PaginatedPosts
 // @Failure      400 {string} string "Can't find posts"
 // @Failure      400 {string} string "Must include limit parameter with a max value of 50"
-// @Router       /posts/{id} [get]
+// @Failure 	400 {string} string "Error extracting query params"
+// @Router       /posts [get]
 // @Security BearerToken
 func (c postController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab basic query params
@@ -89,7 +92,6 @@ func (c postController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Find a created post
 // @Summary      Find post
 // @Description  Find a post by ID
 // @Tags         Post
@@ -97,7 +99,7 @@ func (c postController) FindAll(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        id   path      int  true  "Post ID"
 // @Success      200 {object} db.Post
-// @Failure      400 {string} string "Can't find post"
+// @Failure      400 {string} string "Can't find post with ID: {id}"
 // @Router       /posts/{id} [get]
 // @Security BearerToken
 func (c postController) Find(w http.ResponseWriter, r *http.Request) {
@@ -122,7 +124,6 @@ func (c postController) Find(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Create a new post
 // @Summary      Create Post
 // @Description  Creates a new post
 // @Tags         Post
@@ -166,7 +167,6 @@ func (c postController) Create(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Post creation successful!"))
 }
 
-// Update a post (using URL parameter id)
 // @Summary      Update Post
 // @Description  Updates an existing post
 // @Tags         Post
@@ -175,6 +175,7 @@ func (c postController) Create(w http.ResponseWriter, r *http.Request) {
 // @Param        post body models.UpdatePost true "Update Post Json"
 // @Param        id   path      int  true  "User ID"
 // @Success      200 {object} db.Post
+// @Failure      400 {object} models.ValidationError "Validation Errors"
 // @Failure      400 {string} string "Failed post update"
 // @Failure      403 {string} string "Authentication Token not detected"
 // @Router       /posts/{id} [put]
@@ -218,10 +219,9 @@ func (c postController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Delete post (using URL parameter id)
 // @Summary      Delete Post
 // @Description  Deletes an existing post
-// @Tags         Admin
+// @Tags         Post
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "Post ID"

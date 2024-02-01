@@ -93,7 +93,6 @@ func (a api) AddUserApiRoutes(router *chi.Mux) *chi.Mux {
 		mux.Post("/api/users/forgot-password", a.User.ResetPassword)
 		// Verify Email
 		mux.Get("/api/users/verify-email/{token}", a.User.EmailVerification)
-		mux.Post("/api/users/send-verification-email", a.User.ResendVerificationEmail)
 
 		// Create new user
 		mux.Post("/api/users", a.User.Create)
@@ -114,6 +113,10 @@ func (a api) AddUserApiRoutes(router *chi.Mux) *chi.Mux {
 			mux.Get("/api/me", a.User.GetMyUserDetails)
 			mux.Post("/api/me", controller.HealthCheck)
 			mux.Put("/api/me", a.User.UpdateMyProfile)
+
+			// Email verification
+			mux.Post("/api/users/send-verification-email", a.User.ResendVerificationEmail)
+
 		})
 
 	})
@@ -137,7 +140,7 @@ func (a api) AddAuthRBACApiRoutes(router *chi.Mux) *chi.Mux {
 			//
 			// Policies
 			mux.Get("/api/auth", a.Policy.FindAll)
-			mux.Get("/api/auth/{policySlug}", a.Policy.FindByResource)
+			mux.Get("/api/auth/{policy-slug}", a.Policy.FindByResource)
 			mux.Post("/api/auth", a.Policy.Create)
 			mux.Put("/api/auth", a.Policy.Update)
 			mux.Delete("/api/auth", a.Policy.Delete)

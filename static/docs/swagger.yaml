@@ -81,27 +81,6 @@ definitions:
       verified:
         type: boolean
     type: object
-  models.CreatedUser:
-    properties:
-      created_at:
-        type: string
-      deleted_at:
-        $ref: '#/definitions/gorm.DeletedAt'
-      email:
-        type: string
-      id:
-        type: integer
-      name:
-        type: string
-      password:
-        type: string
-      role:
-        type: string
-      updated_at:
-        type: string
-      username:
-        type: string
-    type: object
   models.Login:
     properties:
       email:
@@ -122,26 +101,18 @@ definitions:
         type: array
       meta: {}
     type: object
-  models.PaginatedUsers:
+  models.PaginatedUsersWithRole:
     properties:
       data:
         items:
-          $ref: '#/definitions/db.User'
+          $ref: '#/definitions/models.UserWithRole'
         type: array
       meta: {}
     type: object
-  models.PartialUser:
+  models.ResetPasswordAndEmailVerification:
     properties:
       email:
         type: string
-      name:
-        type: string
-      role:
-        type: string
-      username:
-        type: string
-      verified:
-        type: boolean
     type: object
   models.UpdatePost:
     properties:
@@ -186,6 +157,41 @@ definitions:
       username:
         type: string
     type: object
+  models.UserWithRole:
+    properties:
+      created_at:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      role:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+      verification_code:
+        type: string
+      verification_code_expiry:
+        type: string
+      verified:
+        description: Verification
+        type: boolean
+    type: object
+  models.ValidationError:
+    properties:
+      validation_errors:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -211,9 +217,13 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/db.User'
+            $ref: '#/definitions/models.UserWithRole'
         "400":
           description: Can't find user details
+          schema:
+            type: string
+        "403":
+          description: Error parsing authentication token
           schema:
             type: string
       security:
@@ -221,117 +231,84 @@ paths:
       summary: Get my user profile details
       tags:
       - User
-  /policy:
-    delete:
-      consumes:
-      - application/json
-      description: Delete a specific policy using the current policy
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              type: string
-            type: array
-        "400":
-          description: Can't delete policy
-          schema:
-            type: string
-      security:
-      - BearerToken: []
-      summary: Delete a policy
-      tags:
-      - Policy
-    get:
-      consumes:
-      - application/json
-      description: Returns list of policies
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              items:
-                type: string
-              type: array
-            type: array
-        "400":
-          description: Can't find policies
-          schema:
-            type: string
-      security:
-      - BearerToken: []
-      summary: Find a list of policies
-      tags:
-      - Policy
-    post:
-      consumes:
-      - application/json
-      description: Create a specific policy using the current policy
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Policy creation successful!
-          schema:
-            type: string
-        "400":
-          description: Can't create policy
-          schema:
-            type: string
-      security:
-      - BearerToken: []
-      summary: Create a policy
-      tags:
-      - Policy
     put:
       consumes:
       - application/json
-      description: Update a specific policy using the current policy
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Policy update successful!
-          schema:
-            type: string
-        "400":
-          description: Can't update policy
-          schema:
-            type: string
-      security:
-      - BearerToken: []
-      summary: Update a policy
-      tags:
-      - Policy
-  /policy/roles:
-    get:
-      consumes:
-      - application/json
-      description: Returns list of roles
+      description: Updates the currently logged in user
+      parameters:
+      - description: Update User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUser'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              type: string
-            type: array
+            $ref: '#/definitions/models.UserWithRole'
         "400":
-          description: Can't find roles
+          description: Bad request
+          schema:
+            type: string
+        "403":
+          description: Authentication Token not detected
           schema:
             type: string
       security:
       - BearerToken: []
-      summary: Find a list of roles
+      summary: Update my profile
       tags:
-      - Policy
+      - User
   /posts:
+    get:
+      consumes:
+      - application/json
+      description: Accepts limit, offset, and order params and returns list of posts
+      parameters:
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: offset
+        in: query
+        name: offset
+        type: integer
+      - description: 'order by eg. (asc) '
+        in: query
+        name: order
+        type: integer
+      - description: search (added to all string conditions as LIKE SQL search)
+        in: query
+        name: search
+        type: string
+      - description: title
+        in: query
+        name: title
+        type: string
+      - description: body
+        in: query
+        name: body
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedPosts'
+        "400":
+          description: Error extracting query params
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Finds a list of posts
+      tags:
+      - Post
     post:
       consumes:
       - application/json
@@ -383,7 +360,7 @@ paths:
       - BearerToken: []
       summary: Delete Post
       tags:
-      - Admin
+      - Post
     get:
       consumes:
       - application/json
@@ -402,7 +379,7 @@ paths:
           schema:
             $ref: '#/definitions/db.Post'
         "400":
-          description: Can't find post
+          description: 'Can''t find post with ID: {id}'
           schema:
             type: string
       security:
@@ -446,106 +423,73 @@ paths:
       summary: Update Post
       tags:
       - Post
-  /user/{id}:
-    put:
+  /users:
+    get:
       consumes:
       - application/json
-      description: Updates the currently logged in user
+      description: Accepts limit, offset, order, search and field names (eg. email=)
+        query parameters to find a list of users. Search is applied to all string
+        fields.
       parameters:
-      - description: Update User Json
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/models.UpdateUser'
-      - description: User ID
-        in: path
-        name: id
+      - description: limit
+        in: query
+        name: limit
         required: true
         type: integer
+      - description: offset
+        in: query
+        name: offset
+        type: integer
+      - description: 'order by eg. (asc) '
+        in: query
+        name: order
+        type: integer
+      - description: search (added to all string conditions as LIKE SQL search)
+        in: query
+        name: search
+        type: string
+      - description: email
+        in: query
+        name: email
+        type: string
+      - description: name
+        in: query
+        name: name
+        type: string
+      - description: username
+        in: query
+        name: username
+        type: string
+      - description: verified
+        in: query
+        name: verified
+        type: boolean
+      - description: role
+        in: query
+        name: role
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.PartialUser'
+            $ref: '#/definitions/models.PaginatedUsersWithRole'
         "400":
-          description: Bad request
-          schema:
-            type: string
-        "403":
-          description: Authentication Token not detected
+          description: Error extracting query params
           schema:
             type: string
       security:
       - BearerToken: []
-      summary: Update my profile
+      summary: Find a list of users
       tags:
       - User
-  /user/login:
-    post:
-      consumes:
-      - application/json
-      description: Log in to user account
-      parameters:
-      - description: Login JSON
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/models.Login'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.LoginResponse'
-        "401":
-          description: Invalid Credentials
-          schema:
-            type: string
-        "405":
-          description: Method not supported
-          schema:
-            type: string
-      summary: Login
-      tags:
-      - Login
-  /user/reset:
-    post:
-      consumes:
-      - application/json
-      description: Reset password
-      parameters:
-      - description: Email
-        in: body
-        name: email
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Password reset request successful!
-          schema:
-            type: string
-        "400":
-          description: Password reset request failed
-          schema:
-            type: string
-      summary: Reset password
-      tags:
-      - User
-  /users:
     post:
       consumes:
       - application/json
       description: Creates a new user
       parameters:
-      - description: NewUserJson
+      - description: New User
         in: body
         name: user
         required: true
@@ -591,7 +535,7 @@ paths:
       - BearerToken: []
       summary: Delete User
       tags:
-      - Admin
+      - User
     get:
       consumes:
       - application/json
@@ -608,7 +552,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.CreatedUser'
+            $ref: '#/definitions/models.UserWithRole'
         "400":
           description: Can't find user
           schema:
@@ -623,7 +567,7 @@ paths:
       - application/json
       description: Updates an existing user
       parameters:
-      - description: Update User Json
+      - description: Update User
         in: body
         name: user
         required: true
@@ -652,6 +596,125 @@ paths:
       security:
       - BearerToken: []
       summary: Update User
+      tags:
+      - User
+  /users/forgot-password:
+    get:
+      consumes:
+      - application/json
+      description: Reset password
+      parameters:
+      - description: Reset Password Form
+        in: body
+        name: email
+        required: true
+        schema:
+          $ref: '#/definitions/models.ResetPasswordAndEmailVerification'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset request successful!
+          schema:
+            type: string
+        "400":
+          description: Validation Errors
+          schema:
+            $ref: '#/definitions/models.ValidationError'
+      summary: Reset password
+      tags:
+      - User
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Log in to user account
+      parameters:
+      - description: Login Form
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.LoginResponse'
+        "400":
+          description: Validation Errors
+          schema:
+            $ref: '#/definitions/models.ValidationError'
+        "401":
+          description: Invalid Credentials
+          schema:
+            type: string
+        "405":
+          description: Method not supported
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - Login
+  /users/send-verification-email:
+    post:
+      consumes:
+      - application/json
+      description: Send Verification Email
+      parameters:
+      - description: Email
+        in: body
+        name: email
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Email sent successfully
+          schema:
+            type: string
+        "400":
+          description: Validation Errors
+          schema:
+            $ref: '#/definitions/models.ValidationError'
+        "401":
+          description: Email already verified
+          schema:
+            type: string
+      summary: Send Verification Email
+      tags:
+      - User
+  /users/verify-email/{token}:
+    get:
+      consumes:
+      - application/json
+      description: Email Verification
+      parameters:
+      - description: Token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Email verified successfully
+          schema:
+            type: string
+        "400":
+          description: Token is required
+          schema:
+            type: string
+        "401":
+          description: Invalid or expired token
+          schema:
+            type: string
+      summary: Email Verification
       tags:
       - User
 securityDefinitions:
