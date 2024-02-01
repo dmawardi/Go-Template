@@ -11,7 +11,7 @@ type CreatePost struct {
 type UpdatePost struct {
 	Title string  `json:"title,omitempty" valid:"length(3|36)"`
 	Body  string  `json:"body,omitempty" valid:"length(10|1200)"`
-	User  db.User `json:"user,omitempty" valid:"required"`
+	User  db.User `json:"user,omitempty" valid:""`
 }
 
 type PaginatedPosts struct {

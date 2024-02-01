@@ -138,25 +138,6 @@ definitions:
       verified:
         type: boolean
     type: object
-  models.UpdatedUser:
-    properties:
-      created_at:
-        type: string
-      deleted_at:
-        $ref: '#/definitions/gorm.DeletedAt'
-      email:
-        type: string
-      id:
-        type: integer
-      name:
-        type: string
-      password:
-        type: string
-      updated_at:
-        type: string
-      username:
-        type: string
-    type: object
   models.UserWithRole:
     properties:
       created_at:
@@ -266,7 +247,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Accepts limit, offset, and order params and returns list of posts
+      description: Accepts limit, offset, order, search (added as non-case sensitive
+        LIKE), title, body as query parameters
       parameters:
       - description: limit
         in: query
@@ -314,7 +296,7 @@ paths:
       - application/json
       description: Creates a new post
       parameters:
-      - description: New Post Json
+      - description: New Post
         in: body
         name: post
         required: true
@@ -331,6 +313,8 @@ paths:
           description: Post creation failed.
           schema:
             type: string
+      security:
+      - BearerToken: []
       summary: Create Post
       tags:
       - Post
@@ -392,13 +376,13 @@ paths:
       - application/json
       description: Updates an existing post
       parameters:
-      - description: Update Post Json
+      - description: Update Post
         in: body
         name: post
         required: true
         schema:
           $ref: '#/definitions/models.UpdatePost'
-      - description: User ID
+      - description: Post ID
         in: path
         name: id
         required: true
@@ -427,9 +411,9 @@ paths:
     get:
       consumes:
       - application/json
-      description: Accepts limit, offset, order, search and field names (eg. email=)
-        query parameters to find a list of users. Search is applied to all string
-        fields.
+      description: Accepts limit, offset, order, search (added as non-case sensitive
+        LIKE) and field names (eg. email=) query parameters to find a list of users.
+        Search is applied to all string fields.
       parameters:
       - description: limit
         in: query
@@ -554,7 +538,7 @@ paths:
           schema:
             $ref: '#/definitions/models.UserWithRole'
         "400":
-          description: Can't find user
+          description: 'Can''t find user with ID: {id}'
           schema:
             type: string
       security:
@@ -584,7 +568,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.UpdatedUser'
+            $ref: '#/definitions/models.UserWithRole'
         "400":
           description: Failed user update
           schema:

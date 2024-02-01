@@ -120,7 +120,7 @@ const docTemplate = `{
                         "BearerToken": []
                     }
                 ],
-                "description": "Accepts limit, offset, and order params and returns list of posts",
+                "description": "Accepts limit, offset, order, search (added as non-case sensitive LIKE), title, body as query parameters",
                 "consumes": [
                     "application/json"
                 ],
@@ -186,6 +186,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerToken": []
+                    }
+                ],
                 "description": "Creates a new post",
                 "consumes": [
                     "application/json"
@@ -199,7 +204,7 @@ const docTemplate = `{
                 "summary": "Create Post",
                 "parameters": [
                     {
-                        "description": "New Post Json",
+                        "description": "New Post",
                         "name": "post",
                         "in": "body",
                         "required": true,
@@ -285,7 +290,7 @@ const docTemplate = `{
                 "summary": "Update Post",
                 "parameters": [
                     {
-                        "description": "Update Post Json",
+                        "description": "Update Post",
                         "name": "post",
                         "in": "body",
                         "required": true,
@@ -295,7 +300,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "User ID",
+                        "description": "Post ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -371,7 +376,7 @@ const docTemplate = `{
                         "BearerToken": []
                     }
                 ],
-                "description": "Accepts limit, offset, order, search and field names (eg. email=) query parameters to find a list of users. Search is applied to all string fields.",
+                "description": "Accepts limit, offset, order, search (added as non-case sensitive LIKE) and field names (eg. email=) query parameters to find a list of users. Search is applied to all string fields.",
                 "consumes": [
                     "application/json"
                 ],
@@ -704,7 +709,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Can't find user",
+                        "description": "Can't find user with ID: {id}",
                         "schema": {
                             "type": "string"
                         }
@@ -750,7 +755,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.UpdatedUser"
+                            "$ref": "#/definitions/models.UserWithRole"
                         }
                     },
                     "400": {
@@ -1018,35 +1023,6 @@ const docTemplate = `{
                 },
                 "verified": {
                     "type": "boolean"
-                }
-            }
-        },
-        "models.UpdatedUser": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "$ref": "#/definitions/gorm.DeletedAt"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         },
