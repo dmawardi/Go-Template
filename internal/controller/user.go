@@ -52,9 +52,8 @@ func UserConditionQueryParams() map[string]string {
 }
 
 // API/USERS
-// Find a list of users
 // @Summary      Find a list of users
-// @Description  Accepts limit, offset, order, search and field names (eg. email=) query parameters to find a list of users. Search is applied to all string fields.
+// @Description  Accepts limit, offset, order, search (added as non-case sensitive LIKE) and field names (eg. email=) query parameters to find a list of users. Search is applied to all string fields.
 // @Tags         User
 // @Accept       json
 // @Produce      json
@@ -110,7 +109,6 @@ func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Find a created user
 // @Summary      Find User
 // @Description  Find a user by ID
 // @Tags         User
@@ -118,7 +116,7 @@ func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        id   path      int  true  "User ID"
 // @Success      200 {object} models.UserWithRole
-// @Failure      400 {string} string "Can't find user"
+// @Failure      400 {string} string "Can't find user with ID: {id}"
 // @Router       /users/{id} [get]
 // @Security BearerToken
 func (c userController) Find(w http.ResponseWriter, r *http.Request) {
@@ -143,15 +141,14 @@ func (c userController) Find(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Create a new user
 // @Summary      Create User
 // @Description  Creates a new user
 // @Tags         User
 // @Accept       json
 // @Produce      plain
 // @Param        user body models.CreateUser true "New User"
-// @Success      201 {string} string "User creation successful!"
 // @Failure      400 {object} models.ValidationError "Validation Errors"
+// @Success      201 {string} string "User creation successful!"
 // @Failure      400 {string} string "User creation failed."
 // @Router       /users [post]
 func (c userController) Create(w http.ResponseWriter, r *http.Request) {
@@ -188,7 +185,6 @@ func (c userController) Create(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("User creation successful!"))
 }
 
-// Update a user (using URL parameter id)
 // @Summary      Update User
 // @Description  Updates an existing user
 // @Tags         User
@@ -196,7 +192,7 @@ func (c userController) Create(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        user body models.UpdateUser true "Update User"
 // @Param        id   path      int  true  "User ID"
-// @Success      200 {object} models.UpdatedUser
+// @Success      200 {object} models.UserWithRole
 // @Failure      400 {object} models.ValidationError "Validation Errors"
 // @Failure      400 {string} string "Failed user update"
 // @Failure      403 {string} string "Authentication Token not detected"
@@ -241,7 +237,6 @@ func (c userController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Delete user (using URL parameter id)
 // @Summary      Delete User
 // @Description  Deletes an existing user
 // @Tags         User
@@ -337,7 +332,6 @@ func (c userController) UpdateMyProfile(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-// Detail to display a user's profile details
 // @Summary      Get my user profile details
 // @Description  Return my user details
 // @Tags         My Profile

@@ -112,10 +112,10 @@ The below commands must be used upon making changes to the API in order to regen
 
 ```
 <!-- Generate docs from home folder -->
-swag init -d ./internal/controller -g ../../cmd/main.go --pd --parseInternal
 <!-- Remove old API docs folder in static -->
-rm -rf static/docs
 <!-- To move the generated folder to be accessible to users -->
+swag init -d ./internal/controller -g ../../cmd/main.go --pd --parseInternal
+rm -rf static/docs
 mv docs static/
 ```
 

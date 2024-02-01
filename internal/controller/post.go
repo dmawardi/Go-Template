@@ -39,7 +39,7 @@ func PostConditionQueryParams() map[string]string {
 
 // API/POSTS
 // @Summary      Finds a list of posts
-// @Description  Accepts limit, offset, and order params and returns list of posts
+// @Description  Accepts limit, offset, order, search (added as non-case sensitive LIKE), title, body as query parameters
 // @Tags         Post
 // @Accept       json
 // @Produce      json
@@ -129,10 +129,12 @@ func (c postController) Find(w http.ResponseWriter, r *http.Request) {
 // @Tags         Post
 // @Accept       json
 // @Produce      plain
-// @Param        post body models.CreatePost true "New Post Json"
+// @Param        post body models.CreatePost true "New Post"
+// @Failure      400 {object} models.ValidationError "Validation Errors"
 // @Success      201 {string} string "Post creation successful!"
 // @Failure      400 {string} string "Post creation failed."
 // @Router       /posts [post]
+// @Security BearerToken
 func (c postController) Create(w http.ResponseWriter, r *http.Request) {
 	// Init
 	var toCreate models.CreatePost
@@ -172,8 +174,8 @@ func (c postController) Create(w http.ResponseWriter, r *http.Request) {
 // @Tags         Post
 // @Accept       json
 // @Produce      json
-// @Param        post body models.UpdatePost true "Update Post Json"
-// @Param        id   path      int  true  "User ID"
+// @Param        post body models.UpdatePost true "Update Post"
+// @Param        id   path      int  true  "Post ID"
 // @Success      200 {object} db.Post
 // @Failure      400 {object} models.ValidationError "Validation Errors"
 // @Failure      400 {string} string "Failed post update"
