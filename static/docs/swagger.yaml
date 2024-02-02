@@ -57,6 +57,13 @@ definitions:
         description: Valid is true if Time is not NULL
         type: boolean
     type: object
+  models.CasbinRoleAssignment:
+    properties:
+      role:
+        type: string
+      user_id:
+        type: string
+    type: object
   models.CreatePost:
     properties:
       body:
@@ -80,6 +87,13 @@ definitions:
         type: string
       verified:
         type: boolean
+    type: object
+  models.G2Record:
+    properties:
+      inherits_from:
+        type: string
+      role:
+        type: string
     type: object
   models.Login:
     properties:
@@ -109,10 +123,26 @@ definitions:
         type: array
       meta: {}
     type: object
+  models.PolicyRule:
+    properties:
+      action:
+        type: string
+      resource:
+        type: string
+      role:
+        type: string
+    type: object
   models.ResetPasswordAndEmailVerification:
     properties:
       email:
         type: string
+    type: object
+  models.UpdateCasbinRule:
+    properties:
+      new_policy:
+        $ref: '#/definitions/models.PolicyRule'
+      old_policy:
+        $ref: '#/definitions/models.PolicyRule'
     type: object
   models.UpdatePost:
     properties:
@@ -187,6 +217,280 @@ info:
   title: Go Template
   version: "1.0"
 paths:
+  /auth:
+    delete:
+      consumes:
+      - application/json
+      description: Accepts a policy as a JSON body and deletes the policy
+      parameters:
+      - description: policy
+        in: body
+        name: policy
+        required: true
+        schema:
+          $ref: '#/definitions/models.PolicyRule'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Policy deletion successful!
+          schema:
+            type: string
+        "400":
+          description: Can't delete policy
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Deletes an authorization policy
+      tags:
+      - Authorization
+    get:
+      consumes:
+      - application/json
+      description: Accepts search (added as non-case sensitive LIKE) as query parameters
+        and returns matching policies
+      parameters:
+      - description: search (added to all string conditions as LIKE SQL search)
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "400":
+          description: Can't find policies
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Finds a list of authorization policies
+      tags:
+      - Authorization
+    post:
+      consumes:
+      - application/json
+      description: Accepts a policy as a JSON body and creates the policy
+      parameters:
+      - description: policy
+        in: body
+        name: policy
+        required: true
+        schema:
+          $ref: '#/definitions/models.PolicyRule'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Policy creation successful!
+          schema:
+            type: string
+        "400":
+          description: Can't create policy
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Creates an authorization policy
+      tags:
+      - Authorization
+    put:
+      consumes:
+      - application/json
+      description: Accepts a policy as a JSON body and updates the policy
+      parameters:
+      - description: policy
+        in: body
+        name: policy
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateCasbinRule'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Policy update successful!
+          schema:
+            type: string
+        "400":
+          description: Can't update policy
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Updates an authorization policy
+      tags:
+      - Authorization
+  /auth/{policy-slug}:
+    get:
+      consumes:
+      - application/json
+      description: 'Accepts resource as a URL parameter (in slug form: replace all
+        ''/'' with ''-'') and returns matching policies associated with resource'
+      parameters:
+      - description: policy-slug
+        in: path
+        name: policy-slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "400":
+          description: Can't find policies for resource
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Finds a list of authorization policies by resource
+      tags:
+      - Authorization
+  /auth/inheritance:
+    delete:
+      consumes:
+      - application/json
+      description: Accepts a role inheritance as a JSON body and deletes the role
+        inheritance
+      parameters:
+      - description: Inheritance Record
+        in: body
+        name: inheritance
+        required: true
+        schema:
+          $ref: '#/definitions/models.G2Record'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Inheritance deletion successful!
+          schema:
+            type: string
+        "400":
+          description: Can't delete inheritance
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Deletes a role inheritance
+      tags:
+      - Authorization
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of role inheritance policies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties:
+                type: string
+              type: object
+            type: array
+        "400":
+          description: Can't find roles
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Finds a list of role inheritance
+      tags:
+      - Authorization
+    post:
+      consumes:
+      - application/json
+      description: Accepts a role inheritance as a JSON body and creates the role
+        inheritance
+      parameters:
+      - description: Inheritance Record
+        in: body
+        name: inheritance
+        required: true
+        schema:
+          $ref: '#/definitions/models.G2Record'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Inheritance creation successful!
+          schema:
+            type: string
+        "400":
+          description: Can't create inheritance
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Creates a role inheritance
+      tags:
+      - Authorization
+  /auth/roles:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of roles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Can't find roles
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Finds a list of roles
+      tags:
+      - Authorization
+    put:
+      consumes:
+      - application/json
+      description: Accepts a user_id and role as a JSON body and assigns the role
+        to the user
+      parameters:
+      - description: Role Assignment
+        in: body
+        name: RoleAssignment
+        required: true
+        schema:
+          $ref: '#/definitions/models.CasbinRoleAssignment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User assigned role successfully!
+          schema:
+            type: string
+        "400":
+          description: Can't assign user
+          schema:
+            type: string
+      security:
+      - BearerToken: []
+      summary: Assigns a role to a user
+      tags:
+      - Authorization
   /me:
     get:
       consumes:
