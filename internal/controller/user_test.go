@@ -14,7 +14,7 @@ import (
 
 func TestUserController_Find(t *testing.T) {
 	// Build test user
-	userToCreate := &db.User{
+	userToCreate := &models.CreateUser{
 		Username: "Jabar",
 		Email:    "greenie@ymail.com",
 		Password: "password",
@@ -22,7 +22,7 @@ func TestUserController_Find(t *testing.T) {
 	}
 
 	// Create user
-	createdUser, err := testConnection.hashPassAndGenerateUserInDb(userToCreate)
+	createdUser, err := testConnection.users.serv.Create(userToCreate)
 	if err != nil {
 		t.Fatalf("failed to create test user for find by id user service testr: %v", err)
 	}
@@ -50,20 +50,20 @@ func TestUserController_Find(t *testing.T) {
 	var body db.User
 	json.Unmarshal(rr.Body.Bytes(), &body)
 
-	// checkUserDetails(rr, createdUser, t, false)
+	checkUserDetails(rr, createdUser, t, false)
 	// Verify that the found user matches the original user
-	if body.ID != createdUser.ID {
-		t.Errorf("found createdUser has incorrect ID: expected %d, got %d", userToCreate.ID, body.ID)
-	}
-	if body.Email != userToCreate.Email {
-		t.Errorf("found createdUser has incorrect email: expected %s, got %s", userToCreate.Email, body.Email)
-	}
-	if body.Username != userToCreate.Username {
-		t.Errorf("found createdUser has incorrect username: expected %s, got %s", userToCreate.Username, body.Username)
-	}
-	if body.Name != userToCreate.Name {
-		t.Errorf("found createdUser has incorrect name: expected %s, got %s", userToCreate.Name, body.Name)
-	}
+	// if body.ID != createdUser.ID {
+	// 	t.Errorf("found createdUser has incorrect ID: expected %d, got %d", userToCreate.ID, body.ID)
+	// }
+	// if body.Email != userToCreate.Email {
+	// 	t.Errorf("found createdUser has incorrect email: expected %s, got %s", userToCreate.Email, body.Email)
+	// }
+	// if body.Username != userToCreate.Username {
+	// 	t.Errorf("found createdUser has incorrect username: expected %s, got %s", userToCreate.Username, body.Username)
+	// }
+	// if body.Name != userToCreate.Name {
+	// 	t.Errorf("found createdUser has incorrect name: expected %s, got %s", userToCreate.Name, body.Name)
+	// }
 
 	// Delete the created user
 	delResult := testConnection.dbClient.Delete(createdUser)
@@ -629,7 +629,7 @@ func updateChangesOnly(createdUser *db.User, updatedUser map[string]string) erro
 }
 
 // Check the user details (username, name, email and ID)
-func checkUserDetails(rr *httptest.ResponseRecorder, createdUser *db.User, t *testing.T, checkId bool) {
+func checkUserDetails(rr *httptest.ResponseRecorder, createdUser *models.UserWithRole, t *testing.T, checkId bool) {
 	// Convert response JSON to struct
 	var body db.User
 	json.Unmarshal(rr.Body.Bytes(), &body)
