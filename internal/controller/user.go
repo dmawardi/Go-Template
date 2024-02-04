@@ -170,7 +170,14 @@ func (c userController) Create(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteAsJSON(w, valErrors)
 		return
 	}
-	// else, validation passes and allow through
+	// else, validation passes
+	// Check if token is present
+	token, err := auth.ValidateAndParseToken(w, r)
+	// If not found or not admin
+	if err != nil || token.Role != "admin" {
+		// Disallow assignments to a user's role
+		toCreate.Role = ""
+	}
 
 	// Create user
 	_, createErr := c.service.Create(&toCreate)
