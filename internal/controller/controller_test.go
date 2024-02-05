@@ -34,6 +34,7 @@ type controllerTestModule struct {
 	auth     authModule
 	posts    postModule
 	router   http.Handler
+	api      routes.Api
 	// For authentication mocking
 	accounts userAccounts
 }
@@ -68,6 +69,7 @@ type dummyAccount struct {
 
 // Initial setup before running e2e tests in controllers_test package
 func TestMain(m *testing.M) {
+	fmt.Printf("Setting up test connection\n")
 	// Setup DB
 	testConnection.dbClient = setupTestDatabase()
 
@@ -77,14 +79,21 @@ func TestMain(m *testing.M) {
 		fmt.Println("Error building enforcer")
 	}
 
-	// Set app state
+	// Set in app state
+	app.BaseURL = syncBaseUrl()
+
 	// Set Gorm client
 	app.DbClient = testConnection.dbClient
 	// Set enforcer in state
 	app.Auth.Enforcer = enforcer.Enforcer
 	app.Auth.Adapter = enforcer.Adapter
+
 	// Sync app in authentication package for usage in authentication functions
-	auth.SetStateInAuth(&app)
+	SetAppWideState(app)
+
+	// build API for serving requests
+	testConnection.api = testConnection.TestApiSetup(testConnection.dbClient)
+	testConnection.router = testConnection.api.Routes()
 
 	// Setup accounts for mocking authentication
 	testConnection.setupDummyAccounts(&models.CreateUser{
@@ -99,9 +108,6 @@ func TestMain(m *testing.M) {
 		Name:     "Bamba",
 	})
 
-	// build API for serving requests
-	testConnection.router = testConnection.buildAPI()
-
 	// Run the rest of the tests
 	exitCode := m.Run()
 	// exit with the same exit code as the tests
@@ -109,9 +115,32 @@ func TestMain(m *testing.M) {
 }
 
 // Builds new API using routes package
-func (t controllerTestModule) buildAPI() http.Handler {
+func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 	// Setup module stack
-	t.setupModuleStack()
+	// Auth
+	t.auth.repo = repository.NewAuthPolicyRepository(client)
+	t.auth.serv = service.NewAuthPolicyService(t.auth.repo)
+	t.auth.cont = controller.NewAuthPolicyController(t.auth.serv)
+	// Users
+	t.users.repo = repository.NewUserRepository(client)
+	t.users.serv = service.NewUserService(t.users.repo, t.auth.repo)
+	t.users.cont = controller.NewUserController(t.users.serv)
+	// Posts
+	t.posts.repo = repository.NewPostRepository(client)
+	t.posts.serv = service.NewPostService(t.posts.repo)
+	t.posts.cont = controller.NewPostController(t.posts.serv)
+
+	// Admin panel
+	selectorService := adminpanel.NewSelectorService(client, t.auth.serv)
+	t.admin = adminpanel.NewAdminController(
+		adminpanel.NewAdminBaseController(t.users.serv),
+		adminpanel.NewAdminUserController(t.users.serv, selectorService),
+		adminpanel.NewAdminPostController(t.posts.serv, selectorService),
+		adminpanel.NewAdminAuthPolicyController(t.auth.serv, selectorService))
+
+	// Generate admin sidebar list from admin controller
+	adminpanel.GenerateAndSetAdminSidebar(t.admin)
+
 	// Setup API using controllers
 	api := routes.NewApi(
 		t.admin,
@@ -119,10 +148,8 @@ func (t controllerTestModule) buildAPI() http.Handler {
 		t.auth.cont,
 		t.posts.cont,
 	)
-	// Extract handlers from api
-	handler := api.Routes()
 
-	return handler
+	return api
 }
 
 // Setup functions
@@ -130,6 +157,7 @@ func (t controllerTestModule) buildAPI() http.Handler {
 // Setup dummy admin and user account and apply to test connection
 func (t *controllerTestModule) setupDummyAccounts(adminUser *models.CreateUser, basicUser *models.CreateUser) {
 	adminUser.Role = "admin"
+	fmt.Printf("user service: %+v", t.users.serv)
 	// Build admin user
 	createdAdminUser, adminToken := t.generateUserWithRoleAndToken(
 		adminUser)
@@ -145,27 +173,31 @@ func (t *controllerTestModule) setupDummyAccounts(adminUser *models.CreateUser, 
 	t.accounts.user.token = userToken
 }
 
-// Setup Database, repos, services, controllers, dummy accounts for auth, and auth enforcer
-func (t *controllerTestModule) setupModuleStack() {
-	// Create test modules
-	// Auth
-	t.auth.repo = repository.NewAuthPolicyRepository(t.dbClient)
-	t.auth.serv = service.NewAuthPolicyService(t.auth.repo)
-	t.auth.cont = controller.NewAuthPolicyController(t.auth.serv)
-	// Users
-	t.users.repo = repository.NewUserRepository(t.dbClient)
-	t.users.serv = service.NewUserService(t.users.repo, t.auth.repo)
-	t.users.cont = controller.NewUserController(t.users.serv)
-	// Posts
-	t.posts.repo = repository.NewPostRepository(t.dbClient)
-	t.posts.serv = service.NewPostService(t.posts.repo)
-	t.posts.cont = controller.NewPostController(t.posts.serv)
+func syncBaseUrl() string {
+	// Extract environment variables
+	serverUrl := os.Getenv("SERVER_BASE_URL")
+	portNumber := os.Getenv("SERVER_PORT")
+
+	// Get BASE URL from environment variables
+	baseURL := fmt.Sprintf("%s%s", serverUrl, portNumber)
+	return baseURL
+}
+
+// Sets app config state to all packages for usage
+func SetAppWideState(appConfig config.AppConfig) {
+	controller.SetStateInHandlers(&appConfig)
+	auth.SetStateInAuth(&appConfig)
+	adminpanel.SetStateInAdminPanel(&appConfig)
+	service.BuildServiceState(&appConfig)
+	repository.SetAppConfig(&appConfig)
+	routes.BuildRouteState(&appConfig)
 }
 
 // Helper functions
 //
 // Generates a new user, changes its role to admin and returns it with token
-func (t controllerTestModule) generateUserWithRoleAndToken(user *models.CreateUser) (*models.UserWithRole, string) {
+func (t *controllerTestModule) generateUserWithRoleAndToken(user *models.CreateUser) (*models.UserWithRole, string) {
+	// Create user
 	createdUser, err := t.users.serv.Create(user)
 
 	// If match found (no errors)
