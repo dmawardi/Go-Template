@@ -157,7 +157,6 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 // Setup dummy admin and user account and apply to test connection
 func (t *controllerTestModule) setupDummyAccounts(adminUser *models.CreateUser, basicUser *models.CreateUser) {
 	adminUser.Role = "admin"
-	fmt.Printf("user service: %+v", t.users.serv)
 	// Build admin user
 	createdAdminUser, adminToken := t.generateUserWithRoleAndToken(
 		adminUser)

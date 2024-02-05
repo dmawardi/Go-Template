@@ -26,6 +26,8 @@ func TestUserController_Find(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create test user for find by id user service testr: %v", err)
 	}
+	fmt.Printf("Created user: %v\n", createdUser)
+
 	// Create a request with an "id" URL parameter
 	requestUrl := fmt.Sprintf("/api/users/%v", createdUser.ID)
 	req, err := http.NewRequest("GET", requestUrl, nil)
@@ -50,24 +52,13 @@ func TestUserController_Find(t *testing.T) {
 	var body models.UserWithRole
 	json.Unmarshal(rr.Body.Bytes(), &body)
 
+	fmt.Printf("Body: %v\n", body)
+
 	checkUserDetails(rr, createdUser, t, false)
-	// Verify that the found user matches the original user
-	// if body.ID != createdUser.ID {
-	// 	t.Errorf("found createdUser has incorrect ID: expected %d, got %d", userToCreate.ID, body.ID)
-	// }
-	// if body.Email != userToCreate.Email {
-	// 	t.Errorf("found createdUser has incorrect email: expected %s, got %s", userToCreate.Email, body.Email)
-	// }
-	// if body.Username != userToCreate.Username {
-	// 	t.Errorf("found createdUser has incorrect username: expected %s, got %s", userToCreate.Username, body.Username)
-	// }
-	// if body.Name != userToCreate.Name {
-	// 	t.Errorf("found createdUser has incorrect name: expected %s, got %s", userToCreate.Name, body.Name)
-	// }
 
 	// Delete the created user
-	delResult := testConnection.dbClient.Delete(createdUser)
-	if delResult.Error != nil {
+	delResult := testConnection.users.serv.Delete(int(createdUser.ID))
+	if delResult != nil {
 		t.Fatalf("Error clearing created user")
 	}
 }

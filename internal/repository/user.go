@@ -70,7 +70,7 @@ func (r *userRepository) FindById(userId int) (*db.User, error) {
 	// Create an empty ref object of type user
 	user := db.User{}
 	// Check if user exists in db
-	result := r.DB.Select("ID", "name", "username", "email", "role", "verified", "password").First(&user, userId)
+	result := r.DB.Select("ID", "name", "username", "email", "verified", "password").First(&user, userId)
 
 	// If error detected
 	if result.Error != nil {
