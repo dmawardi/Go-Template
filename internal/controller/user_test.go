@@ -3,6 +3,7 @@ package controller_test
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,30 +13,37 @@ import (
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
+// Builds request for user module. Method (GET/POST/etc.) url suffix is for any values that may come after /api/users
+// body is for the request body (nil for none), authHeaderRequired is for if the request requires an authorization header and token is the token to use
+func buildUserRequest(method string, urlSuffix string, body io.Reader, authHeaderRequired bool, token string) (request *http.Request, err error) {
+	req, err := http.NewRequest(method, fmt.Sprintf("/api/users%v", urlSuffix), body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %v", err)
+	}
+	// If authorization header required
+	if authHeaderRequired {
+		req.Header.Set("Authorization", fmt.Sprintf("bearer %v", token))
+	}
+	return req, nil
+}
+
 func TestUserController_Find(t *testing.T) {
-	// Build test user
-	userToCreate := &models.CreateUser{
+	// Create user
+	createdUser, err := testConnection.users.serv.Create(&models.CreateUser{
 		Username: "Jabar",
 		Email:    "greenie@ymail.com",
 		Password: "password",
 		Name:     "Bamba",
-	}
-
-	// Create user
-	createdUser, err := testConnection.users.serv.Create(userToCreate)
+	})
 	if err != nil {
 		t.Fatalf("failed to create test user for find by id user service testr: %v", err)
 	}
-	fmt.Printf("Created user: %v\n", createdUser)
 
 	// Create a request with an "id" URL parameter
-	requestUrl := fmt.Sprintf("/api/users/%v", createdUser.ID)
-	req, err := http.NewRequest("GET", requestUrl, nil)
+	req, err := buildUserRequest("GET", fmt.Sprintf("/%v", createdUser.ID), nil, true, testConnection.accounts.admin.token)
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Add auth token to header
-	req.Header.Set("Authorization", fmt.Sprintf("bearer %v", testConnection.accounts.admin.token))
 	// Create a response recorder
 	rr := httptest.NewRecorder()
 
@@ -52,9 +60,8 @@ func TestUserController_Find(t *testing.T) {
 	var body models.UserWithRole
 	json.Unmarshal(rr.Body.Bytes(), &body)
 
-	fmt.Printf("Body: %v\n", body)
-
-	checkUserDetails(rr, createdUser, t, false)
+	// check user details for match
+	CompareObjects(body, createdUser, t, []string{"ID", "Username", "Email", "Name"})
 
 	// Delete the created user
 	delResult := testConnection.users.serv.Delete(int(createdUser.ID))
@@ -64,13 +71,13 @@ func TestUserController_Find(t *testing.T) {
 }
 
 // func TestUserController_FindAll(t *testing.T) {
+// 	// Test finding two already created users for authentication mocking
 // 	// Create a new request
-// 	req, err := http.NewRequest("GET", "/api/users?limit=10&offset=0&order=role DESC", nil)
+// 	req, err := buildUserRequest("GET", "?limit=10&offset=0&order=id_desc", nil, true, testConnection.accounts.admin.token)
 // 	if err != nil {
 // 		t.Fatal(err)
 // 	}
-// 	// Add auth token to header
-// 	req.Header.Set("Authorization", fmt.Sprintf("bearer %v", testConnection.accounts.admin.token))
+
 // 	// Create a response recorder
 // 	rr := httptest.NewRecorder()
 
@@ -96,27 +103,29 @@ func TestUserController_Find(t *testing.T) {
 // 	for _, item := range *body.Data {
 // 		// If id is admin id
 // 		if item.ID == testConnection.accounts.admin.details.ID {
+// 			checkUserDetails(rr, testConnection.accounts.admin.details, t, true)
 // 			// Check details
-// 			if item.Email != testConnection.accounts.admin.details.Email {
-// 				t.Errorf("found createdUser has incorrect email: expected %s, got %s", testConnection.accounts.admin.details.Email, item.Email)
-// 			}
-// 			if item.Username != testConnection.accounts.admin.details.Username {
-// 				t.Errorf("found createdUser has incorrect username: expected %s, got %s", testConnection.accounts.admin.details.Username, item.Username)
-// 			}
-// 			if item.Name != testConnection.accounts.admin.details.Name {
-// 				t.Errorf("found createdUser has incorrect name: expected %s, got %s", testConnection.accounts.admin.details.Name, item.Name)
-// 			}
+// 			// if item.Email != testConnection.accounts.admin.details.Email {
+// 			// 	t.Errorf("found createdUser has incorrect email: expected %s, got %s", testConnection.accounts.admin.details.Email, item.Email)
+// 			// }
+// 			// if item.Username != testConnection.accounts.admin.details.Username {
+// 			// 	t.Errorf("found createdUser has incorrect username: expected %s, got %s", testConnection.accounts.admin.details.Username, item.Username)
+// 			// }
+// 			// if item.Name != testConnection.accounts.admin.details.Name {
+// 			// 	t.Errorf("found createdUser has incorrect name: expected %s, got %s", testConnection.accounts.admin.details.Name, item.Name)
+// 			// }
 // 		} else {
+// 			checkUserDetails(rr, testConnection.accounts.user.details, t, true)
 // 			// Else check user details
-// 			if item.Email != testConnection.accounts.user.details.Email {
-// 				t.Errorf("found createdUser has incorrect email: expected %s, got %s", testConnection.accounts.user.details.Email, item.Email)
-// 			}
-// 			if item.Username != testConnection.accounts.user.details.Username {
-// 				t.Errorf("found createdUser has incorrect username: expected %s, got %s", testConnection.accounts.user.details.Username, item.Username)
-// 			}
-// 			if item.Name != testConnection.accounts.user.details.Name {
-// 				t.Errorf("found createdUser has incorrect name: expected %s, got %s", testConnection.accounts.user.details.Name, item.Name)
-// 			}
+// 			// if item.Email != testConnection.accounts.user.details.Email {
+// 			// 	t.Errorf("found createdUser has incorrect email: expected %s, got %s", testConnection.accounts.user.details.Email, item.Email)
+// 			// }
+// 			// if item.Username != testConnection.accounts.user.details.Username {
+// 			// 	t.Errorf("found createdUser has incorrect username: expected %s, got %s", testConnection.accounts.user.details.Username, item.Username)
+// 			// }
+// 			// if item.Name != testConnection.accounts.user.details.Name {
+// 			// 	t.Errorf("found createdUser has incorrect name: expected %s, got %s", testConnection.accounts.user.details.Name, item.Name)
+// 			// }
 // 		}
 // 	}
 
@@ -128,21 +137,18 @@ func TestUserController_Find(t *testing.T) {
 // 		expectedResponseStatus int
 // 	}{
 // 		// Bad order by
-// 		{limit: "10", offset: "", order: "none", expectedResponseStatus: http.StatusBadRequest},
+// 		{limit: "10", offset: "", order: "", expectedResponseStatus: http.StatusBadRequest},
 // 		// No limit should result in bad request
 // 		{limit: "", offset: "", order: "", expectedResponseStatus: http.StatusBadRequest},
 // 		// Check normal parameters functional with order by
-// 		{limit: "20", offset: "1", order: "ID ASC", expectedResponseStatus: http.StatusOK},
+// 		{limit: "20", offset: "1", order: "id_desc", expectedResponseStatus: http.StatusOK},
 // 	}
 // 	for _, v := range failParameterTests {
-// 		request := fmt.Sprintf("/api/users?limit=%v&offset=%v&order=%v", v.limit, v.offset, v.order)
-// 		// Create a new request
-// 		req, err := http.NewRequest("GET", request, nil)
+// 		req, err := buildUserRequest("GET", fmt.Sprintf("?limit=%v&offset=%v&order=%v", v.limit, v.offset, v.order), nil, true, testConnection.accounts.admin.token)
 // 		if err != nil {
 // 			t.Fatal(err)
 // 		}
-// 		// Add auth token to header
-// 		req.Header.Set("Authorization", fmt.Sprintf("bearer %v", testConnection.accounts.admin.token))
+
 // 		// Create a response recorder
 // 		rr := httptest.NewRecorder()
 

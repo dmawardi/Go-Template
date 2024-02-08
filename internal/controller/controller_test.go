@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"testing"
 
 	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
@@ -242,4 +243,39 @@ func buildReqBody(data interface{}) *bytes.Reader {
 	// Make into reader
 	readerReqBody := bytes.NewReader(marshalled)
 	return readerReqBody
+}
+
+// CompareObjects compares the specified fields of two interface{} objects.
+// It uses reflection to dynamically compare the field values of both objects.
+func CompareObjects(actualObject interface{}, expectedObject interface{}, t *testing.T, fieldsToCheck []string) {
+	// Convert both objects to reflect.Value to facilitate comparison.
+	actualValue := reflect.ValueOf(actualObject)
+	if actualValue.Kind() == reflect.Ptr {
+		actualValue = actualValue.Elem()
+	}
+	expectedValue := reflect.ValueOf(expectedObject)
+	if expectedValue.Kind() == reflect.Ptr {
+		expectedValue = expectedValue.Elem()
+	}
+
+	// Iterate over the specified fields to compare their values.
+	for _, field := range fieldsToCheck {
+		actualFieldValue := actualValue.FieldByName(field)
+		expectedFieldValue := expectedValue.FieldByName(field)
+
+		// Check if both fields are valid.
+		if !actualFieldValue.IsValid() {
+			t.Errorf("actual object does not have field %s", field)
+			continue
+		}
+		if !expectedFieldValue.IsValid() {
+			t.Errorf("expected object does not have field %s", field)
+			continue
+		}
+
+		// Compare the actual and expected field values.
+		if !reflect.DeepEqual(actualFieldValue.Interface(), expectedFieldValue.Interface()) {
+			t.Errorf("field %s does not match: expected %v, got %v", field, expectedFieldValue.Interface(), actualFieldValue.Interface())
+		}
+	}
 }
