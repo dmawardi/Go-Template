@@ -73,7 +73,7 @@ func UserConditionQueryParams() map[string]string {
 // @Router       /users [get]
 // @Security BearerToken
 func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
-	// Grab basic query params
+	// Grab basic query params set defaults as needed
 	baseQueryParams, err := helpers.ExtractBasicFindAllQueryParams(r)
 	if err != nil {
 		http.Error(w, "Error extracting query params", http.StatusBadRequest)
@@ -86,12 +86,6 @@ func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 	extractedConditionParams, err := helpers.ExtractSearchAndConditionParams(r, queryParamsToExtract)
 	if err != nil {
 		http.Error(w, "Error extracting query params", http.StatusBadRequest)
-		return
-	}
-
-	// Check that limit is present as requirement
-	if (baseQueryParams.Limit == 0) || (baseQueryParams.Limit > 50) {
-		http.Error(w, "Must include limit parameter with a max value of 50", http.StatusBadRequest)
 		return
 	}
 

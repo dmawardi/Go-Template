@@ -36,7 +36,7 @@ func TestUserController_Find(t *testing.T) {
 		Name:     "Bamba",
 	})
 	if err != nil {
-		t.Fatalf("failed to create test user for find by id user service testr: %v", err)
+		t.Fatalf("failed to create test user for test: %v", err)
 	}
 
 	// Create a request with an "id" URL parameter
@@ -70,147 +70,126 @@ func TestUserController_Find(t *testing.T) {
 	}
 }
 
-// func TestUserController_FindAll(t *testing.T) {
-// 	// Test finding two already created users for authentication mocking
-// 	// Create a new request
-// 	req, err := buildUserRequest("GET", "?limit=10&offset=0&order=id_desc", nil, true, testConnection.accounts.admin.token)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
+func TestUserController_FindAll(t *testing.T) {
+	// Test finding two already created users for authentication mocking
+	// Create a new request
+	req, err := buildUserRequest("GET", "?limit=10&offset=0&order=id_desc", nil, true, testConnection.accounts.admin.token)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-// 	// Create a response recorder
-// 	rr := httptest.NewRecorder()
+	// Create a response recorder
+	rr := httptest.NewRecorder()
 
-// 	// Use handler with recorder and created request
-// 	testConnection.router.ServeHTTP(rr, req)
+	// Use handler with recorder and created request
+	testConnection.router.ServeHTTP(rr, req)
 
-// 	// Check the response status code
-// 	if status := rr.Code; status != http.StatusOK {
-// 		t.Errorf("handler returned wrong status code: got %v want %v",
-// 			status, http.StatusOK)
-// 	}
+	// Check the response status code
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
 
-// 	// Convert response JSON to struct
-// 	var body *models.PaginatedUsers
-// 	json.Unmarshal(rr.Body.Bytes(), &body)
+	// Convert response JSON to struct
+	var body *models.PaginatedUsers
+	json.Unmarshal(rr.Body.Bytes(), &body)
 
-// 	// Check length of user array
-// 	if len(*body.Data) != 2 {
-// 		t.Errorf("Users array in findAll failed: expected %d, got %d", 2, len(*body.Data))
-// 	}
+	// Check length of user array
+	if len(*body.Data) != 2 {
+		t.Errorf("Users array in findAll failed: expected %d, got %d", 2, len(*body.Data))
+	}
 
-// 	// Iterate through users array received
-// 	for _, item := range *body.Data {
-// 		// If id is admin id
-// 		if item.ID == testConnection.accounts.admin.details.ID {
-// 			checkUserDetails(rr, testConnection.accounts.admin.details, t, true)
-// 			// Check details
-// 			// if item.Email != testConnection.accounts.admin.details.Email {
-// 			// 	t.Errorf("found createdUser has incorrect email: expected %s, got %s", testConnection.accounts.admin.details.Email, item.Email)
-// 			// }
-// 			// if item.Username != testConnection.accounts.admin.details.Username {
-// 			// 	t.Errorf("found createdUser has incorrect username: expected %s, got %s", testConnection.accounts.admin.details.Username, item.Username)
-// 			// }
-// 			// if item.Name != testConnection.accounts.admin.details.Name {
-// 			// 	t.Errorf("found createdUser has incorrect name: expected %s, got %s", testConnection.accounts.admin.details.Name, item.Name)
-// 			// }
-// 		} else {
-// 			checkUserDetails(rr, testConnection.accounts.user.details, t, true)
-// 			// Else check user details
-// 			// if item.Email != testConnection.accounts.user.details.Email {
-// 			// 	t.Errorf("found createdUser has incorrect email: expected %s, got %s", testConnection.accounts.user.details.Email, item.Email)
-// 			// }
-// 			// if item.Username != testConnection.accounts.user.details.Username {
-// 			// 	t.Errorf("found createdUser has incorrect username: expected %s, got %s", testConnection.accounts.user.details.Username, item.Username)
-// 			// }
-// 			// if item.Name != testConnection.accounts.user.details.Name {
-// 			// 	t.Errorf("found createdUser has incorrect name: expected %s, got %s", testConnection.accounts.user.details.Name, item.Name)
-// 			// }
-// 		}
-// 	}
+	// Iterate through users array received
+	for _, item := range *body.Data {
+		// If id is admin id
+		if item.ID == testConnection.accounts.admin.details.ID {
+			CompareObjects(item, testConnection.accounts.admin.details, t, []string{"ID", "Username", "Email", "Name"})
 
-// 	// Test parameter input
-// 	var failParameterTests = []struct {
-// 		limit                  string
-// 		offset                 string
-// 		order                  string
-// 		expectedResponseStatus int
-// 	}{
-// 		// Bad order by
-// 		{limit: "10", offset: "", order: "", expectedResponseStatus: http.StatusBadRequest},
-// 		// No limit should result in bad request
-// 		{limit: "", offset: "", order: "", expectedResponseStatus: http.StatusBadRequest},
-// 		// Check normal parameters functional with order by
-// 		{limit: "20", offset: "1", order: "id_desc", expectedResponseStatus: http.StatusOK},
-// 	}
-// 	for _, v := range failParameterTests {
-// 		req, err := buildUserRequest("GET", fmt.Sprintf("?limit=%v&offset=%v&order=%v", v.limit, v.offset, v.order), nil, true, testConnection.accounts.admin.token)
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
+		} else {
+			CompareObjects(item, testConnection.accounts.user.details, t, []string{"ID", "Username", "Email", "Name"})
 
-// 		// Create a response recorder
-// 		rr := httptest.NewRecorder()
+		}
+	}
 
-// 		// Use handler with recorder and created request
-// 		testConnection.router.ServeHTTP(rr, req)
+	// Test parameter input
+	var failParameterTests = []struct {
+		test_name              string
+		limit                  string
+		offset                 string
+		order                  string
+		expectedResponseStatus int
+	}{
+		// Only limit
+		{test_name: "Only limit", limit: "5", offset: "", order: "", expectedResponseStatus: http.StatusOK},
+		// Check normal parameters functional with order by
+		{test_name: "Normal test", limit: "20", offset: "1", order: "id", expectedResponseStatus: http.StatusOK},
+		// Descending order
+		{test_name: "Normal test", limit: "20", offset: "1", order: "id_desc", expectedResponseStatus: http.StatusOK},
+	}
+	for _, v := range failParameterTests {
+		req, err := buildUserRequest("GET", fmt.Sprintf("?limit=%v&offset=%v&order=%v", v.limit, v.offset, v.order), nil, true, testConnection.accounts.admin.token)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-// 		// Check the response status code
-// 		if status := rr.Code; status != v.expectedResponseStatus {
-// 			t.Errorf("handler returned wrong status code: got %v want %v",
-// 				status, v.expectedResponseStatus)
-// 		}
-// 	}
-// }
+		// Create a response recorder
+		rr := httptest.NewRecorder()
 
-// func TestUserController_Delete(t *testing.T) {
-// 	// Build test user for deletion
-// 	userToCreate := &db.User{
-// 		Username: "Jabar",
-// 		Email:    "greenie@ymail.com",
-// 		Password: "password",
-// 		Name:     "Bamba",
-// 	}
+		// Use handler with recorder and created request
+		testConnection.router.ServeHTTP(rr, req)
 
-// 	// Create user
-// 	createdUser, err := testConnection.hashPassAndGenerateUserInDb(userToCreate)
-// 	if err != nil {
-// 		t.Fatalf("failed to create test user for delete user controller test: %v", err)
-// 	}
-// 	// Create a request with an "id" URL parameter
-// 	requestUrl := fmt.Sprintf("/api/users/%v", createdUser.ID)
-// 	// t.Fatalf("for url: %v\n. Created user iD: %v\n", requestUrl, createdUser.ID)
-// 	req, err := http.NewRequest("DELETE", requestUrl, nil)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	// Create a response recorder
-// 	rr := httptest.NewRecorder()
+		// Check the response status code
+		if status := rr.Code; status != v.expectedResponseStatus {
+			t.Errorf("In test '%s': handler returned wrong status code: got %v want %v", v.test_name,
+				status, v.expectedResponseStatus)
+		}
+	}
+}
 
-// 	// Add user auth token to header
-// 	req.Header.Set("Authorization", fmt.Sprintf("bearer %v", testConnection.accounts.user.token))
-// 	// Send deletion requestion to mock server
-// 	testConnection.router.ServeHTTP(rr, req)
-// 	// Check response is failed for normal user
-// 	if status := rr.Code; status != http.StatusForbidden {
-// 		t.Errorf("User deletion test: got %v want %v.",
-// 			status, http.StatusForbidden)
-// 	}
+func TestUserController_Delete(t *testing.T) {
+	// Create user
+	createdUser, err := testConnection.users.serv.Create(&models.CreateUser{
+		Username: "Jabar",
+		Email:    "zubayle@ymail.com",
+		Password: "password",
+		Name:     "Bamba",
+	})
+	if err != nil {
+		t.Fatalf("failed to create user for test: %v", err)
+	}
 
-// 	// Check admin delete works
-// 	// Reset http recorder
-// 	rr = httptest.NewRecorder()
+	// Test parameter input
+	var tests = []struct {
+		test_name              string
+		tokenToUse             string
+		expectedResponseStatus int
+	}{
+		{test_name: "Normal user delete failure", tokenToUse: testConnection.accounts.user.token, expectedResponseStatus: http.StatusForbidden},
+		// Put last to also replace test user deletion
+		{test_name: "Admin user delete success", tokenToUse: testConnection.accounts.admin.token, expectedResponseStatus: http.StatusOK},
+	}
 
-// 	// Set replacement header with admin credentials
-// 	req.Header.Set("Authorization", fmt.Sprintf("bearer %v", testConnection.accounts.admin.token))
-// 	// Perform GET request to mock server (using admin token)
-// 	testConnection.router.ServeHTTP(rr, req)
-// 	// Check the response status code for user deletion success
-// 	if status := rr.Code; status != http.StatusOK {
-// 		t.Errorf("User deletion test: got %v want %v.",
-// 			status, http.StatusOK)
-// 	}
-// }
+	for _, v := range tests {
+		// Create a request
+		req, err := buildUserRequest("DELETE", fmt.Sprintf("/%v", createdUser.ID), nil, true, v.tokenToUse)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Create a response recorder
+		rr := httptest.NewRecorder()
+
+		// Use handler with recorder and created request
+		testConnection.router.ServeHTTP(rr, req)
+
+		// Check response is failed for normal user
+		if status := rr.Code; status != v.expectedResponseStatus {
+			t.Errorf("Deletion test: got %v want %v.",
+				status, v.expectedResponseStatus)
+		}
+
+	}
+
+}
 
 // func TestUserController_Update(t *testing.T) {
 // 	var updateTests = []struct {
