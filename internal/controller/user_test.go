@@ -8,8 +8,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/dmawardi/Go-Template/internal/db"
-	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
@@ -261,8 +259,12 @@ func TestUserController_Update(t *testing.T) {
 			// Update created user struct with the changes pushed through API
 			UpdateModelFields(createdUser, v.data)
 
-			// Check user details using updated object
-			checkUserDetails(rr, createdUser, t, true)
+			// Convert response JSON to struct
+			var body models.UserWithRole
+			json.Unmarshal(rr.Body.Bytes(), &body)
+
+			// check user details for match
+			CompareObjects(body, createdUser, t, []string{"ID", "Username", "Email", "Name"})
 		}
 	}
 
@@ -342,50 +344,55 @@ func TestUserController_Create(t *testing.T) {
 	}
 }
 
-// func TestUserController_GetMyUserDetails(t *testing.T) {
-// 	var updateTests = []struct {
-// 		checkDetails           bool
-// 		tokenToUse             string
-// 		userToCheck            db.User
-// 		expectedResponseStatus int
-// 	}{
-// 		{true, testConnection.accounts.user.token, *testConnection.accounts.user.details, http.StatusOK},
-// 		{true, testConnection.accounts.admin.token, *testConnection.accounts.admin.details, http.StatusOK},
-// 		// Deny access to user that doesn't have authentication
-// 		{false, "", db.User{}, http.StatusForbidden},
-// 	}
-// 	// Create a request url with an "id" URL parameter
-// 	requestUrl := "/api/me"
+func TestUserController_GetMyUserDetails(t *testing.T) {
+	var tests = []struct {
+		testName               string
+		checkDetails           bool
+		tokenToUse             string
+		userToCheck            models.UserWithRole
+		expectedResponseStatus int
+	}{
+		{"User checking own profile", true, testConnection.accounts.user.token, *testConnection.accounts.user.details, http.StatusOK},
+		{"Admin checking own profile", true, testConnection.accounts.admin.token, *testConnection.accounts.admin.details, http.StatusOK},
+		// Deny access to user that doesn't have authentication
+		{"Logged out user checking profile", false, "", models.UserWithRole{}, http.StatusForbidden},
+	}
+	// Create a request url with an "id" URL parameter
+	requestUrl := "/api/me"
 
-// 	for _, v := range updateTests {
-// 		// Make new request with user update in body
-// 		req, err := http.NewRequest("GET", requestUrl, nil)
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-// 		// Create a response recorder
-// 		rr := httptest.NewRecorder()
+	for _, v := range tests {
+		// Make new request with user update in body
+		req, err := http.NewRequest("GET", requestUrl, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Create a response recorder
+		rr := httptest.NewRecorder()
 
-// 		// If you need to check details for successful requests, set token
-// 		if v.checkDetails {
-// 			// Add user auth token to header
-// 			req.Header.Set("Authorization", fmt.Sprintf("bearer %v", v.tokenToUse))
-// 		}
-// 		// Send update request to mock server
-// 		testConnection.router.ServeHTTP(rr, req)
-// 		// Check response is failed for normal user to update another
-// 		if status := rr.Code; status != v.expectedResponseStatus {
-// 			t.Errorf("User update test: got %v want %v.",
-// 				status, v.expectedResponseStatus)
-// 		}
+		// If you need to check details for successful requests, set token
+		if v.checkDetails {
+			// Add user auth token to header
+			req.Header.Set("Authorization", fmt.Sprintf("bearer %v", v.tokenToUse))
+		}
+		// Send update request to mock server
+		testConnection.router.ServeHTTP(rr, req)
+		// Check response is failed for normal user to update another
+		if status := rr.Code; status != v.expectedResponseStatus {
+			t.Errorf("Got %v want %v.",
+				status, v.expectedResponseStatus)
+		}
 
-// 		// If need to check details
-// 		if v.checkDetails == true {
-// 			// Check user details using updated object
-// 			checkUserDetails(rr, &v.userToCheck, t, true)
-// 		}
-// 	}
-// }
+		// If need to check details
+		if v.checkDetails == true {
+			// Convert response JSON to struct
+			var body models.UserWithRole
+			json.Unmarshal(rr.Body.Bytes(), &body)
+
+			// Check user details using updated object
+			CompareObjects(body, &v.userToCheck, t, []string{"ID", "Username", "Email", "Name"})
+		}
+	}
+}
 
 // func TestUserController_UpdateMyProfile(t *testing.T) {
 // 	var updateTests = []struct {
@@ -560,19 +567,6 @@ func TestUserController_Create(t *testing.T) {
 
 // 	}
 // }
-
-// Updates the parameter user struct with the updated values in updated user
-func updateChangesOnly(createdUser *db.User, updatedUser map[string]string) error {
-	// Iterate through map and change struct values
-	for k, v := range updatedUser {
-		// Update each struct field using map
-		err := helpers.UpdateStructField(createdUser, k, v)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 // Check the user details (username, name, email and ID)
 func checkUserDetails(rr *httptest.ResponseRecorder, createdUser *models.UserWithRole, t *testing.T, checkId bool) {
