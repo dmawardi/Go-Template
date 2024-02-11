@@ -160,13 +160,13 @@ func TestUserController_Delete(t *testing.T) {
 
 	// Test parameter input
 	var tests = []struct {
-		test_name              string
+		testName               string
 		tokenToUse             string
 		expectedResponseStatus int
 	}{
-		{test_name: "Normal user delete failure", tokenToUse: testConnection.accounts.user.token, expectedResponseStatus: http.StatusForbidden},
+		{testName: "Normal user delete failure", tokenToUse: testConnection.accounts.user.token, expectedResponseStatus: http.StatusForbidden},
 		// Put last to also replace test user deletion
-		{test_name: "Admin user delete success", tokenToUse: testConnection.accounts.admin.token, expectedResponseStatus: http.StatusOK},
+		{testName: "Admin user delete success", tokenToUse: testConnection.accounts.admin.token, expectedResponseStatus: http.StatusOK},
 	}
 
 	for _, v := range tests {
@@ -188,117 +188,87 @@ func TestUserController_Delete(t *testing.T) {
 		}
 
 	}
-
 }
 
-// func TestUserController_Update(t *testing.T) {
-// 	var updateTests = []struct {
-// 		data                   map[string]string
-// 		tokenToUse             string
-// 		expectedResponseStatus int
-// 		checkDetails           bool
-// 	}{
-// 		{map[string]string{
-// 			"Username": "JabarHindi",
-// 			"Name":     "Bambaloonie",
-// 		}, testConnection.accounts.user.token, http.StatusForbidden, false},
-// 		{map[string]string{
-// 			"Username": "JabarHindi",
-// 			"Name":     "Bambaloonie",
-// 		}, testConnection.accounts.admin.token, http.StatusOK, true},
-// 		// Update should be disallowed due to being too short
-// 		{map[string]string{
-// 			"Username": "Gobod",
-// 			"Name":     "solu",
-// 		}, testConnection.accounts.admin.token, http.StatusBadRequest, false},
-// 		// User should be forbidden before validating
-// 		{map[string]string{
-// 			"Username": "Gobod",
-// 			"Name":     "solu",
-// 		}, testConnection.accounts.user.token, http.StatusForbidden, false},
-// 	}
+func TestUserController_Update(t *testing.T) {
+	// Create user
+	createdUser, err := testConnection.users.serv.Create(&models.CreateUser{
+		Username: "Jabar",
+		Email:    "greenthumb@ymail.com",
+		Password: "password",
+		Name:     "Bamba",
+	})
+	if err != nil {
+		t.Fatalf("failed to create test user for test: %v", err)
+	}
 
-// 	// Build test user for update
-// 	userToCreate := &db.User{
-// 		Username: "Jabarnam",
-// 		Email:    "sweenie@ymail.com",
-// 		Password: "password",
-// 		Name:     "Bambaliya",
-// 	}
-// 	// Create user
-// 	createdUser, err := testConnection.hashPassAndGenerateUserInDb(userToCreate)
-// 	if err != nil {
-// 		t.Fatalf("failed to create test user for delete user controller test: %v", err)
-// 	}
+	var updateTests = []struct {
+		testName string
+		// To be converted to string for URL
+		urlExtension           interface{}
+		data                   map[string]string
+		tokenToUse             string
+		expectedResponseStatus int
+		checkDetails           bool
+	}{
+		{"Fail case: User updating another user", createdUser.ID, map[string]string{
+			"Username": "JabarHindi",
+			"Name":     "Bambaloonie",
+		}, testConnection.accounts.user.token, http.StatusForbidden, false},
+		{"Admin updating a user", createdUser.ID, map[string]string{
+			"Username": "JabarHindi",
+			"Name":     "Bambaloonie",
+		}, testConnection.accounts.admin.token, http.StatusOK, true},
+		// Update should be disallowed due to being too short
+		{"Fail case: Update with validation errors", createdUser.ID, map[string]string{
+			"Username": "Gobod",
+			"Name":     "solu",
+		}, testConnection.accounts.admin.token, http.StatusBadRequest, false},
+		// User should be forbidden before validating
+		{"Fail case: User invalid update should fail due to permissions", createdUser.ID, map[string]string{
+			"Username": "Gobod",
+			"Name":     "solu",
+		}, testConnection.accounts.user.token, http.StatusForbidden, false},
+		// Should fail as url extension is incorrect
+		{"Fail case: Bad url parameter", "x", map[string]string{
+			"Username": "Gobod",
+			"Name":     "solu",
+		}, testConnection.accounts.admin.token, http.StatusBadRequest, false},
+		// Should fail as id is above currently created
+		{"Fail case: Bad url parameter", "99", map[string]string{
+			"Username": "Gobod",
+			"Name":     "solu",
+		}, testConnection.accounts.admin.token, http.StatusBadRequest, false},
+	}
 
-// 	// Create a request url with an "id" URL parameter
-// 	requestUrl := fmt.Sprintf("/api/users/%v", createdUser.ID)
+	for _, v := range updateTests {
+		req, err := buildUserRequest("PUT", fmt.Sprintf("/%v", createdUser.ID), buildReqBody(v.data), true, v.tokenToUse)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Create a response recorder
+		rr := httptest.NewRecorder()
+		// Send update request to mock server
+		testConnection.router.ServeHTTP(rr, req)
+		// Check response expected vs received
+		if status := rr.Code; status != v.expectedResponseStatus {
+			t.Errorf("Got %v want %v.",
+				status, v.expectedResponseStatus)
+		}
 
-// 	for _, v := range updateTests {
-// 		// Make new request with user update in body
-// 		req, err := http.NewRequest("PUT", requestUrl, buildReqBody(v.data))
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-// 		// Create a response recorder
-// 		rr := httptest.NewRecorder()
-// 		// Add user auth token to header
-// 		req.Header.Set("Authorization", fmt.Sprintf("bearer %v", v.tokenToUse))
-// 		// Send update request to mock server
-// 		testConnection.router.ServeHTTP(rr, req)
-// 		// Check response expected vs received
-// 		if status := rr.Code; status != v.expectedResponseStatus {
-// 			t.Errorf("User update test: got %v want %v.",
-// 				status, v.expectedResponseStatus)
-// 		}
+		// If need to check details
+		if v.checkDetails == true {
+			// Update created user struct with the changes pushed through API
+			UpdateModelFields(createdUser, v.data)
 
-// 		// If need to check details
-// 		if v.checkDetails == true {
-// 			// Update created user struct with the changes pushed through API
-// 			updateChangesOnly(createdUser, v.data)
+			// Check user details using updated object
+			checkUserDetails(rr, createdUser, t, true)
+		}
+	}
 
-// 			// Check user details using updated object
-// 			checkUserDetails(rr, createdUser, t, true)
-// 		}
-// 	}
-
-// 	// Check for failure if incorrect ID parameter detected
-// 	//
-// 	var failUpdateTests = []struct {
-// 		urlExtension           string
-// 		expectedResponseStatus int
-// 	}{
-// 		// alpha character instead
-// 		{urlExtension: "x", expectedResponseStatus: http.StatusForbidden},
-// 		// Index out of bounds
-// 		{urlExtension: "9", expectedResponseStatus: http.StatusBadRequest},
-// 	}
-
-// 	for _, v := range failUpdateTests {
-// 		// Make new request with user update in body
-// 		req, err := http.NewRequest("PUT", fmt.Sprint("/api/users/"+v.urlExtension), buildReqBody(&db.User{
-// 			Username: "Scrappy Kid",
-// 		}))
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-// 		// Create a response recorder
-// 		rr := httptest.NewRecorder()
-// 		// Add user auth token to header
-// 		req.Header.Set("Authorization", fmt.Sprintf("bearer %v", testConnection.accounts.admin.token))
-
-// 		// Send update request to mock server
-// 		testConnection.router.ServeHTTP(rr, req)
-// 		// Check response is forbidden for
-// 		if status := rr.Code; status != v.expectedResponseStatus {
-// 			t.Errorf("User update test: got %v want %v.",
-// 				status, v.expectedResponseStatus)
-// 		}
-// 	}
-
-// 	// Delete the created user
-// 	testConnection.dbClient.Delete(createdUser)
-// }
+	// Delete the created user
+	testConnection.dbClient.Delete(createdUser)
+}
 
 // func TestUserController_Create(t *testing.T) {
 // 	var updateTests = []struct {
