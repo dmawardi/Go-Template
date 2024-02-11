@@ -267,80 +267,80 @@ func TestUserController_Update(t *testing.T) {
 	}
 
 	// Delete the created user
-	testConnection.dbClient.Delete(createdUser)
+	err = testConnection.users.serv.Delete(int(createdUser.ID))
+	if err != nil {
+		t.Fatalf("Error clearing created user")
+	}
 }
 
-// func TestUserController_Create(t *testing.T) {
-// 	var updateTests = []struct {
-// 		data                   models.CreateUser
-// 		expectedResponseStatus int
-// 	}{
-// 		{models.CreateUser{
-// 			Username: "Jabarnam",
-// 			Email:    "gabor@ymail.com",
-// 			Password: "password",
-// 			Name:     "Bambaliya",
-// 		}, http.StatusCreated},
-// 		{models.CreateUser{
-// 			Username: "Swalanim",
-// 			Email:    "salvia@ymail.com",
-// 			Password: "seradfasdf",
-// 			Name:     "CreditTomyaA",
-// 		}, http.StatusCreated},
-// 		// Create should be disallowed due to not being email
-// 		{models.CreateUser{
-// 			Username: "Yukon",
-// 			Email:    "Sylvio",
-// 			Password: "wowogsdfg",
-// 			Name:     "Sosawsdfgsdfg",
-// 		}, http.StatusBadRequest},
-// 		// Should be a bad request due to pass/name length
-// 		{models.CreateUser{
-// 			Username: "Jabarnam",
-// 			Email:    "Cakawu@ymail.com",
-// 			Password: "as",
-// 			Name:     "df",
-// 		}, http.StatusBadRequest},
-// 		// Should be a bad request due to duplicate user (created in init)
-// 		{models.CreateUser{
-// 			Username: "Jabarnam",
-// 			Email:    "Jabal@ymail.com",
-// 			Password: "as",
-// 			Name:     "df",
-// 		}, http.StatusBadRequest},
-// 	}
+func TestUserController_Create(t *testing.T) {
+	var tests = []struct {
+		testName               string
+		data                   models.CreateUser
+		expectedResponseStatus int
+	}{
+		{"Successful user creation", models.CreateUser{
+			Username: "Jabarnam",
+			Email:    "gabor@ymail.com",
+			Password: "password",
+			Name:     "Bambaliya",
+		}, http.StatusCreated},
+		{"Successful user creation", models.CreateUser{
+			Username: "Swalanim",
+			Email:    "salvia@ymail.com",
+			Password: "seradfasdf",
+			Name:     "CreditTomyaA",
+		}, http.StatusCreated},
+		{"Failure: Not email", models.CreateUser{
+			Username: "Yukon",
+			Email:    "Sylvio",
+			Password: "wowogsdfg",
+			Name:     "Sosawsdfgsdfg",
+		}, http.StatusBadRequest},
+		{"Failure: Pass/Name field length", models.CreateUser{
+			Username: "Jabarnam",
+			Email:    "Cakawu@ymail.com",
+			Password: "as",
+			Name:     "df",
+		}, http.StatusBadRequest},
+		{"Failure: Duplicate user", models.CreateUser{
+			Username: "Jabarnam",
+			Email:    "Jabal@ymail.com",
+			Password: "as",
+			Name:     "df",
+		}, http.StatusBadRequest},
+	}
 
-// 	// Create a request url with an "id" URL parameter
-// 	requestUrl := "/api/users"
+	for _, v := range tests {
+		req, err := buildUserRequest("POST", "", buildReqBody(v.data), false, "")
+		// Make new request with user update in body
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Create a response recorder
+		rr := httptest.NewRecorder()
 
-// 	for _, v := range updateTests {
-// 		// Make new request with user update in body
-// 		req, err := http.NewRequest("POST", requestUrl, buildReqBody(v.data))
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-// 		// Create a response recorder
-// 		rr := httptest.NewRecorder()
+		// Send update request to mock server
+		testConnection.router.ServeHTTP(rr, req)
+		// Check response is failed for normal user to update another
+		if status := rr.Code; status != v.expectedResponseStatus {
 
-// 		// Send update request to mock server
-// 		testConnection.router.ServeHTTP(rr, req)
-// 		// Check response is failed for normal user to update another
-// 		if status := rr.Code; status != v.expectedResponseStatus {
+			t.Errorf("%s: Got %v want %v.", v.data.Name,
+				status, v.expectedResponseStatus)
+		}
 
-// 			t.Errorf("User update test (%v): got %v want %v.", v.data.Name,
-// 				status, v.expectedResponseStatus)
-// 		}
+		// Init body for response extraction
+		var body models.UserWithRole
+		// Grab ID from response body
+		json.Unmarshal(rr.Body.Bytes(), &body)
 
-// 		// Init body for response extraction
-// 		var body db.User
-// 		// Grab ID from response body
-// 		json.Unmarshal(rr.Body.Bytes(), &body)
-
-// 		// Delete the created user
-// 		testConnection.dbClient.Delete(&db.User{ID: uint(body.ID)})
-// 		// testConnection.users.serv.Delete(int(body.ID))
-// 	}
-// }
+		// Delete the created user
+		err = testConnection.users.serv.Delete(int(body.ID))
+		if err != nil {
+			t.Fatalf("Error clearing created user")
+		}
+	}
+}
 
 // func TestUserController_GetMyUserDetails(t *testing.T) {
 // 	var updateTests = []struct {
