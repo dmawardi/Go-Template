@@ -394,96 +394,97 @@ func TestUserController_GetMyUserDetails(t *testing.T) {
 	}
 }
 
-// func TestUserController_UpdateMyProfile(t *testing.T) {
-// 	var updateTests = []struct {
-// 		data                   map[string]string
-// 		tokenToUse             string
-// 		expectedResponseStatus int
-// 		checkDetails           bool
-// 		loggedInDetails        db.User
-// 	}{
-// 		// Admin test
-// 		{map[string]string{
-// 			"Username": "JabarCindi",
-// 			"Name":     "Bambaloonie",
-// 		}, testConnection.accounts.admin.token, http.StatusOK, true, *testConnection.accounts.admin.details},
-// 		// User test
-// 		{map[string]string{
-// 			"Username": "JabarHindi",
-// 			"Name":     "Bambaloonie",
-// 			"Password": "YeezusChris",
-// 		}, testConnection.accounts.user.token, http.StatusOK, true, *testConnection.accounts.user.details},
-// 		// User update Email with non-email
-// 		{map[string]string{
-// 			"Email": "JabarHindi",
-// 		}, testConnection.accounts.user.token, http.StatusBadRequest, false, *testConnection.accounts.user.details},
-// 		// User update Email with duplicate email
-// 		{map[string]string{
-// 			"Username": "Swahili",
-// 			"Email":    testConnection.accounts.admin.details.Email,
-// 		}, testConnection.accounts.user.token, http.StatusBadRequest, false, *testConnection.accounts.user.details},
-// 		// User updates without token should fail
-// 		{map[string]string{
-// 			"Username": "JabarHindi",
-// 			"Name":     "Bambaloonie",
-// 			"Password": "YeezusChris",
-// 		}, "", http.StatusForbidden, false, *testConnection.accounts.user.details},
-// 		// Update for 2 tests below should be disallowed due to being too short
-// 		{map[string]string{
-// 			"Username": "Gobod",
-// 			"Name":     "solu",
-// 		}, testConnection.accounts.admin.token, http.StatusBadRequest, false, *testConnection.accounts.admin.details},
-// 		{map[string]string{
-// 			"Username": "Gabor",
-// 			"Name":     "solu",
-// 		}, testConnection.accounts.user.token, http.StatusBadRequest, false, *testConnection.accounts.user.details},
-// 	}
+func TestUserController_UpdateMyProfile(t *testing.T) {
+	var tests = []struct {
+		testName               string
+		data                   map[string]string
+		tokenToUse             string
+		expectedResponseStatus int
+		checkDetails           bool
+		loggedInDetails        models.UserWithRole
+	}{
+		{"Admin self update", map[string]string{
+			"Username": "JabarCindi",
+			"Name":     "Bambaloonie",
+		}, testConnection.accounts.admin.token, http.StatusOK, true, *testConnection.accounts.admin.details},
+		{"User self update", map[string]string{
+			"Username": "JabarHindi",
+			"Name":     "Bambaloonie",
+			"Password": "YeezusChris",
+		}, testConnection.accounts.user.token, http.StatusOK, true, *testConnection.accounts.user.details},
+		{"User self update with invalid email", map[string]string{
+			"Email": "JabarHindi",
+		}, testConnection.accounts.user.token, http.StatusBadRequest, false, *testConnection.accounts.user.details},
+		{"Fail: User self update with duplicate email", map[string]string{
+			"Username": "Swahili",
+			"Email":    testConnection.accounts.admin.details.Email,
+		}, testConnection.accounts.user.token, http.StatusBadRequest, false, *testConnection.accounts.user.details},
+		{"Fail: User update without token", map[string]string{
+			"Username": "JabarHindi",
+			"Name":     "Bambaloonie",
+			"Password": "YeezusChris",
+		}, "", http.StatusForbidden, false, *testConnection.accounts.user.details},
+		{"Fail: Admin update with invalid validation", map[string]string{
+			"Username": "Gobod",
+			"Name":     "solu",
+		}, testConnection.accounts.admin.token, http.StatusBadRequest, false, *testConnection.accounts.admin.details},
+		{"Fail: User update with invalid validation", map[string]string{
+			"Username": "Gabor",
+			"Name":     "solu",
+		}, testConnection.accounts.user.token, http.StatusBadRequest, false, *testConnection.accounts.user.details},
+	}
 
-// 	// Create a request url with an "id" URL parameter
-// 	requestUrl := "/api/me"
+	// Create a request url with an "id" URL parameter
+	requestUrl := "/api/me"
 
-// 	for _, v := range updateTests {
-// 		// Make new request with user update in body
-// 		req, err := http.NewRequest("PUT", requestUrl, buildReqBody(v.data))
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-// 		// Create a response recorder
-// 		rr := httptest.NewRecorder()
-// 		// Add user auth token to header
-// 		req.Header.Set("Authorization", fmt.Sprintf("bearer %v", v.tokenToUse))
-// 		// Send update request to mock server
-// 		testConnection.router.ServeHTTP(rr, req)
-// 		// Check response is failed for normal user to update another
-// 		if status := rr.Code; status != v.expectedResponseStatus {
-// 			t.Errorf("User update test (%v): got %v want %v.", v.data["Username"],
-// 				status, v.expectedResponseStatus)
-// 		}
+	for _, v := range tests {
+		// Make new request with user update in body
+		req, err := http.NewRequest("PUT", requestUrl, buildReqBody(v.data))
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Add user auth token to header
+		req.Header.Set("Authorization", fmt.Sprintf("bearer %v", v.tokenToUse))
 
-// 		// If need to check details
-// 		if v.checkDetails == true {
-// 			// Update created user struct with the changes pushed through API
-// 			updateChangesOnly(&v.loggedInDetails, v.data)
+		// Create a response recorder
+		rr := httptest.NewRecorder()
+		// Send update request to mock server
+		testConnection.router.ServeHTTP(rr, req)
+		// Check response is failed for normal user to update another
+		if status := rr.Code; status != v.expectedResponseStatus {
+			t.Errorf("%v: got %v want %v.", v.testName,
+				status, v.expectedResponseStatus)
+		}
 
-// 			// Check user details using updated object
-// 			checkUserDetails(rr, &v.loggedInDetails, t, true)
-// 		}
+		// If need to check details
+		if v.checkDetails == true {
+			// Update created user struct with the changes pushed through API
+			UpdateModelFields(&v.loggedInDetails, v.data)
 
-// 		// Return updates to original state
-// 		testConnection.users.serv.Update(int(testConnection.accounts.admin.details.ID), &models.UpdateUser{
-// 			Username: testConnection.accounts.admin.details.Username,
-// 			Password: testConnection.accounts.admin.details.Password,
-// 			Email:    testConnection.accounts.admin.details.Email,
-// 			Name:     testConnection.accounts.admin.details.Name,
-// 		})
-// 		testConnection.users.serv.Update(int(testConnection.accounts.user.details.ID), &models.UpdateUser{
-// 			Username: testConnection.accounts.user.details.Username,
-// 			Password: testConnection.accounts.user.details.Password,
-// 			Email:    testConnection.accounts.user.details.Email,
-// 			Name:     testConnection.accounts.user.details.Name,
-// 		})
-// 	}
-// }
+			// Check user details using updated object
+			checkUserDetails(rr, &v.loggedInDetails, t, true)
+			// Convert response JSON to struct
+			var body models.UserWithRole
+			json.Unmarshal(rr.Body.Bytes(), &body)
+
+			CompareObjects(body, v.loggedInDetails, t, []string{"ID", "Username", "Email", "Name"})
+		}
+
+		// Return updates to original state
+		testConnection.users.serv.Update(int(testConnection.accounts.admin.details.ID), &models.UpdateUser{
+			Username: testConnection.accounts.admin.details.Username,
+			Password: testConnection.accounts.admin.details.Password,
+			Email:    testConnection.accounts.admin.details.Email,
+			Name:     testConnection.accounts.admin.details.Name,
+		})
+		testConnection.users.serv.Update(int(testConnection.accounts.user.details.ID), &models.UpdateUser{
+			Username: testConnection.accounts.user.details.Username,
+			Password: testConnection.accounts.user.details.Password,
+			Email:    testConnection.accounts.user.details.Email,
+			Name:     testConnection.accounts.user.details.Name,
+		})
+	}
+}
 
 // func TestUserController_Login(t *testing.T) {
 // 	var loginTests = []struct {
