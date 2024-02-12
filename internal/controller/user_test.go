@@ -486,88 +486,78 @@ func TestUserController_UpdateMyProfile(t *testing.T) {
 	}
 }
 
-// func TestUserController_Login(t *testing.T) {
-// 	var loginTests = []struct {
-// 		title                  string
-// 		data                   models.Login
-// 		expectedResponseStatus int
-// 		failureExpected        bool
-// 		expectedMessage        string
-// 	}{
-// 		// Admin user login
-// 		{"Admin user login", models.Login{
-// 			Email:    testConnection.accounts.admin.details.Email,
-// 			Password: testConnection.accounts.admin.details.Password,
-// 		}, http.StatusOK, false, ""},
-// 		// Admin user incorrect login
-// 		{"Admin user incorrect", models.Login{
-// 			Email:    testConnection.accounts.admin.details.Email,
-// 			Password: "wrongPassword",
-// 		}, http.StatusUnauthorized, true, "Incorrect username/password\n"},
-// 		// Basic user login
-// 		{"Basic user login", models.Login{
-// 			Email:    testConnection.accounts.user.details.Email,
-// 			Password: testConnection.accounts.user.details.Password,
-// 		}, http.StatusOK, false, ""},
-// 		// Basic user incorrect login
-// 		{"Basic user incorrect", models.Login{
-// 			Email:    testConnection.accounts.user.details.Email,
-// 			Password: "VeryWrongPassword",
-// 		}, http.StatusUnauthorized, true, "Incorrect username/password\n"},
-// 		// Completely made up email for user login
-// 		{"Non existent user login", models.Login{
-// 			Email:    "jester@gmail.com",
-// 			Password: "VeryWrongPassword",
-// 		}, http.StatusUnauthorized, true, "Invalid Credentials\n"},
-// 		// Email is not an email (Validation error, can't be checked below)
-// 		// Should result in bad request
-// 		{"Non existent user login", models.Login{
-// 			Email:    "jester",
-// 			Password: "VeryWrongPassword",
-// 		}, http.StatusBadRequest, false, ""},
-// 		// Empty credentials
-// 		{"Non existent user login", models.Login{
-// 			Email:    "jester",
-// 			Password: "",
-// 		}, http.StatusBadRequest, false, ""},
-// 	}
+func TestUserController_Login(t *testing.T) {
+	var tests = []struct {
+		testName               string
+		data                   models.Login
+		expectedResponseStatus int
+		failureExpected        bool
+		expectedMessage        string
+	}{
+		{"Admin user login", models.Login{
+			Email:    testConnection.accounts.admin.details.Email,
+			Password: testConnection.accounts.admin.details.Password,
+		}, http.StatusOK, false, ""},
+		{"Fail: Admin user incorrect details", models.Login{
+			Email:    testConnection.accounts.admin.details.Email,
+			Password: "wrongPassword",
+		}, http.StatusUnauthorized, true, "Invalid Credentials\n"},
+		{"Basic user login", models.Login{
+			Email:    testConnection.accounts.user.details.Email,
+			Password: testConnection.accounts.user.details.Password,
+		}, http.StatusOK, false, ""},
+		{"Fail: Basic user incorrect details", models.Login{
+			Email:    testConnection.accounts.user.details.Email,
+			Password: "VeryWrongPassword",
+		}, http.StatusUnauthorized, true, "Invalid Credentials\n"},
+		{"Fail: Non existent user login", models.Login{
+			Email:    "jester@gmail.com",
+			Password: "VeryWrongPassword",
+		}, http.StatusUnauthorized, true, "Invalid Credentials\n"},
+		{"Fail: Invalid email user login", models.Login{
+			Email:    "jester",
+			Password: "VeryWrongPassword",
+		}, http.StatusBadRequest, false, ""},
+		{"Fail: Empty credentials", models.Login{
+			Email:    "jester",
+			Password: "",
+		}, http.StatusBadRequest, false, ""},
+	}
 
-// 	// Create a request url with an "id" URL parameter
-// 	requestUrl := "/api/users/login"
+	// Create a request url with an "id" URL parameter
+	requestUrl := "/api/users/login"
 
-// 	for _, v := range loginTests {
-// 		// Build request body
-// 		reqBody := buildReqBody(v.data)
-// 		// Make new request with user update in body
-// 		req, err := http.NewRequest("POST", requestUrl, reqBody)
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
-// 		// Create a response recorder
-// 		rr := httptest.NewRecorder()
+	for _, v := range tests {
+		// Make request with update in body
+		req, err := http.NewRequest("POST", requestUrl, buildReqBody(v.data))
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Create a response recorder
+		rr := httptest.NewRecorder()
 
-// 		// Send update request to mock server
-// 		testConnection.router.ServeHTTP(rr, req)
+		// Send update request to mock server
+		testConnection.router.ServeHTTP(rr, req)
 
-// 		// Check response is failed for normal user to update another
-// 		if status := rr.Code; status != v.expectedResponseStatus {
-// 			t.Errorf("User login test (%v)\nDetails: %v/%v. got %v want %v. Resp: %v", v.title, v.data.Email, v.data.Password,
-// 				status, v.expectedResponseStatus, rr.Body)
-// 		}
+		// Check response is failed for normal user to update another
+		if status := rr.Code; status != v.expectedResponseStatus {
+			t.Errorf("%v: %v/%v. got %v want %v. Resp: %v", v.testName, v.data.Email, v.data.Password,
+				status, v.expectedResponseStatus, rr.Body)
+		}
 
-// 		// If failure is expected
-// 		if v.failureExpected {
-// 			// Form req body
-// 			reqBody := rr.Body.String()
-// 			// Check if matches with expectation
-// 			if reqBody != v.expectedMessage {
-// 				t.Errorf("The body is: %v. expected: %v.", rr.Body.String(), v.expectedMessage)
-// 			}
+		// If failure is expected
+		if v.failureExpected {
+			// Form req body
+			reqBody := rr.Body.String()
+			// Check if matches with expectation
+			if reqBody != v.expectedMessage {
+				t.Errorf("%v: The body is: %v. expected: %v.", v.testName, rr.Body.String(), v.expectedMessage)
+			}
 
-// 		}
+		}
 
-// 	}
-// }
+	}
+}
 
 // Check the user details (username, name, email and ID)
 func checkUserDetails(rr *httptest.ResponseRecorder, createdUser *models.UserWithRole, t *testing.T, checkId bool) {
