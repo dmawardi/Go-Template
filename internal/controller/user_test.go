@@ -3,27 +3,12 @@ package controller_test
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/dmawardi/Go-Template/internal/models"
 )
-
-// Builds request for user module. Method (GET/POST/etc.) url suffix is for any values that may come after /api/users
-// body is for the request body (nil for none), authHeaderRequired is for if the request requires an authorization header and token is the token to use
-func buildUserRequest(method string, urlSuffix string, body io.Reader, authHeaderRequired bool, token string) (request *http.Request, err error) {
-	req, err := http.NewRequest(method, fmt.Sprintf("/api/users%v", urlSuffix), body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %v", err)
-	}
-	// If authorization header required
-	if authHeaderRequired {
-		req.Header.Set("Authorization", fmt.Sprintf("bearer %v", token))
-	}
-	return req, nil
-}
 
 func TestUserController_Find(t *testing.T) {
 	// Create user
@@ -38,7 +23,7 @@ func TestUserController_Find(t *testing.T) {
 	}
 
 	// Create a request with an "id" URL parameter
-	req, err := buildUserRequest("GET", fmt.Sprintf("/%v", createdUser.ID), nil, true, testConnection.accounts.admin.token)
+	req, err := buildApiRequest("GET", fmt.Sprintf("users/%v", createdUser.ID), nil, true, testConnection.accounts.admin.token)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,7 +56,7 @@ func TestUserController_Find(t *testing.T) {
 func TestUserController_FindAll(t *testing.T) {
 	// Test finding two already created users for authentication mocking
 	// Create a new request
-	req, err := buildUserRequest("GET", "?limit=10&offset=0&order=id_desc", nil, true, testConnection.accounts.admin.token)
+	req, err := buildApiRequest("GET", "users?limit=10&offset=0&order=id_desc", nil, true, testConnection.accounts.admin.token)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,7 +110,7 @@ func TestUserController_FindAll(t *testing.T) {
 		{test_name: "Normal test", limit: "20", offset: "1", order: "id_desc", expectedResponseStatus: http.StatusOK},
 	}
 	for _, v := range failParameterTests {
-		req, err := buildUserRequest("GET", fmt.Sprintf("?limit=%v&offset=%v&order=%v", v.limit, v.offset, v.order), nil, true, testConnection.accounts.admin.token)
+		req, err := buildApiRequest("GET", fmt.Sprintf("users?limit=%v&offset=%v&order=%v", v.limit, v.offset, v.order), nil, true, testConnection.accounts.admin.token)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -169,7 +154,7 @@ func TestUserController_Delete(t *testing.T) {
 
 	for _, v := range tests {
 		// Create a request
-		req, err := buildUserRequest("DELETE", fmt.Sprintf("/%v", createdUser.ID), nil, true, v.tokenToUse)
+		req, err := buildApiRequest("DELETE", fmt.Sprintf("users/%v", createdUser.ID), nil, true, v.tokenToUse)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -240,7 +225,7 @@ func TestUserController_Update(t *testing.T) {
 	}
 
 	for _, v := range updateTests {
-		req, err := buildUserRequest("PUT", fmt.Sprintf("/%v", createdUser.ID), buildReqBody(v.data), true, v.tokenToUse)
+		req, err := buildApiRequest("PUT", fmt.Sprintf("users/%v", createdUser.ID), buildReqBody(v.data), true, v.tokenToUse)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -314,7 +299,8 @@ func TestUserController_Create(t *testing.T) {
 	}
 
 	for _, v := range tests {
-		req, err := buildUserRequest("POST", "", buildReqBody(v.data), false, "")
+		req, err := buildApiRequest("POST", "users", buildReqBody(v.data), false, "")
+
 		// Make new request with user update in body
 		if err != nil {
 			t.Fatal(err)

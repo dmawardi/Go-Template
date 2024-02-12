@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -233,6 +234,19 @@ func setupTestDatabase() *gorm.DB {
 	}
 
 	return dbClient
+}
+
+// buildApiRequest is a helper function to build an API request that starts with url of '/api/'
+func buildApiRequest(method string, urlSuffix string, body io.Reader, authHeaderRequired bool, token string) (request *http.Request, err error) {
+	req, err := http.NewRequest(method, fmt.Sprintf("/api/%v", urlSuffix), body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %v", err)
+	}
+	// If authorization header required
+	if authHeaderRequired {
+		req.Header.Set("Authorization", fmt.Sprintf("bearer %v", token))
+	}
+	return req, nil
 }
 
 // Build a struct object to a type of bytes.reader to fulfill io.reader interface
