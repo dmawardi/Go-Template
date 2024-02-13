@@ -69,3 +69,7 @@ func SearchPoliciesForExactResouceMatch(maps []models.PolicyRuleCombinedActions,
 func UnslugifyResourceName(slugifiedResourceName string) string {
 	return strings.ReplaceAll(slugifiedResourceName, "-", "/")
 }
+
+func SlugifyResourceName(resource string) string {
+	return strings.ReplaceAll(resource, "/", "-")
+}

@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"encoding/json"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -54,4 +55,19 @@ func StringToMap(input string) (map[string]string, error) {
 	}
 
 	return result, nil
+}
+
+// Checks if a slice contains a type of targetType. Returns boolean
+func CheckSliceType(slice interface{}, targetType reflect.Type) bool {
+	// Get the type of the slice argument
+	sliceType := reflect.TypeOf(slice)
+
+	// Check if the slice argument is actually a slice
+	if sliceType.Kind() != reflect.Slice {
+		return false
+	}
+
+	// Compare element type of the slice with the target type
+	elemType := sliceType.Elem()
+	return elemType == targetType
 }

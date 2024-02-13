@@ -26,6 +26,10 @@ p,admin,/api/auth,read
 p,admin,/api/auth,create
 p,admin,/api/auth,update
 p,admin,/api/auth,delete
+p,admin,/api/auth/**,read
+p,admin,/api/auth/**,create
+p,admin,/api/auth/**,update
+p,admin,/api/auth/**,delete
 p,admin,/api/auth/roles,read
 p,admin,/api/auth/roles,update
 p,admin,/api/auth/roles,delete
