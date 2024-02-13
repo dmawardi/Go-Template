@@ -1,18 +1,21 @@
 package helpers
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/dmawardi/Go-Template/internal/models"
+)
 
 // Policy search helpers
 // Searches a list of policies for a given resource based on search term
-func SearchPoliciesByResource(maps []map[string]interface{}, searchTerm string) []map[string]interface{} {
-	var result []map[string]interface{}
+func SearchPoliciesByResource(maps []models.PolicyRuleCombinedActions, searchTerm string) []models.PolicyRuleCombinedActions {
+	var result []models.PolicyRuleCombinedActions
 
 	// Iterate through map of policies
 	for _, m := range maps {
-		// Grab resource
-		resource, ok := m["resource"].(string)
+
 		// If success and resource contains search term
-		if ok && ContainsString(resource, searchTerm) {
+		if ContainsString(m.Resource, searchTerm) {
 			result = append(result, m)
 		}
 	}
@@ -48,15 +51,13 @@ func SearchMapKeysFor(maps []map[string]string, mapKeysToSearch []string, search
 }
 
 // Searches a list of policies for a given resource based on search term
-func SearchPoliciesForExactResouceMatch(maps []map[string]interface{}, searchTerm string) []map[string]interface{} {
-	var result []map[string]interface{}
+func SearchPoliciesForExactResouceMatch(maps []models.PolicyRuleCombinedActions, searchTerm string) []models.PolicyRuleCombinedActions {
+	var result []models.PolicyRuleCombinedActions
 
 	// Iterate through map of policies
 	for _, m := range maps {
-		// Grab resource
-		resource, ok := m["resource"].(string)
 		// If success and resource contains search term
-		if ok && resource == searchTerm {
+		if m.Resource == searchTerm {
 			result = append(result, m)
 		}
 	}

@@ -11,8 +11,8 @@ import (
 
 type AuthPolicyService interface {
 	// Policies
-	FindAll(searchQuery string) ([]map[string]interface{}, error)
-	FindByResource(policyResource string) ([]map[string]interface{}, error)
+	FindAll(searchQuery string) ([]models.PolicyRuleCombinedActions, error)
+	FindByResource(policyResource string) ([]models.PolicyRuleCombinedActions, error)
 	Create(policy models.PolicyRule) error
 	Update(oldPolicy, newPolicy models.PolicyRule) error
 	Delete(policy models.PolicyRule) error
@@ -38,7 +38,7 @@ func NewAuthPolicyService(repo repository.AuthPolicyRepository) AuthPolicyServic
 // Policies
 //
 
-func (s *authPolicyService) FindAll(searchQuery string) ([]map[string]interface{}, error) {
+func (s *authPolicyService) FindAll(searchQuery string) ([]models.PolicyRuleCombinedActions, error) {
 	data, err := s.repo.FindAll()
 	if err != nil {
 		return nil, err
@@ -54,13 +54,12 @@ func (s *authPolicyService) FindAll(searchQuery string) ([]map[string]interface{
 
 	// Sort by resource alphabetically
 	sort.Slice(groupsSlice, func(i, j int) bool {
-		// Give two items to compare to role resource alpha sorter
-		return helpers.SortMapStringInterfaceAlphabetically(groupsSlice[i], groupsSlice[j], "resource")
+		return groupsSlice[i].Resource < groupsSlice[j].Resource
 	})
 
 	return groupsSlice, nil
 }
-func (s *authPolicyService) FindByResource(policyResource string) ([]map[string]interface{}, error) {
+func (s *authPolicyService) FindByResource(policyResource string) ([]models.PolicyRuleCombinedActions, error) {
 	data, err := s.repo.FindAll()
 	if err != nil {
 		return nil, err
@@ -156,11 +155,11 @@ func (s *authPolicyService) DeleteInheritance(inherit models.G2Record) error {
 }
 
 // Transform data from enforcer policies to User friendly response
-func transformDataToResponse(data [][]string) []map[string]interface{} {
+func transformDataToResponse(data [][]string) []models.PolicyRuleCombinedActions {
 	// Response format
-	response := make(map[string][]map[string]interface{})
+	var response []models.PolicyRuleCombinedActions
 	// Init policy dictionary for sorting
-	policyDict := make(map[string]map[string]interface{})
+	policyDict := make(map[string]*models.PolicyRuleCombinedActions)
 
 	// Loop through data and build policy dictionary
 	for _, item := range data {
@@ -170,22 +169,22 @@ func transformDataToResponse(data [][]string) []map[string]interface{} {
 
 		// If key does not exist, create new entry
 		if _, ok := policyDict[key]; !ok {
-			policyDict[key] = map[string]interface{}{
-				"role":     role,
-				"resource": resource,
-				"action":   []string{action},
+			policyDict[key] = &models.PolicyRuleCombinedActions{
+				Role:     role,
+				Resource: resource,
+				Action:   []string{action},
 			}
 
 		} else {
 			// Else, if record exists with resource, append action to action slice
-			policyDict[key]["action"] = append(policyDict[key]["action"].([]string), action)
+			policyDict[key].Action = append(policyDict[key].Action, action)
 		}
 	}
 
 	// Loop through policyDict and append to response
 	for _, policy := range policyDict {
-		response["policies"] = append(response["policies"], policy)
+		response = append(response, *policy)
 	}
 
-	return response["policies"]
+	return response
 }

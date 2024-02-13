@@ -175,7 +175,7 @@ type PolicyActionCell struct {
 }
 
 // Function build permission policy table data for Permissions
-func BuildPolicyTableData(policySlice []map[string]interface{}, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
+func BuildPolicyTableData(policySlice []models.PolicyRuleCombinedActions, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
 	var tableRows []TableRow
 
 	// Loop through policy slice to build table rows
@@ -184,15 +184,28 @@ func BuildPolicyTableData(policySlice []map[string]interface{}, adminSchemaBaseU
 
 		// Iterate through tableheaders
 		for _, header := range tableHeaders {
-			// Grab data from the schema object
-			value, found := policy[header.Label]
+			var value string
+			var found bool
+
+			// Check the header label and assign the corresponding field from policy
+			switch header.Label {
+			case "role":
+				value = policy.Role
+				found = true
+			case "resource":
+				value = policy.Resource
+				found = true
+			case "action":
+				value = strings.Join(policy.Action, ", ")
+				found = true
+			}
 
 			// If the key is found, append the value to the row data
 			if found {
 				// Append with edit link if it's the first column (resource)
 				if header.Label == "resource" {
 					// Create the edit link from the label value (slugify)
-					editLink := strings.ReplaceAll(value.(string), "/", "-")
+					editLink := strings.ReplaceAll(value, "/", "-")
 					// Append to row data with edit link
 					rowData = append(rowData, TableCell{Label: fmt.Sprintf("%v", value), EditLink: editLink})
 

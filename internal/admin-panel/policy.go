@@ -649,7 +649,7 @@ func (c adminAuthPolicyController) ObtainFields() BasicAdminController {
 
 // Search helpers
 // Convert the map received from the service to a slice of models.PolicyRule
-func buildEditPolicyTable(m []map[string]interface{}) []PolicyEditDataRow {
+func buildEditPolicyTable(m []models.PolicyRuleCombinedActions) []PolicyEditDataRow {
 	var policies []PolicyEditDataRow
 	// Iterate through map of policies
 	for _, policy := range m {
@@ -665,7 +665,7 @@ func buildEditPolicyTable(m []map[string]interface{}) []PolicyEditDataRow {
 			}
 
 			// Check if array contains a string
-			if helpers.ArrayContainsString(policy["action"].([]string), action) {
+			if helpers.ArrayContainsString(policy.Action, action) {
 				actionToAdd.Granted = true
 			}
 
@@ -675,8 +675,8 @@ func buildEditPolicyTable(m []map[string]interface{}) []PolicyEditDataRow {
 
 		// Build policy edit row
 		policyToAdd := PolicyEditDataRow{
-			Role:     policy["role"].(string),
-			Resource: policy["resource"].(string),
+			Role:     policy.Role,
+			Resource: policy.Resource,
 			Actions:  actions,
 		}
 
