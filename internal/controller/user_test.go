@@ -331,41 +331,37 @@ func TestUserController_Create(t *testing.T) {
 }
 
 func TestUserController_GetMyUserDetails(t *testing.T) {
+	// Create a request url
+	requestUrl := "me"
 	var tests = []struct {
 		testName               string
 		checkDetails           bool
+		useToken               bool
 		tokenToUse             string
 		userToCheck            models.UserWithRole
 		expectedResponseStatus int
 	}{
-		{"User checking own profile", true, testConnection.accounts.user.token, *testConnection.accounts.user.details, http.StatusOK},
-		{"Admin checking own profile", true, testConnection.accounts.admin.token, *testConnection.accounts.admin.details, http.StatusOK},
+		{"User checking own profile", true, true, testConnection.accounts.user.token, *testConnection.accounts.user.details, http.StatusOK},
+		{"Admin checking own profile", true, true, testConnection.accounts.admin.token, *testConnection.accounts.admin.details, http.StatusOK},
 		// Deny access to user that doesn't have authentication
-		{"Logged out user checking profile", false, "", models.UserWithRole{}, http.StatusForbidden},
+		{"Logged out user checking profile", false, false, "", models.UserWithRole{}, http.StatusForbidden},
 	}
-	// Create a request url with an "id" URL parameter
-	requestUrl := "/api/me"
 
 	for _, v := range tests {
+		req, err := buildApiRequest("GET", requestUrl, nil, v.useToken, v.tokenToUse)
 		// Make new request with user update in body
-		req, err := http.NewRequest("GET", requestUrl, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
 		// Create a response recorder
 		rr := httptest.NewRecorder()
 
-		// If you need to check details for successful requests, set token
-		if v.checkDetails {
-			// Add user auth token to header
-			req.Header.Set("Authorization", fmt.Sprintf("bearer %v", v.tokenToUse))
-		}
 		// Send update request to mock server
 		testConnection.router.ServeHTTP(rr, req)
 		// Check response is failed for normal user to update another
 		if status := rr.Code; status != v.expectedResponseStatus {
-			t.Errorf("Got %v want %v.",
-				status, v.expectedResponseStatus)
+			t.Errorf("%s: Got %v want %v.(%v)", v.testName,
+				status, v.expectedResponseStatus, rr.Body)
 		}
 
 		// If need to check details
@@ -381,9 +377,13 @@ func TestUserController_GetMyUserDetails(t *testing.T) {
 }
 
 func TestUserController_UpdateMyProfile(t *testing.T) {
+	// Create a request url with an "id" URL parameter
+	requestUrl := "me"
+
 	var tests = []struct {
 		testName               string
 		data                   map[string]string
+		useToken               bool
 		tokenToUse             string
 		expectedResponseStatus int
 		checkDetails           bool
@@ -392,50 +392,46 @@ func TestUserController_UpdateMyProfile(t *testing.T) {
 		{"Admin self update", map[string]string{
 			"Username": "JabarCindi",
 			"Name":     "Bambaloonie",
-		}, testConnection.accounts.admin.token, http.StatusOK, true, *testConnection.accounts.admin.details},
+		}, true, testConnection.accounts.admin.token, http.StatusOK, true, *testConnection.accounts.admin.details},
 		{"User self update", map[string]string{
 			"Username": "JabarHindi",
 			"Name":     "Bambaloonie",
 			"Password": "YeezusChris",
-		}, testConnection.accounts.user.token, http.StatusOK, true, *testConnection.accounts.user.details},
+		}, true, testConnection.accounts.user.token, http.StatusOK, true, *testConnection.accounts.user.details},
 		{"User self update with invalid email", map[string]string{
 			"Email": "JabarHindi",
-		}, testConnection.accounts.user.token, http.StatusBadRequest, false, *testConnection.accounts.user.details},
+		}, true, testConnection.accounts.user.token, http.StatusBadRequest, false, *testConnection.accounts.user.details},
 		{"Fail: User self update with duplicate email", map[string]string{
 			"Username": "Swahili",
 			"Email":    testConnection.accounts.admin.details.Email,
-		}, testConnection.accounts.user.token, http.StatusBadRequest, false, *testConnection.accounts.user.details},
+		}, true, testConnection.accounts.user.token, http.StatusBadRequest, false, *testConnection.accounts.user.details},
 		{"Fail: User update without token", map[string]string{
 			"Username": "JabarHindi",
 			"Name":     "Bambaloonie",
 			"Password": "YeezusChris",
-		}, "", http.StatusForbidden, false, *testConnection.accounts.user.details},
+		}, false, "", http.StatusForbidden, false, *testConnection.accounts.user.details},
 		{"Fail: Admin update with invalid validation", map[string]string{
 			"Username": "Gobod",
 			"Name":     "solu",
-		}, testConnection.accounts.admin.token, http.StatusBadRequest, false, *testConnection.accounts.admin.details},
+		}, true, testConnection.accounts.admin.token, http.StatusBadRequest, false, *testConnection.accounts.admin.details},
 		{"Fail: User update with invalid validation", map[string]string{
 			"Username": "Gabor",
 			"Name":     "solu",
-		}, testConnection.accounts.user.token, http.StatusBadRequest, false, *testConnection.accounts.user.details},
+		}, true, testConnection.accounts.user.token, http.StatusBadRequest, false, *testConnection.accounts.user.details},
 	}
-
-	// Create a request url with an "id" URL parameter
-	requestUrl := "/api/me"
 
 	for _, v := range tests {
 		// Make new request with user update in body
-		req, err := http.NewRequest("PUT", requestUrl, buildReqBody(v.data))
+		req, err := buildApiRequest("PUT", requestUrl, buildReqBody(v.data), v.useToken, v.tokenToUse)
 		if err != nil {
 			t.Fatal(err)
 		}
-		// Add user auth token to header
-		req.Header.Set("Authorization", fmt.Sprintf("bearer %v", v.tokenToUse))
 
 		// Create a response recorder
 		rr := httptest.NewRecorder()
 		// Send update request to mock server
 		testConnection.router.ServeHTTP(rr, req)
+
 		// Check response is failed for normal user to update another
 		if status := rr.Code; status != v.expectedResponseStatus {
 			t.Errorf("%v: got %v want %v.", v.testName,
@@ -447,8 +443,6 @@ func TestUserController_UpdateMyProfile(t *testing.T) {
 			// Update created user struct with the changes pushed through API
 			UpdateModelFields(&v.loggedInDetails, v.data)
 
-			// Check user details using updated object
-			checkUserDetails(rr, &v.loggedInDetails, t, true)
 			// Convert response JSON to struct
 			var body models.UserWithRole
 			json.Unmarshal(rr.Body.Bytes(), &body)
@@ -473,6 +467,9 @@ func TestUserController_UpdateMyProfile(t *testing.T) {
 }
 
 func TestUserController_Login(t *testing.T) {
+	// Create a request url with an "id" URL parameter
+	requestUrl := "users/login"
+
 	var tests = []struct {
 		testName               string
 		data                   models.Login
@@ -510,12 +507,9 @@ func TestUserController_Login(t *testing.T) {
 		}, http.StatusBadRequest, false, ""},
 	}
 
-	// Create a request url with an "id" URL parameter
-	requestUrl := "/api/users/login"
-
 	for _, v := range tests {
+		req, err := buildApiRequest("POST", requestUrl, buildReqBody(v.data), false, "")
 		// Make request with update in body
-		req, err := http.NewRequest("POST", requestUrl, buildReqBody(v.data))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -527,7 +521,7 @@ func TestUserController_Login(t *testing.T) {
 
 		// Check response is failed for normal user to update another
 		if status := rr.Code; status != v.expectedResponseStatus {
-			t.Errorf("%v: %v/%v. got %v want %v. Resp: %v", v.testName, v.data.Email, v.data.Password,
+			t.Errorf("%v: Got %v want %v. \nResp: %v", v.testName,
 				status, v.expectedResponseStatus, rr.Body)
 		}
 
@@ -542,30 +536,5 @@ func TestUserController_Login(t *testing.T) {
 
 		}
 
-	}
-}
-
-// Check the user details (username, name, email and ID)
-func checkUserDetails(rr *httptest.ResponseRecorder, createdUser *models.UserWithRole, t *testing.T, checkId bool) {
-	// Convert response JSON to struct
-	var body models.UserWithRole
-	json.Unmarshal(rr.Body.Bytes(), &body)
-
-	// Only check ID if parameter checkId is true
-	if checkId == true {
-		// Verify that the found user matches the original created user
-		if body.ID != createdUser.ID {
-			t.Errorf("found createdUser has incorrect ID: expected %d, got %d", createdUser.ID, body.ID)
-		}
-	}
-	// Check updated details
-	if body.Email != createdUser.Email {
-		t.Errorf("found createdUser has incorrect email: expected %s, got %s", createdUser.Email, body.Email)
-	}
-	if body.Username != createdUser.Username {
-		t.Errorf("found createdUser has incorrect username: expected %s, got %s", createdUser.Username, body.Username)
-	}
-	if body.Name != createdUser.Name {
-		t.Errorf("found createdUser has incorrect name: expected %s, got %s", createdUser.Name, body.Name)
 	}
 }
