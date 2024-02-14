@@ -231,6 +231,82 @@ func TestAuthController_Update(t *testing.T) {
 	}
 }
 
+// Role
+func TestAuthController_FindAllRoles(t *testing.T) {
+	numberOfDetaultRoles := 3
+	req, err := buildApiRequest("GET", "auth/roles", nil, true, testConnection.accounts.admin.token)
+	if err != nil {
+		t.Error(err)
+	}
+	// Create a response recorder
+	rr := httptest.NewRecorder()
+
+	// Use handler with recorder and created request
+	testConnection.router.ServeHTTP(rr, req)
+
+	// Check the response status code
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("%v: got %v want %v", "Auth Find all roles",
+			status, http.StatusOK)
+	}
+
+	// Convert response JSON to struct
+	var body []string
+	json.Unmarshal(rr.Body.Bytes(), &body)
+
+	// Checks if the number of roles is correct
+	if len(body) != numberOfDetaultRoles {
+		t.Errorf("Expected %v, got %v", numberOfDetaultRoles, len(body))
+	}
+}
+
+func TestAuthController_AssignUserRole(t *testing.T) {
+	assignedRole := "testRole"
+
+	// Build slug
+	requestUrl := "auth/roles"
+
+	req, err := buildApiRequest("PUT", requestUrl, buildReqBody(models.CasbinRoleAssignment{
+		UserId: fmt.Sprint(testConnection.accounts.user.details.ID),
+		Role:   assignedRole}), true, testConnection.accounts.admin.token)
+	if err != nil {
+		t.Error(err)
+	}
+	// Create a response recorder
+	rr := httptest.NewRecorder()
+
+	// Use handler with recorder and created request
+	testConnection.router.ServeHTTP(rr, req)
+
+	// Check the response status code
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("%v: got %v want %v.\nResp:%s", "Auth Create/Assign role",
+			status, http.StatusOK, rr.Body.String())
+	}
+
+	// Check if the user role was reassigned
+	found, err := testConnection.auth.serv.FindRoleByUserId(int(testConnection.accounts.user.details.ID))
+	if err != nil {
+		t.Error(err)
+	}
+
+	if found != assignedRole {
+		t.Errorf("Expected %v, got %v", assignedRole, found)
+	}
+
+	// Delete role
+	success, err := testConnection.auth.serv.AssignUserRole(fmt.Sprint(testConnection.accounts.user.details.ID), "user")
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Convert to bool
+	successValue := *success
+	if !successValue {
+		t.Errorf("Expected to reset role reassignment, however, failed")
+	}
+}
+
 // Checks if the policy details are a match
 func checkPolicyDetails(t *testing.T, body models.PolicyRuleCombinedActions, policy models.PolicyRule) {
 	// Check details
