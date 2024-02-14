@@ -201,7 +201,7 @@ func (c authPolicyController) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Can't update policy", http.StatusBadRequest)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Policy update successful!"))
 }
 
