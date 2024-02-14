@@ -45,5 +45,5 @@ p,admin,/admin/**,delete
 g,1,admin
 
 # Group Inheritance
-g,moderator,user
-g,admin,moderator
+g2,moderator,user
+g2,admin,moderator

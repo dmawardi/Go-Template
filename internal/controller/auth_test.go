@@ -307,6 +307,39 @@ func TestAuthController_AssignUserRole(t *testing.T) {
 	}
 }
 
+// Role Inheritance
+func TestAuthController_FindAllRoleInheritance(t *testing.T) {
+	numberOfDetaultInheritances := 2
+	req, err := buildApiRequest("GET", "auth/inheritance", nil, true, testConnection.accounts.admin.token)
+	if err != nil {
+		t.Error(err)
+	}
+	// Create a response recorder
+	rr := httptest.NewRecorder()
+
+	// Use handler with recorder and created request
+	testConnection.router.ServeHTTP(rr, req)
+
+	// Check the response status code
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("%v: got %v want %v", "Auth Find all inherited roles",
+			status, http.StatusOK)
+	}
+
+	// Convert response JSON to struct
+	var body []models.G2Record
+	json.Unmarshal(rr.Body.Bytes(), &body)
+
+	// Checks if the number of roles is correct
+	if len(body) != numberOfDetaultInheritances {
+		t.Errorf("Expected %v, got %v", numberOfDetaultInheritances, len(body))
+	}
+	// Checks if the type of the records are correct
+	if helpers.CheckSliceType(body, reflect.TypeOf(models.G2Record{})) == false {
+		t.Errorf("Expected %v, got %v", reflect.TypeOf(models.G2Record{}), reflect.TypeOf(body[0]))
+	}
+}
+
 // Checks if the policy details are a match
 func checkPolicyDetails(t *testing.T, body models.PolicyRuleCombinedActions, policy models.PolicyRule) {
 	// Check details
