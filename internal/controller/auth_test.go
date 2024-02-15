@@ -390,6 +390,56 @@ func TestAuthController_CreateInheritance(t *testing.T) {
 	}
 }
 
+func TestAuthController_DeleteInheritance(t *testing.T) {
+	policy := models.G2Record{
+		Role:         "testRole",
+		InheritsFrom: "admin",
+	}
+
+	// Create role inheritance
+	err := testConnection.auth.serv.CreateInheritance(policy)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Build slug
+	requestUrl := "auth/inheritance"
+
+	req, err := buildApiRequest("DELETE", requestUrl, buildReqBody(policy), true, testConnection.accounts.admin.token)
+	if err != nil {
+		t.Error(err)
+	}
+	// Create a response recorder
+	rr := httptest.NewRecorder()
+
+	// Use handler with recorder and created request
+	testConnection.router.ServeHTTP(rr, req)
+
+	// Check the response status code
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("%v: got %v want %v.\nResp:%s", "Auth Delete role inheritance",
+			status, http.StatusOK, rr.Body.String())
+	}
+
+	// Check if the role inheritance was deleted
+	foundInheritances, err := testConnection.auth.serv.FindAllRoleInheritance()
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Iterate through found inheritances
+	foundDeletedPolicy := false
+	for _, inheritance := range foundInheritances {
+		// See if match found
+		if inheritance.Role == policy.Role && inheritance.InheritsFrom == policy.InheritsFrom {
+			foundDeletedPolicy = true
+		}
+	}
+	if foundDeletedPolicy {
+		t.Errorf("Expected to not find deleted role inheritance, however, found: %v", policy)
+	}
+}
+
 // Checks if the policy details are a match
 func checkPolicyDetails(t *testing.T, body models.PolicyRuleCombinedActions, policy models.PolicyRule) {
 	// Check details
