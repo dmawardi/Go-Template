@@ -455,12 +455,12 @@ func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter,
 		return
 	}
 	// // Filter by search query
-	inheritanceSlice = helpers.SearchMapKeysFor(inheritanceSlice, []string{"inherits_from", "role"}, searchQuery)
+	inheritanceSlice = helpers.SearchG2Records(inheritanceSlice, searchQuery)
 
 	// Sort by resource alphabetically
 	sort.Slice(inheritanceSlice, func(i, j int) bool {
 		// Give two items to compare to alphabetic sorter
-		return helpers.SortMapStringStringAlphabetically(inheritanceSlice[i], inheritanceSlice[j], "role")
+		return inheritanceSlice[i].Role < inheritanceSlice[j].Role
 	})
 
 	// // Build the roles table data

@@ -20,7 +20,7 @@ type AuthPolicyService interface {
 	FindAllRoles() ([]string, error)
 	AssignUserRole(userId, roleToApply string) (*bool, error)
 	// Inheritance
-	FindAllRoleInheritance() ([]map[string]string, error)
+	FindAllRoleInheritance() ([]models.G2Record, error)
 	CreateInheritance(inherit models.G2Record) error
 	DeleteInheritance(inherit models.G2Record) error
 	// Not for controller usage (used in auth)
@@ -130,8 +130,8 @@ func (s *authPolicyService) AssignUserRole(userId, roleToApply string) (*bool, e
 // Inheritance
 //
 
-func (s *authPolicyService) FindAllRoleInheritance() ([]map[string]string, error) {
-	formattedG2Records := []map[string]string{}
+func (s *authPolicyService) FindAllRoleInheritance() ([]models.G2Record, error) {
+	formattedG2Records := []models.G2Record{}
 	g2Records, err := s.repo.FindAllRoleInheritance()
 	if err != nil {
 		return nil, err
@@ -139,9 +139,9 @@ func (s *authPolicyService) FindAllRoleInheritance() ([]map[string]string, error
 
 	// Iterate through g2Records and format into array of G2Record struct
 	for _, policy := range g2Records {
-		record := map[string]string{
-			"role":          policy[0],
-			"inherits_from": policy[1],
+		record := models.G2Record{
+			Role:         policy[0],
+			InheritsFrom: policy[1],
 		}
 		formattedG2Records = append(formattedG2Records, record)
 	}

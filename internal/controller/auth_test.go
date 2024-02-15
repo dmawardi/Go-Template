@@ -340,6 +340,56 @@ func TestAuthController_FindAllRoleInheritance(t *testing.T) {
 	}
 }
 
+func TestAuthController_CreateInheritance(t *testing.T) {
+	policy := models.G2Record{
+		Role:         "testRole",
+		InheritsFrom: "admin",
+	}
+
+	// Build slug
+	requestUrl := "auth/inheritance"
+
+	req, err := buildApiRequest("POST", requestUrl, buildReqBody(policy), true, testConnection.accounts.admin.token)
+	if err != nil {
+		t.Error(err)
+	}
+	// Create a response recorder
+	rr := httptest.NewRecorder()
+
+	// Use handler with recorder and created request
+	testConnection.router.ServeHTTP(rr, req)
+
+	// Check the response status code
+	if status := rr.Code; status != http.StatusCreated {
+		t.Errorf("%v: got %v want %v.\nResp:%s", "Auth Create role inheritance",
+			status, http.StatusCreated, rr.Body.String())
+	}
+
+	// Check if the role inheritance was created
+	foundInheritances, err := testConnection.auth.serv.FindAllRoleInheritance()
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Iterate through found inheritances
+	foundCreatedPolicy := false
+	for _, inheritance := range foundInheritances {
+		// See if match found
+		if inheritance.Role == policy.Role && inheritance.InheritsFrom == policy.InheritsFrom {
+			foundCreatedPolicy = true
+		}
+	}
+	if !foundCreatedPolicy {
+		t.Errorf("Expected to find created role inheritance, however, not found: %v", policy)
+	}
+
+	// Delete role inheritance
+	err = testConnection.auth.serv.DeleteInheritance(policy)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 // Checks if the policy details are a match
 func checkPolicyDetails(t *testing.T, body models.PolicyRuleCombinedActions, policy models.PolicyRule) {
 	// Check details

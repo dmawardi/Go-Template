@@ -50,6 +50,21 @@ func SearchMapKeysFor(maps []map[string]string, mapKeysToSearch []string, search
 	return result
 }
 
+// SearchG2Records searches through all fields of each G2Record for the searchTerm and adds any match found in the results
+func SearchG2Records(records []models.G2Record, searchTerm string) []models.G2Record {
+	var result []models.G2Record
+
+	// Iterate through the slice of G2Records
+	for _, record := range records {
+		// Check if the searchTerm is in any of the record's fields
+		if strings.Contains(record.Role, searchTerm) || strings.Contains(record.InheritsFrom, searchTerm) {
+			result = append(result, record)
+		}
+	}
+
+	return result
+}
+
 // Searches a list of policies for a given resource based on search term
 func SearchPoliciesForExactResouceMatch(maps []models.PolicyRuleCombinedActions, searchTerm string) []models.PolicyRuleCombinedActions {
 	var result []models.PolicyRuleCombinedActions

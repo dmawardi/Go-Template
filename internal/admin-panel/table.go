@@ -254,18 +254,28 @@ func BuildRoleTableData(roleSlice []string, adminSchemaBaseUrl string, tableHead
 }
 
 // Build auth role inheritance table data
-func BuildRoleInheritanceTableData(policySlice []map[string]string, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
+func BuildRoleInheritanceTableData(policySlice []models.G2Record, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
 	var tableRows []TableRow
 
 	// Loop through policy slice to build table rows
 	for _, policy := range policySlice {
 		var rowData []TableCell
-		policySlug := fmt.Sprintf("%s,%s", policy["role"], policy["inherits_from"])
+		policySlug := fmt.Sprintf("%s,%s", policy.Role, policy.InheritsFrom)
 
 		// Iterate through tableheaders
 		for _, header := range tableHeaders {
-			// Grab data from the schema object
-			value, found := policy[header.Label]
+			var value string
+			var found bool
+
+			// Map header.Label to struct fields
+			switch header.Label {
+			case "role":
+				value = policy.Role
+				found = true
+			case "inherits_from":
+				value = policy.InheritsFrom
+				found = true
+			}
 
 			// If the key is found, append the value to the row data
 			if found {
