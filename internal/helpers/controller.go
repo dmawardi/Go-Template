@@ -27,12 +27,13 @@ func WriteAsJSON(w http.ResponseWriter, data interface{}) error {
 
 // URL parameter extraction helper functions
 // Special handling for search query if found
-func addSearchQueryToConditions(r *http.Request, conditionsToExtract map[string]string, currentConditions []interface{}) []interface{} {
+func addSearchQueryToConditions(r *http.Request, conditionsToExtract map[string]string, currentConditions []models.QueryConditionParameters) []models.QueryConditionParameters {
 	// Prepare URL query parameters
 	queryParams := r.URL.Query()
 	// Prepare search query
 	searchQuery := ""
 	if searchValue := queryParams.Get("search"); searchValue != "" {
+		// Surround search value with % to make it a LIKE query
 		searchQuery = "%" + searchValue + "%"
 		// Iterate through query list to add the search condition to each as a LIKE query
 		for param, conditionType := range conditionsToExtract {
@@ -40,7 +41,7 @@ func addSearchQueryToConditions(r *http.Request, conditionsToExtract map[string]
 			if conditionType == "string" {
 				// Add query to conditions with param name and make case insensitive
 				lowerCaseValue := strings.ToLower(fmt.Sprintf("%v", searchQuery))
-				currentConditions = append(currentConditions, fmt.Sprintf("LOWER(%s) LIKE ?", param), lowerCaseValue)
+				currentConditions = append(currentConditions, models.QueryConditionParameters{Condition: fmt.Sprintf("LOWER(%s) LIKE ?", param), Value: lowerCaseValue})
 			}
 		}
 	}
@@ -50,11 +51,11 @@ func addSearchQueryToConditions(r *http.Request, conditionsToExtract map[string]
 
 // Accepts request and a slice of conditions to extract from the request
 // Extracts as a slice of interfaces that are structured as [condition, value]
-func ExtractSearchAndConditionParams(r *http.Request, conditionsToExtract map[string]string) ([]interface{}, error) {
+func ExtractSearchAndConditionParams(r *http.Request, conditionsToExtract map[string]string) ([]models.QueryConditionParameters, error) {
 	// Prepare URL query parameters
 	queryParams := r.URL.Query()
 	// Prepare slice of conditions
-	var extractedConditions []interface{}
+	var extractedConditions []models.QueryConditionParameters
 
 	// Special handling for search query if found
 	extractedConditions = addSearchQueryToConditions(r, conditionsToExtract, extractedConditions)
@@ -98,7 +99,7 @@ func ExtractSearchAndConditionParams(r *http.Request, conditionsToExtract map[st
 			}
 
 			// Append to slice
-			extractedConditions = append(extractedConditions, condition, value)
+			extractedConditions = append(extractedConditions, models.QueryConditionParameters{Condition: condition, Value: value})
 		}
 	}
 

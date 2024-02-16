@@ -1,13 +1,14 @@
 package models
 
-import (
-	"github.com/dmawardi/Go-Template/internal/db"
-	"gorm.io/gorm"
-)
-
 type Job struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
+}
+
+// Conditions when using a findall route
+type QueryConditionParameters struct {
+	Condition string
+	Value     interface{}
 }
 
 // Login
@@ -86,42 +87,6 @@ func (s *schemaMetaData) GetMetaData() schemaMetaData {
 		Next_Page:        s.Next_Page,
 		Prev_Page:        s.Prev_Page,
 	}
-}
-
-// Build Meta data for QueryAll requests
-func BuildMetaData(dbClient *gorm.DB, dbSchema interface{}, limit int, offset int, order string, conditions []interface{}) (*SchemaMetaData, error) {
-	// Fetch metadata from database
-	var totalCount *int64
-
-	// Count the total number of records
-	totalCount, err := db.CountBasedOnConditions(dbSchema, conditions, dbClient)
-	if err != nil {
-		return nil, err
-	}
-	// Find the total number of pages from total count and limit
-	totalPages := int(*totalCount) / limit
-	if int(*totalCount)%limit != 0 {
-		totalPages += 1
-	}
-	// Calculate current page
-	currentPage := offset/limit + 1
-	// Calculate next page
-	var nextPage *int // Using a pointer to represent the absence of a next page
-	if currentPage < totalPages {
-		next := currentPage + 1
-		nextPage = &next
-	}
-	// Calculate previous page
-	var prevPage *int // Using a pointer to represent the absence of a previous page
-	if currentPage > 1 {
-		prev := currentPage - 1
-		prevPage = &prev
-	}
-	// Build metadata object
-	metaData := NewSchemaMetaData(*totalCount, limit, totalPages, currentPage, nextPage, prevPage)
-
-	// Return meta data
-	return &metaData, nil
 }
 
 // Extended Schema Meta Data

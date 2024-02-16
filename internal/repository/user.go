@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -11,7 +12,7 @@ import (
 
 type UserRepository interface {
 	// Find a list of all users in the Database
-	FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedUsers, error)
+	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.PaginatedUsers, error)
 	Create(user *db.User) (*db.User, error)
 	Update(int, *db.User) (*db.User, error)
 	Delete(int) error
@@ -43,9 +44,9 @@ func (r *userRepository) Create(user *db.User) (*db.User, error) {
 }
 
 // Find a list of users in the database
-func (r *userRepository) FindAll(limit int, offset int, order string, conditions []interface{}) (*models.PaginatedUsers, error) {
+func (r *userRepository) FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.PaginatedUsers, error) {
 	// Build meta data for users
-	metaData, err := models.BuildMetaData(r.DB, db.User{}, limit, offset, order, conditions)
+	metaData, err := helpers.BuildMetaData(r.DB, db.User{}, limit, offset, order, conditions)
 	if err != nil {
 		fmt.Printf("Error building meta data: %s", err)
 		return nil, err
@@ -53,7 +54,7 @@ func (r *userRepository) FindAll(limit int, offset int, order string, conditions
 
 	// Query all users based on the received parameters
 	var users []db.User
-	err = db.QueryAll(r.DB, &users, limit, offset, order, conditions, []string{})
+	err = helpers.QueryAll(r.DB, &users, limit, offset, order, conditions, []string{})
 	if err != nil {
 		fmt.Printf("Error querying db for list of users: %s", err)
 		return nil, err
@@ -99,7 +100,7 @@ func (r *userRepository) Delete(id int) error {
 // Bulk delete users in database
 func (r *userRepository) BulkDelete(ids []int) error {
 	// Delete users with specified IDs
-	err := db.BulkDeleteByIds(db.User{}, ids, r.DB)
+	err := helpers.BulkDeleteByIds(db.User{}, ids, r.DB)
 	if err != nil {
 		fmt.Println("error in deleting users: ", err)
 		return err

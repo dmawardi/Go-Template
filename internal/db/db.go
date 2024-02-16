@@ -30,60 +30,6 @@ func DbConnect() *gorm.DB {
 	return db
 }
 
-// Counts the number of records in a table based on conditions
-func CountBasedOnConditions(databaseSchema interface{}, conditions []interface{}, dbClient *gorm.DB) (*int64, error) {
-	// Fetch metadata from database
-	var totalCount int64
-
-	// Count the total number of records
-	query := dbClient.Model(databaseSchema)
-
-	// Add conditions to query
-	if len(conditions) > 0 {
-		// Iterate through conditions (stop at second last element)
-		// Increment by 2 to account for condition and value
-		for i := 0; i < len(conditions); i += 2 {
-			// Extract condition and value
-			condition, value := conditions[i].(string), conditions[i+1]
-			// For the first condition, use Where
-			if i == 0 {
-				// Add condition to query
-				query = query.Where(condition, value)
-			} else {
-				// For subsequent conditions, use Or
-				query = query.Or(condition, value)
-			}
-		}
-	}
-
-	// Execute query
-	countResult := query.Count(&totalCount)
-	if countResult.Error != nil {
-		return nil, countResult.Error
-	}
-	return &totalCount, nil
-}
-
-// Bulk deletes all records within a table based on ids
-func BulkDeleteByIds(databaseSchema interface{}, ids []int, dbClient *gorm.DB) error {
-	// Start a transaction (to avoid partial deletion)
-	err := dbClient.Transaction(func(tx *gorm.DB) error {
-		// In the transaction, delete users with specified IDs
-		if err := tx.Where("id IN ?", ids).Delete(&databaseSchema).Error; err != nil {
-			return err // Return any error to rollback the transaction
-		}
-
-		return nil // Return nil to commit the transaction
-	})
-
-	// Check if the transaction was successful
-	if err != nil {
-		return err
-	} else {
-		return nil
-	}
-}
-
 // Extract pointer value as string using data type (used in ObtainValue)
 func PointerToStringWithType(ptr interface{}, dataType string) string {
 	switch dataType {
@@ -118,50 +64,4 @@ func PointerToStringWithType(ptr interface{}, dataType string) string {
 	}
 
 	return ""
-}
-
-// Query all records in a table based on conditions (results are populated into a slice of the schema type)
-func QueryAll(dbClient *gorm.DB, dbSchema interface{}, limit, offset int, order string, conditions []interface{}, preloads []string) error {
-	// Build base query for query schema
-	query := dbClient.Model(dbSchema)
-
-	// Add parameters into query as needed
-	if limit > 0 {
-		query = query.Limit(limit)
-	}
-	if offset > 0 {
-		query = query.Offset(offset)
-	}
-	if order != "" {
-		// Add order to query
-		query = query.Order(order)
-	}
-
-	// Iterate through conditions (stop at second last element)
-	// Increment by 2 to account for condition and value
-	for i := 0; i < len(conditions); i += 2 {
-		// Extract condition and value
-		condition, value := conditions[i].(string), conditions[i+1]
-		// For the first condition, use Where
-		if i == 0 {
-			// Add condition to query
-			query = query.Where(condition, value)
-		} else {
-			// For subsequent conditions, use Or
-			query = query.Or(condition, value)
-		}
-	}
-
-	// Iterate through preloads to preload foreign key fields
-	for _, fieldToPreload := range preloads {
-		query = query.Preload(fieldToPreload)
-	}
-
-	// Query database
-	if err := query.Find(dbSchema).Error; err != nil {
-		fmt.Printf("Error in query all: %v\n", err)
-		return err
-	}
-
-	return nil
 }

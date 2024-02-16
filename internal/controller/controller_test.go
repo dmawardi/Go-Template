@@ -225,12 +225,12 @@ func setupTestDatabase() *gorm.DB {
 	// Open a new, temporary database for testing
 	dbClient, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
-		fmt.Errorf("failed to open database: %v", err)
+		fmt.Printf("failed to open database: %v", err)
 	}
 
 	// Migrate the database schema
 	if err := dbClient.AutoMigrate(&db.User{}, &db.Post{}); err != nil {
-		fmt.Errorf("failed to migrate database schema: %v", err)
+		fmt.Printf("failed to migrate database schema: %v", err)
 	}
 
 	return dbClient

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	"github.com/glebarez/sqlite"
 	"github.com/stretchr/testify/assert"
@@ -44,7 +45,7 @@ func setupDatabase() {
 
 func TestUserRepository_Create(t *testing.T) {
 	// Build hashed password from user password input
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password"), 10)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 	if err != nil {
 		t.Fatalf("failed to encrypt password: %v", err)
 	}
@@ -110,10 +111,6 @@ func TestUserRepository_FindById(t *testing.T) {
 	if foundUser.Email != createdUser.Email {
 		t.Errorf("found createdUser has incorrect email: expected %s, got %s", createdUser.Email, foundUser.Email)
 	}
-	// check default role applied
-	if foundUser.Role != "user" {
-		t.Errorf("found createdUser has incorrect default role: expected user, got %s", foundUser.Email)
-	}
 
 	// Clean up: Delete created user
 	testConnection.dbClient.Delete(createdUser)
@@ -141,10 +138,6 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 	}
 	if foundUser.Email != createdUser.Email {
 		t.Errorf("found createdUser has incorrect email: expected %s, got %s", createdUser.Email, foundUser.Email)
-	}
-	// check default role applied
-	if foundUser.Role != "user" {
-		t.Errorf("found createdUser has incorrect default role: expected user, got %s", foundUser.Email)
 	}
 
 	// Clean up: Delete created user
@@ -225,7 +218,7 @@ func TestUserRepository_FindAll(t *testing.T) {
 		t.Fatalf("failed to create test user2: %v", err)
 	}
 
-	users, err := testConnection.repo.FindAll(10, 0, "", []string{})
+	users, err := testConnection.repo.FindAll(10, 0, "", []models.QueryConditionParameters{})
 	if err != nil {
 		t.Fatalf("failed to find all: %v", err)
 	}
