@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
@@ -44,7 +45,7 @@ func TestUserController_Find(t *testing.T) {
 	json.Unmarshal(rr.Body.Bytes(), &body)
 
 	// check user details for match
-	CompareObjects(body, createdUser, t, []string{"ID", "Username", "Email", "Name"})
+	helpers.CompareObjects(body, createdUser, t, []string{"ID", "Username", "Email", "Name"})
 
 	// Delete the created user
 	delResult := testConnection.users.serv.Delete(int(createdUser.ID))
@@ -86,10 +87,10 @@ func TestUserController_FindAll(t *testing.T) {
 	for _, item := range *body.Data {
 		// If id is admin id
 		if item.ID == testConnection.accounts.admin.details.ID {
-			CompareObjects(item, testConnection.accounts.admin.details, t, []string{"ID", "Username", "Email", "Name"})
+			helpers.CompareObjects(item, testConnection.accounts.admin.details, t, []string{"ID", "Username", "Email", "Name"})
 
 		} else {
-			CompareObjects(item, testConnection.accounts.user.details, t, []string{"ID", "Username", "Email", "Name"})
+			helpers.CompareObjects(item, testConnection.accounts.user.details, t, []string{"ID", "Username", "Email", "Name"})
 
 		}
 	}
@@ -242,14 +243,14 @@ func TestUserController_Update(t *testing.T) {
 		// If need to check details
 		if v.checkDetails == true {
 			// Update created user struct with the changes pushed through API
-			UpdateModelFields(createdUser, v.data)
+			helpers.UpdateModelFields(createdUser, v.data)
 
 			// Convert response JSON to struct
 			var body models.UserWithRole
 			json.Unmarshal(rr.Body.Bytes(), &body)
 
 			// check user details for match
-			CompareObjects(body, createdUser, t, []string{"ID", "Username", "Email", "Name"})
+			helpers.CompareObjects(body, createdUser, t, []string{"ID", "Username", "Email", "Name"})
 		}
 	}
 
@@ -371,7 +372,7 @@ func TestUserController_GetMyUserDetails(t *testing.T) {
 			json.Unmarshal(rr.Body.Bytes(), &body)
 
 			// Check user details using updated object
-			CompareObjects(body, &v.userToCheck, t, []string{"ID", "Username", "Email", "Name"})
+			helpers.CompareObjects(body, &v.userToCheck, t, []string{"ID", "Username", "Email", "Name"})
 		}
 	}
 }
@@ -441,13 +442,13 @@ func TestUserController_UpdateMyProfile(t *testing.T) {
 		// If need to check details
 		if v.checkDetails == true {
 			// Update created user struct with the changes pushed through API
-			UpdateModelFields(&v.loggedInDetails, v.data)
+			helpers.UpdateModelFields(&v.loggedInDetails, v.data)
 
 			// Convert response JSON to struct
 			var body models.UserWithRole
 			json.Unmarshal(rr.Body.Bytes(), &body)
 
-			CompareObjects(body, v.loggedInDetails, t, []string{"ID", "Username", "Email", "Name"})
+			helpers.CompareObjects(body, v.loggedInDetails, t, []string{"ID", "Username", "Email", "Name"})
 		}
 
 		// Return updates to original state
