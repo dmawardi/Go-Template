@@ -12,15 +12,14 @@ import (
 
 	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
 	"github.com/dmawardi/Go-Template/internal/auth"
+	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/routes"
 
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/controller"
-	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	"github.com/dmawardi/Go-Template/internal/service"
-	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -71,20 +70,19 @@ type dummyAccount struct {
 // Initial setup before running e2e tests in controllers_test package
 func TestMain(m *testing.M) {
 	fmt.Printf("Setting up test connection\n")
+	// Set URL in app state
+	app.BaseURL = helpers.BuildBaseUrl()
+
 	// Setup DB
-	testConnection.dbClient = setupTestDatabase()
+	testConnection.dbClient = helpers.SetupTestDatabase()
+	// Set Gorm client
+	app.DbClient = testConnection.dbClient
 
 	// Build enforcer
 	enforcer, err := auth.EnforcerSetup(testConnection.dbClient)
 	if err != nil {
 		fmt.Println("Error building enforcer")
 	}
-
-	// Set in app state
-	app.BaseURL = syncBaseUrl()
-
-	// Set Gorm client
-	app.DbClient = testConnection.dbClient
 	// Set enforcer in state
 	app.Auth.Enforcer = enforcer.Enforcer
 	app.Auth.Adapter = enforcer.Adapter
@@ -173,28 +171,6 @@ func (t *controllerTestModule) setupDummyAccounts(adminUser *models.CreateUser, 
 	t.accounts.user.token = userToken
 }
 
-func syncBaseUrl() string {
-	// Extract environment variables
-	serverUrl := os.Getenv("SERVER_BASE_URL")
-	portNumber := os.Getenv("SERVER_PORT")
-
-	// Get BASE URL from environment variables
-	baseURL := fmt.Sprintf("%s%s", serverUrl, portNumber)
-	return baseURL
-}
-
-// Sets app config state to all packages for usage
-func SetAppWideState(appConfig config.AppConfig) {
-	controller.SetStateInHandlers(&appConfig)
-	auth.SetStateInAuth(&appConfig)
-	adminpanel.SetStateInAdminPanel(&appConfig)
-	service.BuildServiceState(&appConfig)
-	repository.SetAppConfig(&appConfig)
-	routes.BuildRouteState(&appConfig)
-}
-
-// Helper functions
-//
 // Generates a new user, changes its role to admin and returns it with token
 func (t *controllerTestModule) generateUserWithRoleAndToken(user *models.CreateUser) (*models.UserWithRole, string) {
 	// Create user
@@ -217,23 +193,19 @@ func (t *controllerTestModule) generateUserWithRoleAndToken(user *models.CreateU
 	return nil, ""
 }
 
-// Setup database connection
-func setupTestDatabase() *gorm.DB {
-	// Open a new, temporary database for testing
-	dbClient, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		fmt.Printf("failed to open database: %v", err)
-	}
-
-	// Migrate the database schema
-	if err := dbClient.AutoMigrate(&db.User{}, &db.Post{}); err != nil {
-		fmt.Printf("failed to migrate database schema: %v", err)
-	}
-
-	return dbClient
+// Helper functions
+//
+// Sets app config state to all packages for usage
+func SetAppWideState(appConfig config.AppConfig) {
+	controller.SetStateInHandlers(&appConfig)
+	auth.SetStateInAuth(&appConfig)
+	adminpanel.SetStateInAdminPanel(&appConfig)
+	service.BuildServiceState(&appConfig)
+	repository.SetAppConfig(&appConfig)
+	routes.BuildRouteState(&appConfig)
 }
 
-// buildApiRequest is a helper function to build an API request that starts with url of '/api/'
+// A helper function to build an API request that starts with url of '/api/'
 func buildApiRequest(method string, urlSuffix string, body io.Reader, authHeaderRequired bool, token string) (request *http.Request, err error) {
 	req, err := http.NewRequest(method, fmt.Sprintf("/api/%v", urlSuffix), body)
 	if err != nil {

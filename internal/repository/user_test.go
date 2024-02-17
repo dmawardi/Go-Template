@@ -112,33 +112,29 @@ func TestUserRepository_FindById(t *testing.T) {
 	testConnection.dbClient.Delete(createdUser)
 }
 
-// func TestUserRepository_FindByEmail(t *testing.T) {
-// 	createdUser, err := hashPassAndGenerateUserInDb(&db.User{
-// 		Username: "Jabar",
-// 		Email:    "elon@ymail.com",
-// 		Password: "password",
-// 		Name:     "Bamba",
-// 	}, t)
-// 	if err != nil {
-// 		t.Fatalf("failed to create test user: %v", err)
-// 	}
+func TestUserRepository_FindByEmail(t *testing.T) {
+	createdUser, err := hashPassAndGenerateUserInDb(&db.User{
+		Username: "Jabar",
+		Email:    "elon@ymail.com",
+		Password: "password",
+		Name:     "Bamba",
+	}, t)
+	if err != nil {
+		t.Fatalf("failed to create test user: %v", err)
+	}
 
-// 	foundUser, err := testConnection.repo.FindByEmail(createdUser.Email)
-// 	if err != nil {
-// 		t.Fatalf("failed to find created user: %v", err)
-// 	}
+	// Test function
+	foundUser, err := testConnection.repo.FindByEmail(createdUser.Email)
+	if err != nil {
+		t.Fatalf("failed to find created user: %v", err)
+	}
 
-// 	// Verify that the found user matches the original user
-// 	if foundUser.ID != createdUser.ID {
-// 		t.Errorf("found createdUser has incorrect ID: expected %d, got %d", createdUser.ID, foundUser.ID)
-// 	}
-// 	if foundUser.Email != createdUser.Email {
-// 		t.Errorf("found createdUser has incorrect email: expected %s, got %s", createdUser.Email, foundUser.Email)
-// 	}
+	// Verify that the found user matches the original user
+	helpers.CompareObjects(createdUser, foundUser, t, []string{"ID", "Email", "Username"})
 
-// 	// Clean up: Delete created user
-// 	testConnection.dbClient.Delete(createdUser)
-// }
+	// Clean up: Delete created user
+	testConnection.dbClient.Delete(createdUser)
+}
 
 // func TestUserRepository_Delete(t *testing.T) {
 // 	createdUser, err := hashPassAndGenerateUserInDb(&db.User{

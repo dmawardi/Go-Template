@@ -6,7 +6,27 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
+
+	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/glebarez/sqlite"
+	"gorm.io/gorm"
 )
+
+// Setup database connection
+func SetupTestDatabase() *gorm.DB {
+	// Open a new, temporary database for testing
+	dbClient, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	if err != nil {
+		fmt.Printf("failed to open database: %v", err)
+	}
+
+	// Migrate the database schema
+	if err := dbClient.AutoMigrate(&db.User{}, &db.Post{}); err != nil {
+		fmt.Printf("failed to migrate database schema: %v", err)
+	}
+
+	return dbClient
+}
 
 // CompareObjects compares the specified fields of two interface{} objects.
 // It uses reflection to dynamically compare the field values of both objects.
@@ -91,5 +111,35 @@ func UpdateModelFields(model interface{}, updates map[string]string) error {
 		}
 	}
 
+	return nil
+}
+
+// Update a struct field dynamically
+func UpdateStructField(structPtr interface{}, fieldName string, fieldValue interface{}) error {
+	value := reflect.ValueOf(structPtr)
+	if value.Kind() != reflect.Ptr || value.IsNil() {
+		return fmt.Errorf("invalid struct pointer")
+	}
+
+	structValue := value.Elem()
+	if !structValue.CanSet() {
+		return fmt.Errorf("cannot set struct field value")
+	}
+
+	field := structValue.FieldByName(fieldName)
+	if !field.IsValid() {
+		return fmt.Errorf("invalid struct field name")
+	}
+
+	if !field.CanSet() {
+		return fmt.Errorf("cannot set struct field value")
+	}
+
+	fieldValueRef := reflect.ValueOf(fieldValue)
+	if !fieldValueRef.Type().AssignableTo(field.Type()) {
+		return fmt.Errorf("field value type mismatch")
+	}
+
+	field.Set(fieldValueRef)
 	return nil
 }

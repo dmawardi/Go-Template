@@ -2,7 +2,9 @@ package helpers
 
 import (
 	"crypto/rand"
+	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"unicode"
 
@@ -56,4 +58,15 @@ func CapitalizeFirstLetter(str string) string {
 		return u + str[len(u):]
 	}
 	return ""
+}
+
+// Grabs the url information from the environment variables and builds as string
+func BuildBaseUrl() string {
+	// Extract environment variables
+	serverUrl := os.Getenv("SERVER_BASE_URL")
+	portNumber := os.Getenv("SERVER_PORT")
+
+	// Get BASE URL from environment variables
+	baseURL := fmt.Sprintf("%s%s", serverUrl, portNumber)
+	return baseURL
 }
