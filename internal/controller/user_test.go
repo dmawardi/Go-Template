@@ -13,7 +13,7 @@ import (
 
 func TestUserController_Find(t *testing.T) {
 	// Create user
-	createdUser, err := testModula.users.serv.Create(&models.CreateUser{
+	createdUser, err := testModule.users.serv.Create(&models.CreateUser{
 		Username: "Jabar",
 		Email:    "greenie@ymail.com",
 		Password: "password",
@@ -24,7 +24,7 @@ func TestUserController_Find(t *testing.T) {
 	}
 
 	// Create a request with an "id" URL parameter
-	req, err := buildApiRequest("GET", fmt.Sprintf("users/%v", createdUser.ID), nil, true, testModula.accounts.admin.token)
+	req, err := buildApiRequest("GET", fmt.Sprintf("users/%v", createdUser.ID), nil, true, testModule.accounts.admin.token)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +32,7 @@ func TestUserController_Find(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	// Use handler with recorder and created request
-	testModula.router.ServeHTTP(rr, req)
+	testModule.router.ServeHTTP(rr, req)
 
 	// Check the response status code
 	if status := rr.Code; status != http.StatusOK {
@@ -48,7 +48,7 @@ func TestUserController_Find(t *testing.T) {
 	helpers.CompareObjects(body, createdUser, t, []string{"ID", "Username", "Email", "Name"})
 
 	// Delete the created user
-	delResult := testModula.users.serv.Delete(int(createdUser.ID))
+	delResult := testModule.users.serv.Delete(int(createdUser.ID))
 	if delResult != nil {
 		t.Fatalf("Error clearing created user")
 	}
@@ -57,7 +57,7 @@ func TestUserController_Find(t *testing.T) {
 func TestUserController_FindAll(t *testing.T) {
 	// Test finding two already created users for authentication mocking
 	// Create a new request
-	req, err := buildApiRequest("GET", "users?limit=10&offset=0&order=id_desc", nil, true, testModula.accounts.admin.token)
+	req, err := buildApiRequest("GET", "users?limit=10&offset=0&order=id_desc", nil, true, testModule.accounts.admin.token)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,7 +66,7 @@ func TestUserController_FindAll(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	// Use handler with recorder and created request
-	testModula.router.ServeHTTP(rr, req)
+	testModule.router.ServeHTTP(rr, req)
 
 	// Check the response status code
 	if status := rr.Code; status != http.StatusOK {
@@ -86,11 +86,11 @@ func TestUserController_FindAll(t *testing.T) {
 	// Iterate through users array received
 	for _, item := range *body.Data {
 		// If id is admin id
-		if item.ID == testModula.accounts.admin.details.ID {
-			helpers.CompareObjects(item, testModula.accounts.admin.details, t, []string{"ID", "Username", "Email", "Name"})
+		if item.ID == testModule.accounts.admin.details.ID {
+			helpers.CompareObjects(item, testModule.accounts.admin.details, t, []string{"ID", "Username", "Email", "Name"})
 
 		} else {
-			helpers.CompareObjects(item, testModula.accounts.user.details, t, []string{"ID", "Username", "Email", "Name"})
+			helpers.CompareObjects(item, testModule.accounts.user.details, t, []string{"ID", "Username", "Email", "Name"})
 
 		}
 	}
@@ -111,7 +111,7 @@ func TestUserController_FindAll(t *testing.T) {
 		{test_name: "Normal test", limit: "20", offset: "1", order: "id_desc", expectedResponseStatus: http.StatusOK},
 	}
 	for _, v := range failParameterTests {
-		req, err := buildApiRequest("GET", fmt.Sprintf("users?limit=%v&offset=%v&order=%v", v.limit, v.offset, v.order), nil, true, testModula.accounts.admin.token)
+		req, err := buildApiRequest("GET", fmt.Sprintf("users?limit=%v&offset=%v&order=%v", v.limit, v.offset, v.order), nil, true, testModule.accounts.admin.token)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -120,7 +120,7 @@ func TestUserController_FindAll(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		// Use handler with recorder and created request
-		testModula.router.ServeHTTP(rr, req)
+		testModule.router.ServeHTTP(rr, req)
 
 		// Check the response status code
 		if status := rr.Code; status != v.expectedResponseStatus {
@@ -132,7 +132,7 @@ func TestUserController_FindAll(t *testing.T) {
 
 func TestUserController_Delete(t *testing.T) {
 	// Create user
-	createdUser, err := testModula.users.serv.Create(&models.CreateUser{
+	createdUser, err := testModule.users.serv.Create(&models.CreateUser{
 		Username: "Jabar",
 		Email:    "zubayle@ymail.com",
 		Password: "password",
@@ -148,9 +148,9 @@ func TestUserController_Delete(t *testing.T) {
 		tokenToUse             string
 		expectedResponseStatus int
 	}{
-		{testName: "Normal user delete failure", tokenToUse: testModula.accounts.user.token, expectedResponseStatus: http.StatusForbidden},
+		{testName: "Normal user delete failure", tokenToUse: testModule.accounts.user.token, expectedResponseStatus: http.StatusForbidden},
 		// Put last to also replace test user deletion
-		{testName: "Admin user delete success", tokenToUse: testModula.accounts.admin.token, expectedResponseStatus: http.StatusOK},
+		{testName: "Admin user delete success", tokenToUse: testModule.accounts.admin.token, expectedResponseStatus: http.StatusOK},
 	}
 
 	for _, v := range tests {
@@ -163,7 +163,7 @@ func TestUserController_Delete(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		// Use handler with recorder and created request
-		testModula.router.ServeHTTP(rr, req)
+		testModule.router.ServeHTTP(rr, req)
 
 		// Check response is failed for normal user
 		if status := rr.Code; status != v.expectedResponseStatus {
@@ -176,7 +176,7 @@ func TestUserController_Delete(t *testing.T) {
 
 func TestUserController_Update(t *testing.T) {
 	// Create user
-	createdUser, err := testModula.users.serv.Create(&models.CreateUser{
+	createdUser, err := testModule.users.serv.Create(&models.CreateUser{
 		Username: "Jabar",
 		Email:    "greenthumb@ymail.com",
 		Password: "password",
@@ -198,31 +198,31 @@ func TestUserController_Update(t *testing.T) {
 		{"Fail case: User updating another user", createdUser.ID, map[string]string{
 			"Username": "JabarHindi",
 			"Name":     "Bambaloonie",
-		}, testModula.accounts.user.token, http.StatusForbidden, false},
+		}, testModule.accounts.user.token, http.StatusForbidden, false},
 		{"Admin updating a user", createdUser.ID, map[string]string{
 			"Username": "JabarHindi",
 			"Name":     "Bambaloonie",
-		}, testModula.accounts.admin.token, http.StatusOK, true},
+		}, testModule.accounts.admin.token, http.StatusOK, true},
 		// Update should be disallowed due to being too short
 		{"Fail case: Update with validation errors", createdUser.ID, map[string]string{
 			"Username": "Gobod",
 			"Name":     "solu",
-		}, testModula.accounts.admin.token, http.StatusBadRequest, false},
+		}, testModule.accounts.admin.token, http.StatusBadRequest, false},
 		// User should be forbidden before validating
 		{"Fail case: User invalid update should fail due to permissions", createdUser.ID, map[string]string{
 			"Username": "Gobod",
 			"Name":     "solu",
-		}, testModula.accounts.user.token, http.StatusForbidden, false},
+		}, testModule.accounts.user.token, http.StatusForbidden, false},
 		// Should fail as url extension is incorrect
 		{"Fail case: Bad url parameter", "x", map[string]string{
 			"Username": "Gobod",
 			"Name":     "solu",
-		}, testModula.accounts.admin.token, http.StatusBadRequest, false},
+		}, testModule.accounts.admin.token, http.StatusBadRequest, false},
 		// Should fail as id is above currently created
 		{"Fail case: Bad url parameter", "99", map[string]string{
 			"Username": "Gobod",
 			"Name":     "solu",
-		}, testModula.accounts.admin.token, http.StatusBadRequest, false},
+		}, testModule.accounts.admin.token, http.StatusBadRequest, false},
 	}
 
 	for _, v := range updateTests {
@@ -233,7 +233,7 @@ func TestUserController_Update(t *testing.T) {
 		// Create a response recorder
 		rr := httptest.NewRecorder()
 		// Send update request to mock server
-		testModula.router.ServeHTTP(rr, req)
+		testModule.router.ServeHTTP(rr, req)
 		// Check response expected vs received
 		if status := rr.Code; status != v.expectedResponseStatus {
 			t.Errorf("Got %v want %v.",
@@ -255,7 +255,7 @@ func TestUserController_Update(t *testing.T) {
 	}
 
 	// Delete the created user
-	err = testModula.users.serv.Delete(int(createdUser.ID))
+	err = testModule.users.serv.Delete(int(createdUser.ID))
 	if err != nil {
 		t.Fatalf("Error clearing created user")
 	}
@@ -310,7 +310,7 @@ func TestUserController_Create(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		// Send update request to mock server
-		testModula.router.ServeHTTP(rr, req)
+		testModule.router.ServeHTTP(rr, req)
 		// Check response is failed for normal user to update another
 		if status := rr.Code; status != v.expectedResponseStatus {
 
@@ -324,7 +324,7 @@ func TestUserController_Create(t *testing.T) {
 		json.Unmarshal(rr.Body.Bytes(), &body)
 
 		// Delete the created user
-		err = testModula.users.serv.Delete(int(body.ID))
+		err = testModule.users.serv.Delete(int(body.ID))
 		if err != nil {
 			t.Fatalf("Error clearing created user")
 		}
@@ -342,8 +342,8 @@ func TestUserController_GetMyUserDetails(t *testing.T) {
 		userToCheck            models.UserWithRole
 		expectedResponseStatus int
 	}{
-		{"User checking own profile", true, true, testModula.accounts.user.token, *testModula.accounts.user.details, http.StatusOK},
-		{"Admin checking own profile", true, true, testModula.accounts.admin.token, *testModula.accounts.admin.details, http.StatusOK},
+		{"User checking own profile", true, true, testModule.accounts.user.token, *testModule.accounts.user.details, http.StatusOK},
+		{"Admin checking own profile", true, true, testModule.accounts.admin.token, *testModule.accounts.admin.details, http.StatusOK},
 		// Deny access to user that doesn't have authentication
 		{"Logged out user checking profile", false, false, "", models.UserWithRole{}, http.StatusForbidden},
 	}
@@ -358,7 +358,7 @@ func TestUserController_GetMyUserDetails(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		// Send update request to mock server
-		testModula.router.ServeHTTP(rr, req)
+		testModule.router.ServeHTTP(rr, req)
 		// Check response is failed for normal user to update another
 		if status := rr.Code; status != v.expectedResponseStatus {
 			t.Errorf("%s: Got %v want %v.(%v)", v.testName,
@@ -393,32 +393,32 @@ func TestUserController_UpdateMyProfile(t *testing.T) {
 		{"Admin self update", map[string]string{
 			"Username": "JabarCindi",
 			"Name":     "Bambaloonie",
-		}, true, testModula.accounts.admin.token, http.StatusOK, true, *testModula.accounts.admin.details},
+		}, true, testModule.accounts.admin.token, http.StatusOK, true, *testModule.accounts.admin.details},
 		{"User self update", map[string]string{
 			"Username": "JabarHindi",
 			"Name":     "Bambaloonie",
 			"Password": "YeezusChris",
-		}, true, testModula.accounts.user.token, http.StatusOK, true, *testModula.accounts.user.details},
+		}, true, testModule.accounts.user.token, http.StatusOK, true, *testModule.accounts.user.details},
 		{"User self update with invalid email", map[string]string{
 			"Email": "JabarHindi",
-		}, true, testModula.accounts.user.token, http.StatusBadRequest, false, *testModula.accounts.user.details},
+		}, true, testModule.accounts.user.token, http.StatusBadRequest, false, *testModule.accounts.user.details},
 		{"Fail: User self update with duplicate email", map[string]string{
 			"Username": "Swahili",
-			"Email":    testModula.accounts.admin.details.Email,
-		}, true, testModula.accounts.user.token, http.StatusBadRequest, false, *testModula.accounts.user.details},
+			"Email":    testModule.accounts.admin.details.Email,
+		}, true, testModule.accounts.user.token, http.StatusBadRequest, false, *testModule.accounts.user.details},
 		{"Fail: User update without token", map[string]string{
 			"Username": "JabarHindi",
 			"Name":     "Bambaloonie",
 			"Password": "YeezusChris",
-		}, false, "", http.StatusForbidden, false, *testModula.accounts.user.details},
+		}, false, "", http.StatusForbidden, false, *testModule.accounts.user.details},
 		{"Fail: Admin update with invalid validation", map[string]string{
 			"Username": "Gobod",
 			"Name":     "solu",
-		}, true, testModula.accounts.admin.token, http.StatusBadRequest, false, *testModula.accounts.admin.details},
+		}, true, testModule.accounts.admin.token, http.StatusBadRequest, false, *testModule.accounts.admin.details},
 		{"Fail: User update with invalid validation", map[string]string{
 			"Username": "Gabor",
 			"Name":     "solu",
-		}, true, testModula.accounts.user.token, http.StatusBadRequest, false, *testModula.accounts.user.details},
+		}, true, testModule.accounts.user.token, http.StatusBadRequest, false, *testModule.accounts.user.details},
 	}
 
 	for _, v := range tests {
@@ -431,7 +431,7 @@ func TestUserController_UpdateMyProfile(t *testing.T) {
 		// Create a response recorder
 		rr := httptest.NewRecorder()
 		// Send update request to mock server
-		testModula.router.ServeHTTP(rr, req)
+		testModule.router.ServeHTTP(rr, req)
 
 		// Check response is failed for normal user to update another
 		if status := rr.Code; status != v.expectedResponseStatus {
@@ -452,17 +452,17 @@ func TestUserController_UpdateMyProfile(t *testing.T) {
 		}
 
 		// Return updates to original state
-		testModula.users.serv.Update(int(testModula.accounts.admin.details.ID), &models.UpdateUser{
-			Username: testModula.accounts.admin.details.Username,
-			Password: testModula.accounts.admin.details.Password,
-			Email:    testModula.accounts.admin.details.Email,
-			Name:     testModula.accounts.admin.details.Name,
+		testModule.users.serv.Update(int(testModule.accounts.admin.details.ID), &models.UpdateUser{
+			Username: testModule.accounts.admin.details.Username,
+			Password: testModule.accounts.admin.details.Password,
+			Email:    testModule.accounts.admin.details.Email,
+			Name:     testModule.accounts.admin.details.Name,
 		})
-		testModula.users.serv.Update(int(testModula.accounts.user.details.ID), &models.UpdateUser{
-			Username: testModula.accounts.user.details.Username,
-			Password: testModula.accounts.user.details.Password,
-			Email:    testModula.accounts.user.details.Email,
-			Name:     testModula.accounts.user.details.Name,
+		testModule.users.serv.Update(int(testModule.accounts.user.details.ID), &models.UpdateUser{
+			Username: testModule.accounts.user.details.Username,
+			Password: testModule.accounts.user.details.Password,
+			Email:    testModule.accounts.user.details.Email,
+			Name:     testModule.accounts.user.details.Name,
 		})
 	}
 }
@@ -479,19 +479,19 @@ func TestUserController_Login(t *testing.T) {
 		expectedMessage        string
 	}{
 		{"Admin user login", models.Login{
-			Email:    testModula.accounts.admin.details.Email,
-			Password: testModula.accounts.admin.details.Password,
+			Email:    testModule.accounts.admin.details.Email,
+			Password: testModule.accounts.admin.details.Password,
 		}, http.StatusOK, false, ""},
 		{"Fail: Admin user incorrect details", models.Login{
-			Email:    testModula.accounts.admin.details.Email,
+			Email:    testModule.accounts.admin.details.Email,
 			Password: "wrongPassword",
 		}, http.StatusUnauthorized, true, "Invalid Credentials\n"},
 		{"Basic user login", models.Login{
-			Email:    testModula.accounts.user.details.Email,
-			Password: testModula.accounts.user.details.Password,
+			Email:    testModule.accounts.user.details.Email,
+			Password: testModule.accounts.user.details.Password,
 		}, http.StatusOK, false, ""},
 		{"Fail: Basic user incorrect details", models.Login{
-			Email:    testModula.accounts.user.details.Email,
+			Email:    testModule.accounts.user.details.Email,
 			Password: "VeryWrongPassword",
 		}, http.StatusUnauthorized, true, "Invalid Credentials\n"},
 		{"Fail: Non existent user login", models.Login{
@@ -518,7 +518,7 @@ func TestUserController_Login(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		// Send update request to mock server
-		testModula.router.ServeHTTP(rr, req)
+		testModule.router.ServeHTTP(rr, req)
 
 		// Check response is failed for normal user to update another
 		if status := rr.Code; status != v.expectedResponseStatus {

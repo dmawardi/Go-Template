@@ -23,7 +23,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var testModula controllerTestModule
+var testModule controllerTestModule
 
 var app config.AppConfig
 
@@ -74,12 +74,12 @@ func TestMain(m *testing.M) {
 	app.BaseURL = helpers.BuildBaseUrl()
 
 	// Setup DB
-	testModula.dbClient = helpers.SetupTestDatabase()
+	testModule.dbClient = helpers.SetupTestDatabase()
 	// Set Gorm client
-	app.DbClient = testModula.dbClient
+	app.DbClient = testModule.dbClient
 
 	// Build enforcer
-	enforcer, err := auth.EnforcerSetup(testModula.dbClient)
+	enforcer, err := auth.EnforcerSetup(testModule.dbClient)
 	if err != nil {
 		fmt.Println("Error building enforcer")
 	}
@@ -91,11 +91,11 @@ func TestMain(m *testing.M) {
 	SetAppWideState(app)
 
 	// build API for serving requests
-	testModula.api = testModula.TestApiSetup(testModula.dbClient)
-	testModula.router = testModula.api.Routes()
+	testModule.api = testModule.TestApiSetup(testModule.dbClient)
+	testModule.router = testModule.api.Routes()
 
 	// Setup accounts for mocking authentication
-	testModula.setupDummyAccounts(&models.CreateUser{
+	testModule.setupDummyAccounts(&models.CreateUser{
 		Username: "Jabar",
 		Email:    "Jabal@ymail.com",
 		Password: "password",
