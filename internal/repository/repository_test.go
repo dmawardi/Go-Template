@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/repository"
@@ -36,6 +37,7 @@ type postModule struct {
 
 // Initial setup before running tests in package
 func TestMain(m *testing.M) {
+
 	fmt.Printf("Setting up test connection\n")
 	// Set URL in app state
 	app.BaseURL = helpers.BuildBaseUrl()
@@ -45,9 +47,21 @@ func TestMain(m *testing.M) {
 	// Set Gorm client
 	app.DbClient = testModule.dbClient
 
+	// Build enforcer
+	enforcer, err := auth.EnforcerSetup(testModule.dbClient)
+	if err != nil {
+		fmt.Println("Error building enforcer")
+	}
+	// Set enforcer in state
+	app.Auth.Enforcer = enforcer.Enforcer
+	app.Auth.Adapter = enforcer.Adapter
+
+	// Set app config in repository
+	repository.SetAppConfig(&app)
+
 	testModule.TestRepoSetup(testModule.dbClient)
 
-	// Run the rest of the tests
+	// Run the tests
 	exitCode := m.Run()
 	// exit with the same exit code as the tests
 	os.Exit(exitCode)

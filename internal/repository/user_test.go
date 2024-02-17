@@ -1,44 +1,12 @@
 package repository_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
-	"github.com/dmawardi/Go-Template/internal/repository"
-	"github.com/glebarez/sqlite"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
-
-type testDbRepo struct {
-	dbClient *gorm.DB
-	repo     repository.UserRepository
-}
-
-func init() {
-	setupDatabase()
-}
-
-func setupDatabase() {
-	// Open a new, temporary database for testing
-	dbClient, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	if err != nil {
-		fmt.Errorf("failed to open database: %v", err)
-	}
-
-	// Migrate the database schema
-	if err := dbClient.AutoMigrate(&db.User{}); err != nil {
-		fmt.Errorf("failed to migrate database schema: %v", err)
-	}
-	// Create a new user repository
-	repo := repository.NewUserRepository(dbClient)
-
-	// Setup test connection
-	testModule.dbClient = dbClient
-	testModule.repo = repo
-}
 
 func TestUserRepository_Create(t *testing.T) {
 	// Build hashed password from user password input
@@ -55,7 +23,7 @@ func TestUserRepository_Create(t *testing.T) {
 	}
 
 	// Test function
-	createdUser, err := testModule.repo.Create(user)
+	createdUser, err := testModule.users.repo.Create(user)
 	if err != nil {
 		t.Fatalf("failed to create user: %v", err)
 	}
@@ -76,7 +44,7 @@ func TestUserRepository_Create(t *testing.T) {
 		// Imitate bcrypt encryption from user service
 		Password: string(hashedPassword),
 	}
-	_, err = testModule.repo.Create(duplicateUser)
+	_, err = testModule.users.repo.Create(duplicateUser)
 	if err == nil {
 		t.Fatalf("Creating duplicate email should have failed but it didn't: %v", err)
 	}
@@ -99,7 +67,7 @@ func TestUserRepository_FindById(t *testing.T) {
 	}
 
 	// Test function
-	foundUser, err := testModule.repo.FindById(int(createdUser.ID))
+	foundUser, err := testModule.users.repo.FindById(int(createdUser.ID))
 	if err != nil {
 		t.Fatalf("failed to find created user: %v", err)
 	}
@@ -122,7 +90,7 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 	}
 
 	// Test function
-	foundUser, err := testModule.repo.FindByEmail(createdUser.Email)
+	foundUser, err := testModule.users.repo.FindByEmail(createdUser.Email)
 	if err != nil {
 		t.Fatalf("failed to find created user: %v", err)
 	}
@@ -146,13 +114,13 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 // 	}
 
 // 	// Delete the created user
-// 	err = testModule.repo.Delete(int(createdUser.ID))
+// 	err = testModule.users.repo.Delete(int(createdUser.ID))
 // 	if err != nil {
 // 		t.Fatalf("failed to delete created user: %v", err)
 // 	}
 
 // 	// Check to see if user has been deleted
-// 	_, err = testModule.repo.FindById(int(createdUser.ID))
+// 	_, err = testModule.users.repo.FindById(int(createdUser.ID))
 // 	if err == nil {
 // 		t.Fatal("Expected an error but got none")
 // 	}
@@ -171,12 +139,12 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 
 // 	createdUser.Username = "Al-Amal"
 
-// 	updatedUser, err := testModule.repo.Update(int(createdUser.ID), createdUser)
+// 	updatedUser, err := testModule.users.repo.Update(int(createdUser.ID), createdUser)
 // 	if err != nil {
 // 		t.Fatalf("An error was encountered while updating: %v", err)
 // 	}
 
-// 	foundUser, err := testModule.repo.FindById(int(updatedUser.ID))
+// 	foundUser, err := testModule.users.repo.FindById(int(updatedUser.ID))
 // 	if err != nil {
 // 		t.Errorf("An error was encountered while finding updated user: %v", err)
 // 	}
@@ -208,7 +176,7 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 // 		t.Fatalf("failed to create test user2: %v", err)
 // 	}
 
-// 	users, err := testModule.repo.FindAll(10, 0, "", []models.QueryConditionParameters{})
+// 	users, err := testModule.users.repo.FindAll(10, 0, "", []models.QueryConditionParameters{})
 // 	if err != nil {
 // 		t.Fatalf("failed to find all: %v", err)
 // 	}
@@ -257,5 +225,5 @@ func hashPassAndGenerateUserInDb(user *db.User, t *testing.T) (*db.User, error) 
 		t.Fatalf("Couldn't create user")
 	}
 	user.Password = string(hashedPass)
-	return testModule.repo.Create(user)
+	return testModule.users.repo.Create(user)
 }
