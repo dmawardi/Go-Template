@@ -13,7 +13,7 @@ import (
 )
 
 func TestAuthController_FindAll(t *testing.T) {
-	req, err := buildApiRequest("GET", "auth", nil, true, testConnection.accounts.admin.token)
+	req, err := buildApiRequest("GET", "auth", nil, true, testModula.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -21,7 +21,7 @@ func TestAuthController_FindAll(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	// Use handler with recorder and created request
-	testConnection.router.ServeHTTP(rr, req)
+	testModula.router.ServeHTTP(rr, req)
 
 	// Check the response status code
 	if status := rr.Code; status != http.StatusOK {
@@ -48,7 +48,7 @@ func TestAuthController_FindByResource(t *testing.T) {
 		Action:   "read",
 	}
 	// Create policy
-	err := testConnection.auth.serv.Create(policy1)
+	err := testModula.auth.serv.Create(policy1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -56,7 +56,7 @@ func TestAuthController_FindByResource(t *testing.T) {
 	slug := helpers.SlugifyResourceName(policy1.Resource)
 	requestUrl := fmt.Sprintf("auth/%s", slug)
 
-	req, err := buildApiRequest("GET", requestUrl, nil, true, testConnection.accounts.admin.token)
+	req, err := buildApiRequest("GET", requestUrl, nil, true, testModula.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,7 +64,7 @@ func TestAuthController_FindByResource(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	// Use handler with recorder and created request
-	testConnection.router.ServeHTTP(rr, req)
+	testModula.router.ServeHTTP(rr, req)
 
 	// Check the response status code
 	if status := rr.Code; status != http.StatusOK {
@@ -80,7 +80,7 @@ func TestAuthController_FindByResource(t *testing.T) {
 	checkPolicyDetails(t, body[0], policy1)
 
 	// Delete policy
-	err = testConnection.auth.serv.Delete(policy1)
+	err = testModula.auth.serv.Delete(policy1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -93,7 +93,7 @@ func TestAuthController_Delete(t *testing.T) {
 		Action:   "read",
 	}
 	// Create policy
-	err := testConnection.auth.serv.Create(policy1)
+	err := testModula.auth.serv.Create(policy1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -101,7 +101,7 @@ func TestAuthController_Delete(t *testing.T) {
 	// Build slug
 	requestUrl := "auth"
 
-	req, err := buildApiRequest("DELETE", requestUrl, buildReqBody(policy1), true, testConnection.accounts.admin.token)
+	req, err := buildApiRequest("DELETE", requestUrl, buildReqBody(policy1), true, testModula.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -109,7 +109,7 @@ func TestAuthController_Delete(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	// Use handler with recorder and created request
-	testConnection.router.ServeHTTP(rr, req)
+	testModula.router.ServeHTTP(rr, req)
 
 	// Check the response status code
 	if status := rr.Code; status != http.StatusOK {
@@ -118,7 +118,7 @@ func TestAuthController_Delete(t *testing.T) {
 	}
 
 	// Check if the record is deleted
-	found, err := testConnection.auth.serv.FindByResource(policy1.Resource)
+	found, err := testModula.auth.serv.FindByResource(policy1.Resource)
 
 	if err != nil {
 		t.Errorf("Error detected when finding resource: %v", err)
@@ -138,7 +138,7 @@ func TestAuthController_Create(t *testing.T) {
 	// Build slug
 	requestUrl := "auth"
 
-	req, err := buildApiRequest("POST", requestUrl, buildReqBody(policy1), true, testConnection.accounts.admin.token)
+	req, err := buildApiRequest("POST", requestUrl, buildReqBody(policy1), true, testModula.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -146,7 +146,7 @@ func TestAuthController_Create(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	// Use handler with recorder and created request
-	testConnection.router.ServeHTTP(rr, req)
+	testModula.router.ServeHTTP(rr, req)
 
 	// Check the response status code
 	if status := rr.Code; status != http.StatusCreated {
@@ -155,7 +155,7 @@ func TestAuthController_Create(t *testing.T) {
 	}
 
 	// Check if the record is created
-	found, err := testConnection.auth.serv.FindByResource(policy1.Resource)
+	found, err := testModula.auth.serv.FindByResource(policy1.Resource)
 
 	if err != nil {
 		t.Errorf("Error detected when finding resource: %v", err)
@@ -168,7 +168,7 @@ func TestAuthController_Create(t *testing.T) {
 	checkPolicyDetails(t, found[0], policy1)
 
 	// Delete policy
-	err = testConnection.auth.serv.Delete(policy1)
+	err = testModula.auth.serv.Delete(policy1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -187,7 +187,7 @@ func TestAuthController_Update(t *testing.T) {
 	}
 
 	// Create policy
-	err := testConnection.auth.serv.Create(policy1)
+	err := testModula.auth.serv.Create(policy1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -195,7 +195,7 @@ func TestAuthController_Update(t *testing.T) {
 	// Build slug
 	requestUrl := "auth"
 
-	req, err := buildApiRequest("PUT", requestUrl, buildReqBody(models.UpdateCasbinRule{OldPolicy: policy1, NewPolicy: policy2}), true, testConnection.accounts.admin.token)
+	req, err := buildApiRequest("PUT", requestUrl, buildReqBody(models.UpdateCasbinRule{OldPolicy: policy1, NewPolicy: policy2}), true, testModula.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -203,7 +203,7 @@ func TestAuthController_Update(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	// Use handler with recorder and created request
-	testConnection.router.ServeHTTP(rr, req)
+	testModula.router.ServeHTTP(rr, req)
 
 	// Check the response status code
 	if status := rr.Code; status != http.StatusOK {
@@ -212,7 +212,7 @@ func TestAuthController_Update(t *testing.T) {
 	}
 
 	// Check if the record is updated
-	found, err := testConnection.auth.serv.FindByResource(policy2.Resource)
+	found, err := testModula.auth.serv.FindByResource(policy2.Resource)
 
 	if err != nil {
 		t.Errorf("Error detected when finding resource: %v", err)
@@ -225,7 +225,7 @@ func TestAuthController_Update(t *testing.T) {
 	checkPolicyDetails(t, found[0], policy2)
 
 	// Delete policy
-	err = testConnection.auth.serv.Delete(policy2)
+	err = testModula.auth.serv.Delete(policy2)
 	if err != nil {
 		t.Error(err)
 	}
@@ -234,7 +234,7 @@ func TestAuthController_Update(t *testing.T) {
 // Role
 func TestAuthController_FindAllRoles(t *testing.T) {
 	numberOfDetaultRoles := 3
-	req, err := buildApiRequest("GET", "auth/roles", nil, true, testConnection.accounts.admin.token)
+	req, err := buildApiRequest("GET", "auth/roles", nil, true, testModula.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -242,7 +242,7 @@ func TestAuthController_FindAllRoles(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	// Use handler with recorder and created request
-	testConnection.router.ServeHTTP(rr, req)
+	testModula.router.ServeHTTP(rr, req)
 
 	// Check the response status code
 	if status := rr.Code; status != http.StatusOK {
@@ -267,8 +267,8 @@ func TestAuthController_AssignUserRole(t *testing.T) {
 	requestUrl := "auth/roles"
 
 	req, err := buildApiRequest("PUT", requestUrl, buildReqBody(models.CasbinRoleAssignment{
-		UserId: fmt.Sprint(testConnection.accounts.user.details.ID),
-		Role:   assignedRole}), true, testConnection.accounts.admin.token)
+		UserId: fmt.Sprint(testModula.accounts.user.details.ID),
+		Role:   assignedRole}), true, testModula.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -276,7 +276,7 @@ func TestAuthController_AssignUserRole(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	// Use handler with recorder and created request
-	testConnection.router.ServeHTTP(rr, req)
+	testModula.router.ServeHTTP(rr, req)
 
 	// Check the response status code
 	if status := rr.Code; status != http.StatusOK {
@@ -285,7 +285,7 @@ func TestAuthController_AssignUserRole(t *testing.T) {
 	}
 
 	// Check if the user role was reassigned
-	found, err := testConnection.auth.serv.FindRoleByUserId(int(testConnection.accounts.user.details.ID))
+	found, err := testModula.auth.serv.FindRoleByUserId(int(testModula.accounts.user.details.ID))
 	if err != nil {
 		t.Error(err)
 	}
@@ -295,7 +295,7 @@ func TestAuthController_AssignUserRole(t *testing.T) {
 	}
 
 	// Delete role
-	success, err := testConnection.auth.serv.AssignUserRole(fmt.Sprint(testConnection.accounts.user.details.ID), "user")
+	success, err := testModula.auth.serv.AssignUserRole(fmt.Sprint(testModula.accounts.user.details.ID), "user")
 	if err != nil {
 		t.Error(err)
 	}
@@ -310,7 +310,7 @@ func TestAuthController_AssignUserRole(t *testing.T) {
 // Role Inheritance
 func TestAuthController_FindAllRoleInheritance(t *testing.T) {
 	numberOfDetaultInheritances := 2
-	req, err := buildApiRequest("GET", "auth/inheritance", nil, true, testConnection.accounts.admin.token)
+	req, err := buildApiRequest("GET", "auth/inheritance", nil, true, testModula.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -318,7 +318,7 @@ func TestAuthController_FindAllRoleInheritance(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	// Use handler with recorder and created request
-	testConnection.router.ServeHTTP(rr, req)
+	testModula.router.ServeHTTP(rr, req)
 
 	// Check the response status code
 	if status := rr.Code; status != http.StatusOK {
@@ -349,7 +349,7 @@ func TestAuthController_CreateInheritance(t *testing.T) {
 	// Build slug
 	requestUrl := "auth/inheritance"
 
-	req, err := buildApiRequest("POST", requestUrl, buildReqBody(policy), true, testConnection.accounts.admin.token)
+	req, err := buildApiRequest("POST", requestUrl, buildReqBody(policy), true, testModula.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -357,7 +357,7 @@ func TestAuthController_CreateInheritance(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	// Use handler with recorder and created request
-	testConnection.router.ServeHTTP(rr, req)
+	testModula.router.ServeHTTP(rr, req)
 
 	// Check the response status code
 	if status := rr.Code; status != http.StatusCreated {
@@ -366,7 +366,7 @@ func TestAuthController_CreateInheritance(t *testing.T) {
 	}
 
 	// Check if the role inheritance was created
-	foundInheritances, err := testConnection.auth.serv.FindAllRoleInheritance()
+	foundInheritances, err := testModula.auth.serv.FindAllRoleInheritance()
 	if err != nil {
 		t.Error(err)
 	}
@@ -384,7 +384,7 @@ func TestAuthController_CreateInheritance(t *testing.T) {
 	}
 
 	// Delete role inheritance
-	err = testConnection.auth.serv.DeleteInheritance(policy)
+	err = testModula.auth.serv.DeleteInheritance(policy)
 	if err != nil {
 		t.Error(err)
 	}
@@ -397,7 +397,7 @@ func TestAuthController_DeleteInheritance(t *testing.T) {
 	}
 
 	// Create role inheritance
-	err := testConnection.auth.serv.CreateInheritance(policy)
+	err := testModula.auth.serv.CreateInheritance(policy)
 	if err != nil {
 		t.Error(err)
 	}
@@ -405,7 +405,7 @@ func TestAuthController_DeleteInheritance(t *testing.T) {
 	// Build slug
 	requestUrl := "auth/inheritance"
 
-	req, err := buildApiRequest("DELETE", requestUrl, buildReqBody(policy), true, testConnection.accounts.admin.token)
+	req, err := buildApiRequest("DELETE", requestUrl, buildReqBody(policy), true, testModula.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -413,7 +413,7 @@ func TestAuthController_DeleteInheritance(t *testing.T) {
 	rr := httptest.NewRecorder()
 
 	// Use handler with recorder and created request
-	testConnection.router.ServeHTTP(rr, req)
+	testModula.router.ServeHTTP(rr, req)
 
 	// Check the response status code
 	if status := rr.Code; status != http.StatusOK {
@@ -422,7 +422,7 @@ func TestAuthController_DeleteInheritance(t *testing.T) {
 	}
 
 	// Check if the role inheritance was deleted
-	foundInheritances, err := testConnection.auth.serv.FindAllRoleInheritance()
+	foundInheritances, err := testModula.auth.serv.FindAllRoleInheritance()
 	if err != nil {
 		t.Error(err)
 	}

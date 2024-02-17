@@ -19,7 +19,7 @@ type testDbRepo struct {
 	serv     service.UserService
 }
 
-var testConnection testDbRepo
+var testModula testDbRepo
 
 func init() {
 	setupDatabase()
@@ -41,9 +41,9 @@ func setupDatabase() {
 	service := service.NewUserService(repo)
 
 	// Setup test connection
-	testConnection.dbClient = dbClient
-	testConnection.repo = repo
-	testConnection.serv = service
+	testModula.dbClient = dbClient
+	testModula.repo = repo
+	testModula.serv = service
 }
 
 func TestUserService_Create(t *testing.T) {
@@ -54,7 +54,7 @@ func TestUserService_Create(t *testing.T) {
 		Password: "HoolaHoops",
 	}
 
-	createdUser, err := testConnection.serv.Create(userToCreate)
+	createdUser, err := testModula.serv.Create(userToCreate)
 	if err != nil {
 		t.Fatalf("Failed to create user in service test: %v", err)
 	}
@@ -70,7 +70,7 @@ func TestUserService_Create(t *testing.T) {
 	}
 
 	// Clean up: Delete created user
-	testConnection.dbClient.Delete(createdUser)
+	testModula.dbClient.Delete(createdUser)
 }
 
 func TestUserService_FindById(t *testing.T) {
@@ -88,7 +88,7 @@ func TestUserService_FindById(t *testing.T) {
 		t.Fatalf("failed to create test user for find by id user service testr: %v", err)
 	}
 	// Find created user by id
-	foundUser, err := testConnection.serv.FindById(int(userToCreate.ID))
+	foundUser, err := testModula.serv.FindById(int(userToCreate.ID))
 	if err != nil {
 		t.Fatalf("failed to find created user: %v", err)
 	}
@@ -102,7 +102,7 @@ func TestUserService_FindById(t *testing.T) {
 	}
 
 	// Clean up: Delete created user
-	testConnection.dbClient.Delete(createdUser)
+	testModula.dbClient.Delete(createdUser)
 }
 
 func TestUserService_FindByEmail(t *testing.T) {
@@ -120,7 +120,7 @@ func TestUserService_FindByEmail(t *testing.T) {
 		t.Fatalf("failed to create test user for find by id user service testr: %v", err)
 	}
 	// Find created user by id
-	foundUser, err := testConnection.serv.FindByEmail(createdUser.Email)
+	foundUser, err := testModula.serv.FindByEmail(createdUser.Email)
 	if err != nil {
 		t.Fatalf("failed to find created user: %v", err)
 	}
@@ -134,7 +134,7 @@ func TestUserService_FindByEmail(t *testing.T) {
 	}
 
 	// Clean up: Delete created user
-	testConnection.dbClient.Delete(createdUser)
+	testModula.dbClient.Delete(createdUser)
 }
 
 func TestUserService_Delete(t *testing.T) {
@@ -149,13 +149,13 @@ func TestUserService_Delete(t *testing.T) {
 	}
 
 	// Delete the created user
-	err = testConnection.serv.Delete(int(createdUser.ID))
+	err = testModula.serv.Delete(int(createdUser.ID))
 	if err != nil {
 		t.Fatalf("failed to delete created user: %v", err)
 	}
 
 	// Check to see if user has been deleted
-	_, err = testConnection.repo.FindById(int(createdUser.ID))
+	_, err = testModula.repo.FindById(int(createdUser.ID))
 	if err == nil {
 		t.Fatal("Expected an error but got none")
 	}
@@ -180,7 +180,7 @@ func TestUserService_Update(t *testing.T) {
 		Name:     "Crazy"}
 
 	// Update the created user
-	updatedUser, err := testConnection.serv.Update(int(createdUser.ID), userToUpdate)
+	updatedUser, err := testModula.serv.Update(int(createdUser.ID), userToUpdate)
 	if err != nil {
 		t.Fatalf("failed to update created user in service: %v", err)
 	}
@@ -202,7 +202,7 @@ func TestUserService_Update(t *testing.T) {
 	}
 
 	// Clean up: Delete created user
-	testConnection.dbClient.Delete(updatedUser)
+	testModula.dbClient.Delete(updatedUser)
 }
 
 func TestUserService_FindAll(t *testing.T) {
@@ -226,7 +226,7 @@ func TestUserService_FindAll(t *testing.T) {
 		t.Fatalf("failed to create test user2: %v", err)
 	}
 
-	users, err := testConnection.serv.FindAll(10, 0, "", []string{})
+	users, err := testModula.serv.FindAll(10, 0, "", []string{})
 	if err != nil {
 		t.Fatalf("failed to find all: %v", err)
 	}
@@ -266,7 +266,7 @@ func TestUserService_FindAll(t *testing.T) {
 	}
 	// Clean up created users
 	usersToDelete := []db.User{{ID: createdUser1.ID}, {ID: createdUser2.ID}}
-	testConnection.dbClient.Delete(usersToDelete)
+	testModula.dbClient.Delete(usersToDelete)
 }
 
 // Test helper function: Hashes password and generates a new user in the database
@@ -279,7 +279,7 @@ func hashPassAndGenerateUserInDb(user *db.User, t *testing.T) (*db.User, error) 
 	user.Password = string(hashedPass)
 
 	// Create user
-	createResult := testConnection.dbClient.Create(user)
+	createResult := testModula.dbClient.Create(user)
 	if createResult.Error != nil {
 		t.Fatalf("Couldn't create user: %v", user.Email)
 	}

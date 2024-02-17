@@ -17,7 +17,7 @@ type testDbRepo struct {
 	repo     repository.UserRepository
 }
 
-var testConnection testDbRepo
+var testModula testDbRepo
 
 func init() {
 	setupDatabase()
@@ -38,8 +38,8 @@ func setupDatabase() {
 	repo := repository.NewUserRepository(dbClient)
 
 	// Setup test connection
-	testConnection.dbClient = dbClient
-	testConnection.repo = repo
+	testModula.dbClient = dbClient
+	testModula.repo = repo
 }
 
 func TestUserRepository_Create(t *testing.T) {
@@ -57,7 +57,7 @@ func TestUserRepository_Create(t *testing.T) {
 	}
 
 	// Test function
-	createdUser, err := testConnection.repo.Create(user)
+	createdUser, err := testModula.repo.Create(user)
 	if err != nil {
 		t.Fatalf("failed to create user: %v", err)
 	}
@@ -78,15 +78,15 @@ func TestUserRepository_Create(t *testing.T) {
 		// Imitate bcrypt encryption from user service
 		Password: string(hashedPassword),
 	}
-	_, err = testConnection.repo.Create(duplicateUser)
+	_, err = testModula.repo.Create(duplicateUser)
 	if err == nil {
 		t.Fatalf("Creating duplicate email should have failed but it didn't: %v", err)
 	}
 
 	// Clean up: Delete created user
-	testConnection.dbClient.Delete(createdUser)
+	testModula.dbClient.Delete(createdUser)
 	// In case duplicate was created, delete
-	testConnection.dbClient.Delete(duplicateUser)
+	testModula.dbClient.Delete(duplicateUser)
 }
 
 func TestUserRepository_FindById(t *testing.T) {
@@ -101,7 +101,7 @@ func TestUserRepository_FindById(t *testing.T) {
 	}
 
 	// Test function
-	foundUser, err := testConnection.repo.FindById(int(createdUser.ID))
+	foundUser, err := testModula.repo.FindById(int(createdUser.ID))
 	if err != nil {
 		t.Fatalf("failed to find created user: %v", err)
 	}
@@ -109,7 +109,7 @@ func TestUserRepository_FindById(t *testing.T) {
 	helpers.CompareObjects(createdUser, foundUser, t, []string{"ID", "Email", "Username"})
 
 	// Clean up: Delete created user
-	testConnection.dbClient.Delete(createdUser)
+	testModula.dbClient.Delete(createdUser)
 }
 
 func TestUserRepository_FindByEmail(t *testing.T) {
@@ -124,7 +124,7 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 	}
 
 	// Test function
-	foundUser, err := testConnection.repo.FindByEmail(createdUser.Email)
+	foundUser, err := testModula.repo.FindByEmail(createdUser.Email)
 	if err != nil {
 		t.Fatalf("failed to find created user: %v", err)
 	}
@@ -133,7 +133,7 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 	helpers.CompareObjects(createdUser, foundUser, t, []string{"ID", "Email", "Username"})
 
 	// Clean up: Delete created user
-	testConnection.dbClient.Delete(createdUser)
+	testModula.dbClient.Delete(createdUser)
 }
 
 // func TestUserRepository_Delete(t *testing.T) {
@@ -148,13 +148,13 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 // 	}
 
 // 	// Delete the created user
-// 	err = testConnection.repo.Delete(int(createdUser.ID))
+// 	err = testModula.repo.Delete(int(createdUser.ID))
 // 	if err != nil {
 // 		t.Fatalf("failed to delete created user: %v", err)
 // 	}
 
 // 	// Check to see if user has been deleted
-// 	_, err = testConnection.repo.FindById(int(createdUser.ID))
+// 	_, err = testModula.repo.FindById(int(createdUser.ID))
 // 	if err == nil {
 // 		t.Fatal("Expected an error but got none")
 // 	}
@@ -173,12 +173,12 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 
 // 	createdUser.Username = "Al-Amal"
 
-// 	updatedUser, err := testConnection.repo.Update(int(createdUser.ID), createdUser)
+// 	updatedUser, err := testModula.repo.Update(int(createdUser.ID), createdUser)
 // 	if err != nil {
 // 		t.Fatalf("An error was encountered while updating: %v", err)
 // 	}
 
-// 	foundUser, err := testConnection.repo.FindById(int(updatedUser.ID))
+// 	foundUser, err := testModula.repo.FindById(int(updatedUser.ID))
 // 	if err != nil {
 // 		t.Errorf("An error was encountered while finding updated user: %v", err)
 // 	}
@@ -186,7 +186,7 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 // 	assert.Equal(t, foundUser, updatedUser, "Found user did is not equal to updated user")
 
 // 	// Clean up: Delete created user
-// 	testConnection.dbClient.Delete(updatedUser)
+// 	testModula.dbClient.Delete(updatedUser)
 // }
 
 // func TestUserRepository_FindAll(t *testing.T) {
@@ -210,7 +210,7 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 // 		t.Fatalf("failed to create test user2: %v", err)
 // 	}
 
-// 	users, err := testConnection.repo.FindAll(10, 0, "", []models.QueryConditionParameters{})
+// 	users, err := testModula.repo.FindAll(10, 0, "", []models.QueryConditionParameters{})
 // 	if err != nil {
 // 		t.Fatalf("failed to find all: %v", err)
 // 	}
@@ -249,7 +249,7 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 // 	}
 // 	// Clean up created users
 // 	usersToDelete := []db.User{{ID: createdUser1.ID}, {ID: createdUser2.ID}}
-// 	testConnection.dbClient.Delete(usersToDelete)
+// 	testModula.dbClient.Delete(usersToDelete)
 // }
 
 // Test helper function
@@ -259,5 +259,5 @@ func hashPassAndGenerateUserInDb(user *db.User, t *testing.T) (*db.User, error) 
 		t.Fatalf("Couldn't create user")
 	}
 	user.Password = string(hashedPass)
-	return testConnection.repo.Create(user)
+	return testModula.repo.Create(user)
 }
