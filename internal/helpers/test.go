@@ -9,6 +9,7 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/glebarez/sqlite"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -142,4 +143,22 @@ func UpdateStructField(structPtr interface{}, fieldName string, fieldValue inter
 
 	field.Set(fieldValueRef)
 	return nil
+}
+
+// Test helper function: Hashes password and generates a new user in the database
+func HashPassAndGenerateUserInDb(user *db.User, client *gorm.DB, t *testing.T) (*db.User, error) {
+	// Hash password
+	hashedPass, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
+	if err != nil {
+		t.Fatalf("Couldn't hash password")
+	}
+	user.Password = string(hashedPass)
+
+	// Create user
+	createResult := client.Create(user)
+	if createResult.Error != nil {
+		t.Fatalf("Couldn't create user: %v", user.Email)
+	}
+
+	return user, nil
 }
