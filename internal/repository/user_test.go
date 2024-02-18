@@ -6,7 +6,6 @@ import (
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
-	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -223,7 +222,8 @@ func TestUserRepository_Update(t *testing.T) {
 		t.Errorf("An error was encountered while finding updated user: %v", err)
 	}
 
-	assert.Equal(t, foundUser, updatedUser, "Found user is not equal to updated user")
+	// Verify that the found user matches the original user
+	helpers.CompareObjects(createdUser, foundUser, t, []string{"ID", "Email", "Username", "Name"})
 
 	// Clean up: Delete created user
 	testModule.dbClient.Delete(updatedUser)

@@ -12,6 +12,7 @@ import (
 
 	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
 	"github.com/dmawardi/Go-Template/internal/auth"
+	"github.com/dmawardi/Go-Template/internal/email"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/routes"
@@ -115,6 +116,7 @@ func TestMain(m *testing.M) {
 
 // Builds new API using routes package
 func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
+	mail := email.NewSMTPEmail()
 	// Setup module stack
 	// Auth
 	t.auth.repo = repository.NewAuthPolicyRepository(client)
@@ -122,7 +124,7 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 	t.auth.cont = controller.NewAuthPolicyController(t.auth.serv)
 	// Users
 	t.users.repo = repository.NewUserRepository(client)
-	t.users.serv = service.NewUserService(t.users.repo, t.auth.repo)
+	t.users.serv = service.NewUserService(t.users.repo, t.auth.repo, mail)
 	t.users.cont = controller.NewUserController(t.users.serv)
 	// Posts
 	t.posts.repo = repository.NewPostRepository(client)
