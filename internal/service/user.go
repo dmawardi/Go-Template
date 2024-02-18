@@ -386,12 +386,11 @@ func (s *userService) ResendEmailVerification(id int) error {
 	}
 
 	// Build HTML email template from file using injected data
-	emailString, err := helpers.LoadTemplate("internal/email/templates/email-verification.tmpl", data)
+	emailString, err := helpers.LoadTemplate(helpers.BuildPathFromWorkingDirectory("internal/email/templates/email-verification.tmpl"), data)
 	if err != nil {
 		fmt.Printf("error in loading template: %v", err)
 		return err
 	}
-	fmt.Printf("emailString: %v", emailString)
 
 	// Send email with new password async (non-blocking)
 	go s.mail.SendEmail(user.Email, "Please Verify your Email", emailString)

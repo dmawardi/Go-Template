@@ -258,17 +258,118 @@ func TestUserService_ResetPasswordAndSendEmail(t *testing.T) {
 }
 
 func TestUserService_LoginUser(t *testing.T) {
+	// create password
+	password := "password"
+	// Create test user
+	createdUser, err := helpers.HashPassAndGenerateUserInDb(&db.User{
+		Username: "Jabar",
+		Email:    "update-zegula@ymail.com",
+		Password: password,
+		Name:     "Crimson",
+	}, testModule.dbClient, t)
+	if err != nil {
+		t.Fatalf("failed to create test user: %v", err)
+	}
 
+	// Test function
+	token, err := testModule.users.serv.LoginUser(&models.Login{Email: createdUser.Email, Password: password})
+	if err != nil {
+		t.Fatalf("failed to login user: %v", err)
+	}
+
+	// Verify that the token is not empty
+	if token == "" {
+		t.Error("token should not be empty")
+	}
+
+	// Clean up: Delete created user
+	result := testModule.dbClient.Delete(createdUser)
+	if result.Error != nil {
+		t.Fatalf("failed to delete created user: %v", result.Error)
+	}
 }
 
-func TestUserSerive_CheckPasswordMatch(t *testing.T) {
+func TestUserService_CheckPasswordMatch(t *testing.T) {
+	// Create test user
+	createdUser, err := helpers.HashPassAndGenerateUserInDb(&db.User{
+		Username: "Jabar",
+		Email:    "update-cigz@ymail.com",
+		Password: "password",
+		Name:     "Crimson",
+	}, testModule.dbClient, t)
+	if err != nil {
+		t.Fatalf("failed to create test user: %v", err)
+	}
 
+	// Test function
+	// Check password match
+	matchFound := testModule.users.serv.CheckPasswordMatch(int(createdUser.ID), []byte("password"))
+	if !matchFound {
+		t.Error("password match should be found")
+	}
+
+	// Clean up: Delete created user
+	result := testModule.dbClient.Delete(createdUser)
+	if result.Error != nil {
+		t.Fatalf("failed to delete created user: %v", result.Error)
+	}
 }
 
 func TestUserService_VerifyEmailCode(t *testing.T) {
+	// Create test user
+	createdUser, err := helpers.HashPassAndGenerateUserInDb(&db.User{
+		Username: "Jabar",
+		Email:    "update-wgz@ymail.com",
+		Password: "password",
+		Name:     "Crimson",
+	}, testModule.dbClient, t)
+	if err != nil {
+		t.Fatalf("failed to create test user: %v", err)
+	}
+	// Generate verification code and set expiry
+	helpers.GenerateVerificationCodeAndSetExpiry(createdUser)
+	// Update user
+	result := testModule.dbClient.Save(createdUser)
+	if result.Error != nil {
+		t.Fatalf("failed to update created user: %v", result.Error)
+	}
 
+	// Test function
+	// Verify email code
+	err = testModule.users.serv.VerifyEmailCode(createdUser.VerificationCode)
+	if err != nil {
+		t.Fatalf("failed to verify email code: %v", err)
+	}
+
+	// Clean up: Delete created user
+	result = testModule.dbClient.Delete(createdUser)
+	if result.Error != nil {
+		t.Fatalf("failed to delete created user: %v", result.Error)
+	}
 }
 
 func TestUserService_ResendEmailVerification(t *testing.T) {
+	// Create test user
+	createdUser, err := helpers.HashPassAndGenerateUserInDb(&db.User{
+		Username: "Jabar",
+		Email:    "update-tadow@ymail.com",
+		Password: "password",
+		Name:     "Crimson",
+	}, testModule.dbClient, t)
+	if err != nil {
+		t.Fatalf("failed to create test user: %v", err)
+	}
 
+	// Test function
+	// Resend email verification
+	err = testModule.users.serv.ResendEmailVerification(int(createdUser.ID))
+	if err != nil {
+		t.Fatalf("failed to resend email verification: %v", err)
+	}
+
+	// Clean up: Delete created user
+	result := testModule.dbClient.Delete(createdUser)
+	if result.Error != nil {
+		t.Fatalf("failed to delete created user: %v", result.Error)
+	}
 }
