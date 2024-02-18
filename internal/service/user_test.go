@@ -3,6 +3,7 @@ package service_test
 import (
 	"testing"
 
+	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"golang.org/x/crypto/bcrypt"
@@ -16,6 +17,7 @@ func TestUserService_Create(t *testing.T) {
 		Password: "HoolaHoops",
 	}
 
+	// Test function
 	createdUser, err := testModule.users.serv.Create(userToCreate)
 	if err != nil {
 		t.Fatalf("Failed to create user in service test: %v", err)
@@ -35,202 +37,213 @@ func TestUserService_Create(t *testing.T) {
 		t.Errorf("created user has incorrect password hash: %v", err)
 	}
 
+	// Check if default role applied
+	if createdUser.Role != "user" {
+		t.Errorf("created user has incorrect role: expected 'user', got %s", createdUser.Role)
+	}
+
+	// Clean up: Delete created user
+	result := testModule.dbClient.Delete(&db.User{}, createdUser.ID)
+	if result.Error != nil {
+		t.Fatalf("failed to delete created user: %v", result.Error)
+	}
+}
+
+func TestUserService_FindById(t *testing.T) {
+	// Build test user
+	userToCreate := &db.User{
+		Username: "Jabar",
+		Email:    "juba@ymail.com",
+		Password: "password",
+		Name:     "Bamba",
+	}
+
+	// Create user
+	createdUser, err := helpers.HashPassAndGenerateUserInDb(userToCreate, testModule.dbClient, t)
+	if err != nil {
+		t.Fatalf("failed to create test user for find by id user service testr: %v", err)
+	}
+
+	// Test function
+	// Find created user by id
+	foundUser, err := testModule.users.serv.FindById(int(userToCreate.ID))
+	if err != nil {
+		t.Fatalf("failed to find created user: %v", err)
+	}
+	// Check details
+	helpers.CompareObjects(foundUser, userToCreate, t, []string{"ID", "Name", "Username", "Email"})
+
+	// Clean up: Delete created user
+	result := testModule.dbClient.Delete(createdUser)
+	if result.Error != nil {
+		t.Fatalf("failed to delete created user: %v", result.Error)
+	}
+}
+
+func TestUserService_FindByEmail(t *testing.T) {
+	// Build test user
+	userToCreate := &db.User{
+		Username: "Jabar",
+		Email:    "juba@findmymail.com",
+		Password: "password",
+		Name:     "Bamba",
+	}
+
+	// Create user
+	createdUser, err := helpers.HashPassAndGenerateUserInDb(userToCreate, testModule.dbClient, t)
+	if err != nil {
+		t.Fatalf("failed to create test user for find by id user service testr: %v", err)
+	}
+	// Find created user by id
+	foundUser, err := testModule.users.serv.FindByEmail(createdUser.Email)
+	if err != nil {
+		t.Fatalf("failed to find created user: %v", err)
+	}
+
+	helpers.CompareObjects(foundUser, userToCreate, t, []string{"ID", "Name", "Username", "Email"})
+
 	// Clean up: Delete created user
 	testModule.dbClient.Delete(createdUser)
 }
 
-// func TestUserService_FindById(t *testing.T) {
-// 	// Build test user
-// 	userToCreate := &db.User{
-// 		Username: "Jabar",
-// 		Email:    "juba@ymail.com",
-// 		Password: "password",
-// 		Name:     "Bamba",
-// 	}
+func TestUserService_Delete(t *testing.T) {
+	createdUser, err := helpers.HashPassAndGenerateUserInDb(&db.User{
+		Username: "Jabar",
+		Email:    "dollar@ymail.com",
+		Password: "password",
+		Name:     "Crimson",
+	}, testModule.dbClient, t)
+	if err != nil {
+		t.Fatalf("failed to create test user: %v", err)
+	}
 
-// 	// Create user
-// 	createdUser, err := hashPassAndGenerateUserInDb(userToCreate, t)
-// 	if err != nil {
-// 		t.Fatalf("failed to create test user for find by id user service testr: %v", err)
-// 	}
-// 	// Find created user by id
-// 	foundUser, err := testModule.users.serv.FindById(int(userToCreate.ID))
-// 	if err != nil {
-// 		t.Fatalf("failed to find created user: %v", err)
-// 	}
+	// Test function
+	// Delete the created user
+	err = testModule.users.serv.Delete(int(createdUser.ID))
+	if err != nil {
+		t.Fatalf("failed to delete created user: %v", err)
+	}
 
-// 	// Verify that the found user matches the original user
-// 	if foundUser.ID != userToCreate.ID {
-// 		t.Errorf("found createdUser has incorrect ID: expected %d, got %d", userToCreate.ID, foundUser.ID)
-// 	}
-// 	if foundUser.Email != userToCreate.Email {
-// 		t.Errorf("found createdUser has incorrect email: expected %s, got %s", userToCreate.Email, foundUser.Email)
-// 	}
+	// Check to see if user has been deleted
+	foundUser := &db.User{}
+	result := testModule.dbClient.First(foundUser, createdUser.ID)
+	if result.Error == nil {
+		t.Fatal("Expected an error but got none")
+	}
 
-// 	// Clean up: Delete created user
-// 	testModule.dbClient.Delete(createdUser)
-// }
+	// Clean up: Delete created user
+	result = testModule.dbClient.Delete(createdUser)
+	if result.Error != nil {
+		t.Fatalf("failed to delete created user: %v", result.Error)
+	}
+}
 
-// func TestUserService_FindByEmail(t *testing.T) {
-// 	// Build test user
-// 	userToCreate := &db.User{
-// 		Username: "Jabar",
-// 		Email:    "juba@findmymail.com",
-// 		Password: "password",
-// 		Name:     "Bamba",
-// 	}
+func TestUserService_BulkDelete(t *testing.T) {
+}
 
-// 	// Create user
-// 	createdUser, err := hashPassAndGenerateUserInDb(userToCreate, t)
-// 	if err != nil {
-// 		t.Fatalf("failed to create test user for find by id user service testr: %v", err)
-// 	}
-// 	// Find created user by id
-// 	foundUser, err := testModule.users.serv.FindByEmail(createdUser.Email)
-// 	if err != nil {
-// 		t.Fatalf("failed to find created user: %v", err)
-// 	}
+func TestUserService_Update(t *testing.T) {
+	// Create test user
+	createdUser, err := helpers.HashPassAndGenerateUserInDb(&db.User{
+		Username: "Jabar",
+		Email:    "update-test@ymail.com",
+		Password: "password",
+		Name:     "Crimson",
+	}, testModule.dbClient, t)
+	if err != nil {
+		t.Fatalf("failed to create test user: %v", err)
+	}
 
-// 	// Verify that the found user matches the original user
-// 	if foundUser.ID != createdUser.ID {
-// 		t.Errorf("found createdUser has incorrect ID: expected %d, got %d", userToCreate.ID, foundUser.ID)
-// 	}
-// 	if foundUser.Email != createdUser.Email {
-// 		t.Errorf("found createdUser has incorrect email: expected %s, got %s", userToCreate.Email, foundUser.Email)
-// 	}
+	// Create updated details in update user DTO
+	userToUpdate := &models.UpdateUser{Username: "Hullabaloo",
+		Email:    "update-twist@ymail.com",
+		Password: "squash",
+		Name:     "Crazy"}
 
-// 	// Clean up: Delete created user
-// 	testModule.dbClient.Delete(createdUser)
-// }
+	// Update the created user
+	updatedUser, err := testModule.users.serv.Update(int(createdUser.ID), userToUpdate)
+	if err != nil {
+		t.Fatalf("failed to update created user in service: %v", err)
+	}
 
-// func TestUserService_Delete(t *testing.T) {
-// 	createdUser, err := hashPassAndGenerateUserInDb(&db.User{
-// 		Username: "Jabar",
-// 		Email:    "dollar@ymail.com",
-// 		Password: "password",
-// 		Name:     "Crimson",
-// 	}, t)
-// 	if err != nil {
-// 		t.Fatalf("failed to create test user: %v", err)
-// 	}
+	helpers.CompareObjects(updatedUser, userToUpdate, t, []string{"Username", "Email", "Name"})
 
-// 	// Delete the created user
-// 	err = testModule.users.serv.Delete(int(createdUser.ID))
-// 	if err != nil {
-// 		t.Fatalf("failed to delete created user: %v", err)
-// 	}
+	// Verify that the user ID matches as expected
+	if createdUser.ID != updatedUser.ID {
+		t.Error("created user should have same ID as updated user")
+	}
 
-// 	// Check to see if user has been deleted
-// 	_, err = testModule.repo.FindById(int(createdUser.ID))
-// 	if err == nil {
-// 		t.Fatal("Expected an error but got none")
-// 	}
-// }
+	// Clean up: Delete created user
+	result := testModule.dbClient.Delete(createdUser)
+	if result.Error != nil {
+		t.Fatalf("failed to delete created user: %v", result.Error)
+	}
+}
 
-// func TestUserService_Update(t *testing.T) {
-// 	// Create test user
-// 	createdUser, err := hashPassAndGenerateUserInDb(&db.User{
-// 		Username: "Jabar",
-// 		Email:    "update-test@ymail.com",
-// 		Password: "password",
-// 		Name:     "Crimson",
-// 	}, t)
-// 	if err != nil {
-// 		t.Fatalf("failed to create test user: %v", err)
-// 	}
+func TestUserService_FindAll(t *testing.T) {
+	createdUser1, err := helpers.HashPassAndGenerateUserInDb(&db.User{
+		Username: "Joe",
+		Email:    "crazy@gmail.com",
+		Password: "password",
+		Name:     "Bamba",
+	}, testModule.dbClient, t)
+	if err != nil {
+		t.Fatalf("failed to create test user1: %v", err)
+	}
 
-// 	// Create updated details in update user DTO
-// 	userToUpdate := &models.UpdateUser{Username: "Hullabaloo",
-// 		Email:    "update-twist@ymail.com",
-// 		Password: "squash",
-// 		Name:     "Crazy"}
+	createdUser2, err := helpers.HashPassAndGenerateUserInDb(&db.User{
+		Username: "Jabar",
+		Email:    "scuba@ymail.com",
+		Password: "password",
+		Name:     "Bamba",
+	}, testModule.dbClient, t)
+	if err != nil {
+		t.Fatalf("failed to create test user2: %v", err)
+	}
 
-// 	// Update the created user
-// 	updatedUser, err := testModule.users.serv.Update(int(createdUser.ID), userToUpdate)
-// 	if err != nil {
-// 		t.Fatalf("failed to update created user in service: %v", err)
-// 	}
+	users, err := testModule.users.serv.FindAll(10, 0, "", []models.QueryConditionParameters{})
+	if err != nil {
+		t.Fatalf("failed to find all: %v", err)
+	}
 
-// 	// Verify that the created user;s ID is as expected
-// 	if createdUser.ID != updatedUser.ID {
-// 		t.Error("created user should have same ID as updated user")
-// 	}
+	// Make sure both users are in database
+	if len(*users.Data) != 2 {
+		t.Errorf("Length of []users is not as expected. Got: %+v", *users.Data)
+	}
 
-// 	// Verify other details
-// 	if userToUpdate.Email != updatedUser.Email {
-// 		t.Errorf("Updated user does not have exp. updated email of: %v. Value: %v", userToUpdate.Email, updatedUser.Email)
-// 	}
-// 	if userToUpdate.Name != updatedUser.Name {
-// 		t.Errorf("Updated user does not have exp. updated email of: %v. Value: %v", userToUpdate.Name, updatedUser.Name)
-// 	}
-// 	if userToUpdate.Username != updatedUser.Username {
-// 		t.Errorf("Updated user does not have exp. updated email of: %v. Value: %v", userToUpdate.Username, updatedUser.Username)
-// 	}
+	// Iterate through results checking user 1 and 2 results
+	for _, u := range *users.Data {
+		// If it's the first user
+		if int(u.ID) == int(createdUser1.ID) {
+			helpers.CompareObjects(u, createdUser1, t, []string{"ID", "Name", "Username", "Email"})
+		} else {
+			helpers.CompareObjects(u, createdUser2, t, []string{"ID", "Name", "Username", "Email"})
+		}
+	}
 
-// 	// Clean up: Delete created user
-// 	testModule.dbClient.Delete(updatedUser)
-// }
+	// Clean up created users
+	usersToDelete := []db.User{{ID: createdUser1.ID}, {ID: createdUser2.ID}}
+	result := testModule.dbClient.Delete(usersToDelete)
+	if result.Error != nil {
+		t.Fatalf("failed to delete created users: %v", result.Error)
+	}
+}
 
-// func TestUserService_FindAll(t *testing.T) {
-// 	createdUser1, err := hashPassAndGenerateUserInDb(&db.User{
-// 		Username: "Joe",
-// 		Email:    "crazy@gmail.com",
-// 		Password: "password",
-// 		Name:     "Bamba",
-// 	}, t)
-// 	if err != nil {
-// 		t.Fatalf("failed to create test user1: %v", err)
-// 	}
+func TestUserService_RestPasswordAndSendEmail(t *testing.T) {
 
-// 	createdUser2, err := hashPassAndGenerateUserInDb(&db.User{
-// 		Username: "Jabar",
-// 		Email:    "scuba@ymail.com",
-// 		Password: "password",
-// 		Name:     "Bamba",
-// 	}, t)
-// 	if err != nil {
-// 		t.Fatalf("failed to create test user2: %v", err)
-// 	}
+}
 
-// 	users, err := testModule.users.serv.FindAll(10, 0, "", []string{})
-// 	if err != nil {
-// 		t.Fatalf("failed to find all: %v", err)
-// 	}
+func TestUserService_LoginUser(t *testing.T) {
 
-// 	// Make sure both users are in database
-// 	if len(*users.Data) != 2 {
-// 		t.Errorf("Length of []users is not as expected. Got: %v", len(*users.Data))
-// 	}
+}
 
-// 	// Iterate through results checking user 1 and 2 results
-// 	for _, u := range *users.Data {
-// 		// If it's the first user
-// 		if int(u.ID) == int(createdUser1.ID) {
-// 			// check details of first created user
-// 			if createdUser1.Email != u.Email {
-// 				t.Errorf("Email of user1 doesn't match. Got: %v, expected %v", u.Email, createdUser1.Email)
-// 			}
-// 			if createdUser1.Username != u.Username {
-// 				t.Errorf("Email of user1 doesn't match. Got: %v, expected %v", u.Username, createdUser1.Username)
-// 			}
-// 			if createdUser1.Name != u.Name {
-// 				t.Errorf("Email of user1 doesn't match. Got: %v, expected %v", u.Name, createdUser1.Name)
-// 			}
-// 		} else {
-// 			// check details of second user
-// 			if createdUser2.Email != u.Email {
-// 				t.Errorf("Email of user1 doesn't match. Got: %v, expected %v", u.Email, createdUser2.Email)
-// 			}
-// 			if createdUser2.Username != u.Username {
-// 				t.Errorf("Email of user1 doesn't match. Got: %v, expected %v", u.Username, createdUser2.Username)
-// 			}
-// 			if createdUser2.Name != u.Name {
-// 				t.Errorf("Email of user1 doesn't match. Got: %v, expected %v", u.Name, createdUser2.Name)
-// 			}
+func TestUserSerive_CheckPasswordMatch(t *testing.T) {
 
-// 		}
-// 	}
-// 	// Clean up created users
-// 	usersToDelete := []db.User{{ID: createdUser1.ID}, {ID: createdUser2.ID}}
-// 	testModule.dbClient.Delete(usersToDelete)
-// }
+}
+
+func TestUserService_VerifyEmailCode(t *testing.T) {
+
+}
+
+func TestUserService_ResendEmailVerification(t *testing.T) {
+
+}
