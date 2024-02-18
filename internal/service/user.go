@@ -42,8 +42,8 @@ type userService struct {
 }
 
 // Builds a new service with injected repository. Includes email service
-func NewUserService(repo repository.UserRepository, auth repository.AuthPolicyRepository) UserService {
-	return &userService{repo: repo, auth: auth, mail: email.NewSMTPEmail()}
+func NewUserService(repo repository.UserRepository, auth repository.AuthPolicyRepository, mail email.Email) UserService {
+	return &userService{repo: repo, auth: auth, mail: mail}
 }
 
 // Creates a user in the database
@@ -255,7 +255,7 @@ func (s *userService) ResetPasswordAndSendEmail(userEmail string) error {
 	}
 
 	// Build HTML email template from file using injected data
-	emailString, err := helpers.LoadTemplate("internal/email/templates/password-reset.tmpl", data)
+	emailString, err := helpers.LoadTemplate(helpers.BuildPathFromWorkingDirectory("internal/email/templates/password-reset.tmpl"), data)
 	if err != nil {
 		fmt.Printf("error in loading template: %v", err)
 		return err

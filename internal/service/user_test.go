@@ -103,7 +103,10 @@ func TestUserService_FindByEmail(t *testing.T) {
 	helpers.CompareObjects(foundUser, userToCreate, t, []string{"ID", "Name", "Username", "Email"})
 
 	// Clean up: Delete created user
-	testModule.dbClient.Delete(createdUser)
+	result := testModule.dbClient.Delete(createdUser)
+	if result.Error != nil {
+		t.Fatalf("failed to delete created user: %v", result.Error)
+	}
 }
 
 func TestUserService_Delete(t *testing.T) {
@@ -228,8 +231,30 @@ func TestUserService_FindAll(t *testing.T) {
 	}
 }
 
-func TestUserService_RestPasswordAndSendEmail(t *testing.T) {
+func TestUserService_ResetPasswordAndSendEmail(t *testing.T) {
+	// Create test user
+	createdUser, err := helpers.HashPassAndGenerateUserInDb(&db.User{
+		Username: "Jabar",
+		Email:    "update-smash@ymail.com",
+		Password: "password",
+		Name:     "Crimson",
+	}, testModule.dbClient, t)
+	if err != nil {
+		t.Fatalf("failed to create test user: %v", err)
+	}
 
+	// Test function
+	// Reset password and send email
+	err = testModule.users.serv.ResetPasswordAndSendEmail(createdUser.Email)
+	if err != nil {
+		t.Fatalf("failed to reset password and send email: %v", err)
+	}
+
+	// Clean up: Delete created user
+	result := testModule.dbClient.Delete(createdUser)
+	if result.Error != nil {
+		t.Fatalf("failed to delete created user: %v", result.Error)
+	}
 }
 
 func TestUserService_LoginUser(t *testing.T) {

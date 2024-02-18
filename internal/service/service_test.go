@@ -73,14 +73,22 @@ func TestMain(m *testing.M) {
 
 // Builds new API using routes package
 func (t *repositoryTestModule) TestServSetup(client *gorm.DB) {
+	mail := &emailMock{}
 	// Setup module stack
 	// Auth
 	t.auth.repo = repository.NewAuthPolicyRepository(client)
 	t.auth.serv = service.NewAuthPolicyService(t.auth.repo)
 	// Users
 	t.users.repo = repository.NewUserRepository(client)
-	t.users.serv = service.NewUserService(t.users.repo, t.auth.repo)
+	t.users.serv = service.NewUserService(t.users.repo, t.auth.repo, mail)
 	// Posts
 	t.posts.repo = repository.NewPostRepository(client)
 	t.posts.serv = service.NewPostService(t.posts.repo)
+}
+
+type emailMock struct {
+}
+
+func (e *emailMock) SendEmail(recipient, subject, body string) error {
+	return nil
 }
