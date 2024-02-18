@@ -304,8 +304,7 @@ func (s *userService) CheckPasswordMatch(id int, password []byte) bool {
 		fmt.Println("error in finding user: ", err)
 		return false
 	}
-	fmt.Printf("user: %+v\n", user)
-	fmt.Printf("Comparing. user password: %v, input password: %v\n", user.Password, password)
+
 	// Compare stored (hashed) password with input password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), password)
 	if err != nil {
@@ -355,18 +354,8 @@ func (s *userService) ResendEmailVerification(id int) error {
 	if err != nil {
 		return err
 	}
-	// Generate token for verification
-	tokenCode, err := helpers.GenerateRandomString(25)
-	if err != nil {
-		return err
-	}
-	// Update user to be unverified
-	unVerified := false
-	user.Verified = &unVerified
-	// Set token code
-	user.VerificationCode = tokenCode
-	// Set verification code expiry to 12 hours from now
-	user.VerificationCodeExpiry = time.Now().Add(12 * time.Hour)
+	// Generate verification code and set expiry
+	helpers.GenerateVerificationCodeAndSetExpiry(user)
 
 	// Update user in database
 	_, err = s.repo.Update(int(user.ID), user)
@@ -376,7 +365,7 @@ func (s *userService) ResendEmailVerification(id int) error {
 	// Build data for email template (SERVER_PORT prefixed with :)
 	baseUrl := fmt.Sprintf("%s%s", os.Getenv("SERVER_BASE_URL"), os.Getenv("SERVER_PORT"))
 	// Build URL for verification
-	tokenUrl := template.URL("http://" + baseUrl + "/api/users/verify-email/" + tokenCode)
+	tokenUrl := template.URL("http://" + baseUrl + "/api/users/verify-email/" + user.VerificationCode)
 	data := struct {
 		Name     string
 		TokenUrl template.URL
