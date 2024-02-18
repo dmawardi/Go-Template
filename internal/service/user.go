@@ -363,7 +363,7 @@ func (s *userService) ResendEmailVerification(id int) error {
 	// Update user to be unverified
 	unVerified := false
 	user.Verified = &unVerified
-	// Store token in database
+	// Set token code
 	user.VerificationCode = tokenCode
 	// Set verification code expiry to 12 hours from now
 	user.VerificationCodeExpiry = time.Now().Add(12 * time.Hour)
