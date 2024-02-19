@@ -1,8 +1,10 @@
 package repository_test
 
 import (
+	"fmt"
 	"testing"
 
+	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
@@ -99,13 +101,37 @@ func TestAuthPolicyRepository_Update(t *testing.T) {
 }
 
 // Roles
+func TestAuthRoleRepository_AssignUserRole(t *testing.T) {
+	createdUser, err := testModule.users.repo.Create(&db.User{Email: "ratbag@gmail.com", Password: "password"})
+	if err != nil {
+		t.Errorf("Error creating user: %v", err)
+	}
+	// Test function
+	success, err := testModule.auth.repo.AssignUserRole(fmt.Sprint(createdUser.ID), "admin")
+	if err != nil {
+		t.Errorf("Error assigning role to user: %v", err)
+	}
+	if !*success {
+		t.Errorf("Expected true, found %v", *success)
+	}
+	// Cleanup
+	err = testModule.users.repo.Delete(int(createdUser.ID))
+	if err != nil {
+		t.Errorf("Error deleting user: %v", err)
+	}
+	success, err = testModule.auth.repo.DeleteRolesForUser(fmt.Sprint(createdUser.ID))
+	if err != nil {
+		t.Errorf("Error deleting roles for user: %v", err)
+	}
+	if !*success {
+		t.Errorf("Expected true, found %v", *success)
+	}
+}
 func TestAuthRoleRepository_FindAllRoles(t *testing.T) {
+
 }
 
 func TestAuthRoleRepository_RoleByUserId(t *testing.T) {
-}
-
-func TestAuthRoleRepository_AssignUserRole(t *testing.T) {
 }
 
 func TestAuthRoleRepository_Delete(t *testing.T) {

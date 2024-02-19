@@ -134,6 +134,9 @@ func (r *authPolicyRepository) DeleteRolesForUser(userID string) (*bool, error) 
 		result = false
 		return &result, err
 	}
+	// Determine as success
+	result = true
+
 	return &result, nil
 }
 
