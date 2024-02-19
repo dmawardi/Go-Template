@@ -84,7 +84,7 @@ func main() {
 	app.DbClient = client
 
 	// Setup enforcer
-	e, err := auth.EnforcerSetup(client)
+	e, err := auth.EnforcerSetup(client, true)
 	if err != nil {
 		log.Fatal("Couldn't setup RBAC Authorization Enforcer")
 	}

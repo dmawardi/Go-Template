@@ -37,7 +37,7 @@ type AuthToken struct {
 }
 
 // Setup RBAC enforcer based using gorm client. Connects to DB and builds base policy
-func EnforcerSetup(db *gorm.DB) (*config.AuthEnforcer, error) {
+func EnforcerSetup(db *gorm.DB, setupDefaultPolicy bool) (*config.AuthEnforcer, error) {
 	// Grab environment variables for connection
 	var DB_PORT string = os.Getenv("DB_PORT")
 
@@ -61,8 +61,11 @@ func EnforcerSetup(db *gorm.DB) (*config.AuthEnforcer, error) {
 		return nil, err
 	}
 
-	// Create default policies if not already detected within system
-	SetupDefaultCasbinPolicy(enforcer)
+	// If setupDefaultPolicy is true
+	if setupDefaultPolicy {
+		// Create default policies if not already detected within system
+		SetupDefaultCasbinPolicy(enforcer)
+	}
 
 	// else
 	return &config.AuthEnforcer{Enforcer: enforcer, Adapter: adapter}, nil

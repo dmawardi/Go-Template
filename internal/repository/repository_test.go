@@ -48,7 +48,7 @@ func TestMain(m *testing.M) {
 	app.DbClient = testModule.dbClient
 
 	// Build enforcer
-	enforcer, err := auth.EnforcerSetup(testModule.dbClient)
+	enforcer, err := auth.EnforcerSetup(testModule.dbClient, false)
 	if err != nil {
 		fmt.Println("Error building enforcer")
 	}
