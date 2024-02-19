@@ -42,7 +42,7 @@ func NewAuthPolicyRepository(db *gorm.DB) AuthPolicyRepository {
 	}
 }
 
-// Roles
+// Role inheritance
 // Returns all role inheritance records
 func (r *authPolicyRepository) FindAllRoleInheritance() ([][]string, error) {
 	// return all policies found in the database
