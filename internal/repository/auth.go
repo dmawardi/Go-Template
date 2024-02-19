@@ -16,7 +16,7 @@ type AuthPolicyRepository interface {
 	FindAllRoles() ([]string, error)
 	FindRoleByUserId(userId string) (string, error)
 	AssignUserRole(userId, roleToApply string) (*bool, error)
-	DeleteAllUserRoles(userID string) (*bool, error)
+	DeleteRolesForUser(userID string) (*bool, error)
 	// Role Inheritance
 	FindAllRoleInheritance() ([][]string, error)
 	// Policies
@@ -124,7 +124,7 @@ func (r *authPolicyRepository) AssignUserRole(userId, roleToApply string) (*bool
 
 	return &success, nil
 }
-func (r *authPolicyRepository) DeleteAllUserRoles(userID string) (*bool, error) {
+func (r *authPolicyRepository) DeleteRolesForUser(userID string) (*bool, error) {
 	// Set default result
 	result := false
 	// Remove all roles for user

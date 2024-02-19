@@ -156,7 +156,7 @@ func (s *userService) Delete(id int) error {
 	}
 
 	// Delete all user roles
-	success, err := s.auth.DeleteAllUserRoles(fmt.Sprint(id))
+	success, err := s.auth.DeleteRolesForUser(fmt.Sprint(id))
 	if err != nil {
 		fmt.Printf("error in deleting user roles: %v\n", err)
 		return err
@@ -181,7 +181,7 @@ func (s *userService) BulkDelete(ids []int) error {
 	// Iterate through ids and delete all user roles
 	for _, id := range ids {
 		// Delete all user roles
-		success, err := s.auth.DeleteAllUserRoles(fmt.Sprint(id))
+		success, err := s.auth.DeleteRolesForUser(fmt.Sprint(id))
 		if err != nil {
 			fmt.Printf("error in deleting user roles: %v\n", err)
 			return err
