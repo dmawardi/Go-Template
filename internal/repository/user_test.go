@@ -195,7 +195,7 @@ func TestUserRepository_BulkDelete(t *testing.T) {
 
 	// If records still found
 	if len(*users) != 0 {
-		t.Fatalf("failed to delete users: %v", result.Error)
+		t.Fatalf("failed to delete users: %+v", users)
 	}
 }
 

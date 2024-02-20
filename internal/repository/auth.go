@@ -178,7 +178,6 @@ func (r *authPolicyRepository) Delete(policy models.CasbinRule) error {
 	return nil
 }
 func (r *authPolicyRepository) Update(oldPolicy, newPolicy models.CasbinRule) error {
-	fmt.Printf("Old policy: %v\n", oldPolicy)
 	// Remove old policy from enforcer
 	removed, err := r.auth.Enforcer.RemovePolicy(oldPolicy.V0, oldPolicy.V1, oldPolicy.V2)
 	if err != nil {
