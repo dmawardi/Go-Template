@@ -38,7 +38,6 @@ func TestAuthController_FindAll(t *testing.T) {
 	if match == false {
 		t.Errorf("Expected %v, got %v", reflect.TypeOf(models.PolicyRuleCombinedActions{}), reflect.TypeOf(body))
 	}
-
 }
 
 func TestAuthController_FindByResource(t *testing.T) {

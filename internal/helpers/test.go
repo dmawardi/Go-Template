@@ -162,3 +162,12 @@ func HashPassAndGenerateUserInDb(user *db.User, client *gorm.DB, t *testing.T) (
 
 	return user, nil
 }
+
+// Mocking
+// Mock Email
+type EmailMock struct {
+}
+
+func (e *EmailMock) SendEmail(recipient, subject, body string) error {
+	return nil
+}
