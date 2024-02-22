@@ -29,28 +29,6 @@ type CreateUser struct {
 	Role     string `json:"role,omitempty" valid:""`
 }
 
-// Created user (for admin use)
-type CreatedUser struct {
-	ID        uint           `json:"id"`
-	Username  string         `json:"username"`
-	Password  string         `json:"password"`
-	Name      string         `json:"name"`
-	Email     string         `json:"email"`
-	Role      string         `json:"role"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `json:"deleted_at"`
-}
-
-// The user sent to users
-type PartialUser struct {
-	Username string `json:"username"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Role     string `json:"role"`
-	Verified bool   `json:"verified"`
-}
-
 // Update User structure for Data transfer.
 type UpdateUser struct {
 	Username string `json:"username,omitempty" valid:"length(6|25)"`
@@ -59,16 +37,6 @@ type UpdateUser struct {
 	Email    string `json:"email,omitempty" valid:"email"`
 	Verified bool   `json:"verified,omitempty"`
 	Role     string `json:"role,omitempty" valid:""`
-}
-type UpdatedUser struct {
-	ID        uint           `json:"id"`
-	Username  string         `json:"username"`
-	Password  string         `json:"password"`
-	Name      string         `json:"name"`
-	Email     string         `json:"email"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
 
 type ResetPasswordAndEmailVerification struct {

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// DB Schema interface implementation
+// DB Schema interface implementation (Used for Admin Panel)
 // Mapping of field names to values to allow for dynamic access
 func (schemaObject User) ObtainValue(keyValue string) string {
 	fieldMap := map[string]string{
