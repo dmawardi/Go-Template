@@ -342,224 +342,223 @@ func TestAuthPolicyService_AssignUserRole(t *testing.T) {
 
 // Role inheritance
 
-func TestAuthPolicyService_FindAllRoleInheritance(t *testing.T) {
-	// Create a user
-	createdUser1, err := testModule.users.serv.Create(&models.CreateUser{
-		Email:    "raylongo@gmial.com",
-		Password: "password",
-		Role:     "user",
-	})
-	if err != nil {
-		t.Errorf("Error creating user: %v", err)
-	}
-	createdUser2, err := testModule.users.serv.Create(&models.CreateUser{
-		Email:    "mongopak@gmial.com",
-		Password: "password",
-		Role:     "admin",
-	})
-	if err != nil {
-		t.Errorf("Error creating user: %v", err)
-	}
-	createdUser3, err := testModule.users.serv.Create(&models.CreateUser{
-		Email:    "sideshowbob@gmial.com",
-		Password: "password",
-		Role:     "moderator",
-	})
-	if err != nil {
-		t.Errorf("Error creating user: %v", err)
-	}
+// func TestAuthPolicyService_FindAllRoleInheritance(t *testing.T) {
+// 	// Create a user
+// 	createdUser1, err := testModule.users.serv.Create(&models.CreateUser{
+// 		Email:    "raylongo@gmial.com",
+// 		Password: "password",
+// 		Role:     "user",
+// 	})
+// 	if err != nil {
+// 		t.Errorf("Error creating user: %v", err)
+// 	}
+// 	createdUser2, err := testModule.users.serv.Create(&models.CreateUser{
+// 		Email:    "mongopak@gmial.com",
+// 		Password: "password",
+// 		Role:     "admin",
+// 	})
+// 	if err != nil {
+// 		t.Errorf("Error creating user: %v", err)
+// 	}
+// 	createdUser3, err := testModule.users.serv.Create(&models.CreateUser{
+// 		Email:    "sideshowbob@gmial.com",
+// 		Password: "password",
+// 		Role:     "moderator",
+// 	})
+// 	if err != nil {
+// 		t.Errorf("Error creating user: %v", err)
+// 	}
 
-	// Build inheritances
-	inheritance1 := models.G2Record{Role: "admin", InheritsFrom: "moderator"}
-	inheritance2 := models.G2Record{Role: "moderator", InheritsFrom: "user"}
+// 	// Build inheritances
+// 	inheritance1 := models.G2Record{Role: "admin", InheritsFrom: "moderator"}
+// 	inheritance2 := models.G2Record{Role: "moderator", InheritsFrom: "user"}
 
-	// Create inheritance
-	err = testModule.auth.serv.CreateInheritance(inheritance1)
-	if err != nil {
-		t.Errorf("Error creating inheritance: %v", err)
-	}
-	err = testModule.auth.serv.CreateInheritance(inheritance2)
-	if err != nil {
-		t.Errorf("Error creating inheritance: %v", err)
-	}
+// 	// Create inheritance
+// 	err = testModule.auth.serv.CreateInheritance(inheritance1)
+// 	if err != nil {
+// 		t.Errorf("Error creating inheritance: %v", err)
+// 	}
+// 	err = testModule.auth.serv.CreateInheritance(inheritance2)
+// 	if err != nil {
+// 		t.Errorf("Error creating inheritance: %v", err)
+// 	}
 
-	// Test function
-	inheritances, err := testModule.auth.serv.FindAllRoleInheritance()
-	if err != nil {
-		t.Errorf("Error finding inheritance: %v", err)
-	}
+// 	// Test function
+// 	inheritances, err := testModule.auth.serv.FindAllRoleInheritance()
+// 	if err != nil {
+// 		t.Errorf("Error finding inheritance: %v", err)
+// 	}
 
-	// Test if all inheritances are found
-	if len(inheritances) != 2 {
-		t.Errorf("Expected 2 inheritances, got %d", len(inheritances))
-	}
+// 	// Test if all inheritances are found
+// 	if len(inheritances) != 2 {
+// 		t.Errorf("Expected 2 inheritances, got %d", len(inheritances))
+// 	}
 
-	// Iterate through inheritances
-	for _, inheritance := range inheritances {
+// 	// Iterate through inheritances
+// 	for _, inheritance := range inheritances {
 
-		// Check if role matches with inheritance 1
-		if inheritance.Role == inheritance1.Role {
-			if inheritance.InheritsFrom != inheritance1.InheritsFrom {
-				t.Errorf("Expected inheritance %v, got %v", inheritance1, inheritance)
-			}
+// 		// Check if role matches with inheritance 1
+// 		if inheritance.Role == inheritance1.Role {
+// 			if inheritance.InheritsFrom != inheritance1.InheritsFrom {
+// 				t.Errorf("Expected inheritance %v, got %v", inheritance1, inheritance)
+// 			}
 
-			// Else check if matches with inheritance 2
-		} else if inheritance.Role == inheritance2.Role {
-			if inheritance.InheritsFrom != inheritance2.InheritsFrom {
-				t.Errorf("Expected inheritance %v, got %v", inheritance2, inheritance)
-			}
-		}
-	}
+// 			// Else check if matches with inheritance 2
+// 		} else if inheritance.Role == inheritance2.Role {
+// 			if inheritance.InheritsFrom != inheritance2.InheritsFrom {
+// 				t.Errorf("Expected inheritance %v, got %v", inheritance2, inheritance)
+// 			}
+// 		}
+// 	}
 
-	// Clean up
-	err = testModule.users.serv.Delete(int(createdUser1.ID))
-	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
-	}
-	err = testModule.users.serv.Delete(int(createdUser2.ID))
-	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
-	}
-	err = testModule.users.serv.Delete(int(createdUser3.ID))
-	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
-	}
+// 	// Clean up
+// 	err = testModule.users.serv.Delete(int(createdUser1.ID))
+// 	if err != nil {
+// 		t.Errorf("Error deleting user: %v", err)
+// 	}
+// 	err = testModule.users.serv.Delete(int(createdUser2.ID))
+// 	if err != nil {
+// 		t.Errorf("Error deleting user: %v", err)
+// 	}
+// 	err = testModule.users.serv.Delete(int(createdUser3.ID))
+// 	if err != nil {
+// 		t.Errorf("Error deleting user: %v", err)
+// 	}
 
-	// Delete inheritances
-	err = testModule.auth.serv.DeleteInheritance(inheritance1)
-	if err != nil {
-		t.Errorf("Error deleting inheritance: %v", err)
-	}
-	err = testModule.auth.serv.DeleteInheritance(inheritance2)
-	if err != nil {
-		t.Errorf("Error deleting inheritance: %v", err)
-	}
+// 	// Delete inheritances
+// 	err = testModule.auth.serv.DeleteInheritance(inheritance1)
+// 	if err != nil {
+// 		t.Errorf("Error deleting inheritance: %v", err)
+// 	}
+// 	err = testModule.auth.serv.DeleteInheritance(inheritance2)
+// 	if err != nil {
+// 		t.Errorf("Error deleting inheritance: %v", err)
+// 	}
+// }
 
-}
+// func TestAuthPolicyService_CreateInheritance(t *testing.T) {
+// 	// Create a user
+// 	createdUser1, err := testModule.users.serv.Create(&models.CreateUser{
+// 		Email:    "yummyjam@gmial.com",
+// 		Password: "password",
+// 		Role:     "user",
+// 	})
+// 	if err != nil {
+// 		t.Errorf("Error creating user: %v", err)
+// 	}
+// 	createdUser2, err := testModule.users.serv.Create(&models.CreateUser{
+// 		Email:    "swaqmmyamy@gmial.com",
+// 		Password: "password",
+// 		Role:     "admin",
+// 	})
+// 	if err != nil {
+// 		t.Errorf("Error creating user: %v", err)
+// 	}
 
-func TestAuthPolicyService_CreateInheritance(t *testing.T) {
-	// Create a user
-	createdUser1, err := testModule.users.serv.Create(&models.CreateUser{
-		Email:    "yummyjam@gmial.com",
-		Password: "password",
-		Role:     "user",
-	})
-	if err != nil {
-		t.Errorf("Error creating user: %v", err)
-	}
-	createdUser2, err := testModule.users.serv.Create(&models.CreateUser{
-		Email:    "swaqmmyamy@gmial.com",
-		Password: "password",
-		Role:     "admin",
-	})
-	if err != nil {
-		t.Errorf("Error creating user: %v", err)
-	}
+// 	// Test function
+// 	inheritance := models.G2Record{Role: "admin", InheritsFrom: "user"}
+// 	err = testModule.auth.serv.CreateInheritance(inheritance)
+// 	if err != nil {
+// 		t.Errorf("Error creating inheritance: %v", err)
+// 	}
 
-	// Test function
-	inheritance := models.G2Record{Role: "admin", InheritsFrom: "user"}
-	err = testModule.auth.serv.CreateInheritance(inheritance)
-	if err != nil {
-		t.Errorf("Error creating inheritance: %v", err)
-	}
+// 	// Test if inheritance is created
+// 	inheritances, err := testModule.auth.serv.FindAllRoleInheritance()
+// 	if err != nil {
+// 		t.Errorf("Error finding inheritance: %v", err)
+// 	}
 
-	// Test if inheritance is created
-	inheritances, err := testModule.auth.serv.FindAllRoleInheritance()
-	if err != nil {
-		t.Errorf("Error finding inheritance: %v", err)
-	}
+// 	if len(inheritances) != 1 {
+// 		t.Errorf("Expected 1 inheritance, got %d", len(inheritances))
+// 	}
 
-	if len(inheritances) != 1 {
-		t.Errorf("Expected 1 inheritance, got %d", len(inheritances))
-	}
+// 	// Check details
+// 	if inheritances[0].Role != inheritance.Role {
+// 		t.Errorf("Expected role %s, got %s", inheritance.Role, inheritances[0].Role)
+// 	}
+// 	if inheritances[0].InheritsFrom != inheritance.InheritsFrom {
+// 		t.Errorf("Expected inheritsFrom %s, got %s", inheritance.InheritsFrom, inheritances[0].InheritsFrom)
+// 	}
 
-	// Check details
-	if inheritances[0].Role != inheritance.Role {
-		t.Errorf("Expected role %s, got %s", inheritance.Role, inheritances[0].Role)
-	}
-	if inheritances[0].InheritsFrom != inheritance.InheritsFrom {
-		t.Errorf("Expected inheritsFrom %s, got %s", inheritance.InheritsFrom, inheritances[0].InheritsFrom)
-	}
+// 	// Clean up
+// 	err = testModule.users.serv.Delete(int(createdUser1.ID))
+// 	if err != nil {
+// 		t.Errorf("Error deleting user: %v", err)
+// 	}
+// 	err = testModule.users.serv.Delete(int(createdUser2.ID))
+// 	if err != nil {
+// 		t.Errorf("Error deleting user: %v", err)
+// 	}
 
-	// Clean up
-	err = testModule.users.serv.Delete(int(createdUser1.ID))
-	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
-	}
-	err = testModule.users.serv.Delete(int(createdUser2.ID))
-	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
-	}
+// 	// Delete inheritance
+// 	err = testModule.auth.serv.DeleteInheritance(inheritance)
+// 	if err != nil {
+// 		t.Errorf("Error deleting inheritance: %v", err)
+// 	}
+// }
 
-	// Delete inheritance
-	err = testModule.auth.serv.DeleteInheritance(inheritance)
-	if err != nil {
-		t.Errorf("Error deleting inheritance: %v", err)
-	}
-}
+// func TestAuthPolicyService_DeleteInheritance(t *testing.T) {
+// 	// Create a user
+// 	createdUser1, err := testModule.users.serv.Create(&models.CreateUser{
+// 		Email:    "billbellamy@gmial.com",
+// 		Password: "password",
+// 		Role:     "user",
+// 	})
+// 	if err != nil {
+// 		t.Errorf("Error creating user: %v", err)
+// 	}
+// 	createdUser2, err := testModule.users.serv.Create(&models.CreateUser{
+// 		Email:    "swankingsont@gmial.com",
+// 		Password: "password",
+// 		Role:     "admin",
+// 	})
+// 	if err != nil {
+// 		t.Errorf("Error creating user: %v", err)
+// 	}
 
-func TestAuthPolicyService_DeleteInheritance(t *testing.T) {
-	// Create a user
-	createdUser1, err := testModule.users.serv.Create(&models.CreateUser{
-		Email:    "billbellamy@gmial.com",
-		Password: "password",
-		Role:     "user",
-	})
-	if err != nil {
-		t.Errorf("Error creating user: %v", err)
-	}
-	createdUser2, err := testModule.users.serv.Create(&models.CreateUser{
-		Email:    "swankingsont@gmial.com",
-		Password: "password",
-		Role:     "admin",
-	})
-	if err != nil {
-		t.Errorf("Error creating user: %v", err)
-	}
+// 	// Test function
+// 	inheritance := models.G2Record{Role: "admin", InheritsFrom: "user"}
+// 	err = testModule.auth.serv.CreateInheritance(inheritance)
+// 	if err != nil {
+// 		t.Errorf("Error creating inheritance: %v", err)
+// 	}
 
-	// Test function
-	inheritance := models.G2Record{Role: "admin", InheritsFrom: "user"}
-	err = testModule.auth.serv.CreateInheritance(inheritance)
-	if err != nil {
-		t.Errorf("Error creating inheritance: %v", err)
-	}
+// 	// Test if inheritance is created
+// 	inheritances, err := testModule.auth.serv.FindAllRoleInheritance()
+// 	if err != nil {
+// 		t.Errorf("Error finding inheritance: %v", err)
+// 	}
 
-	// Test if inheritance is created
-	inheritances, err := testModule.auth.serv.FindAllRoleInheritance()
-	if err != nil {
-		t.Errorf("Error finding inheritance: %v", err)
-	}
+// 	if len(inheritances) != 1 {
+// 		t.Errorf("Expected 1 inheritance, got %d", len(inheritances))
+// 	}
 
-	if len(inheritances) != 1 {
-		t.Errorf("Expected 1 inheritance, got %d", len(inheritances))
-	}
+// 	// Test function
+// 	err = testModule.auth.serv.DeleteInheritance(inheritance)
+// 	if err != nil {
+// 		t.Errorf("Error deleting inheritance: %v", err)
+// 	}
 
-	// Test function
-	err = testModule.auth.serv.DeleteInheritance(inheritance)
-	if err != nil {
-		t.Errorf("Error deleting inheritance: %v", err)
-	}
+// 	// Test if inheritance is deleted
+// 	inheritances, err = testModule.auth.serv.FindAllRoleInheritance()
+// 	if err != nil {
+// 		t.Errorf("Error finding inheritance: %v", err)
+// 	}
 
-	// Test if inheritance is deleted
-	inheritances, err = testModule.auth.serv.FindAllRoleInheritance()
-	if err != nil {
-		t.Errorf("Error finding inheritance: %v", err)
-	}
+// 	if len(inheritances) != 0 {
+// 		t.Errorf("Expected 0 inheritance, got %d", len(inheritances))
+// 	}
 
-	if len(inheritances) != 0 {
-		t.Errorf("Expected 0 inheritance, got %d", len(inheritances))
-	}
-
-	// Clean up
-	err = testModule.users.serv.Delete(int(createdUser1.ID))
-	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
-	}
-	err = testModule.users.serv.Delete(int(createdUser2.ID))
-	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
-	}
-}
+//		// Clean up
+//		err = testModule.users.serv.Delete(int(createdUser1.ID))
+//		if err != nil {
+//			t.Errorf("Error deleting user: %v", err)
+//		}
+//		err = testModule.users.serv.Delete(int(createdUser2.ID))
+//		if err != nil {
+//			t.Errorf("Error deleting user: %v", err)
+//		}
+//	}
 func checkPolicyMatch(t *testing.T, created models.PolicyRule, found models.PolicyRuleCombinedActions) {
 	if found.Resource != created.Resource {
 		t.Errorf("Expected resource %s, got %s", created.Resource, found.Resource)

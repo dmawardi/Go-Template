@@ -33,9 +33,9 @@ func (c selectorService) RoleSelection() []FormFieldSelector {
 	if err != nil {
 		// Return default selector
 		return []FormFieldSelector{
-			{Value: "user", Label: "User", Selected: true},
-			{Value: "admin", Label: "Admin", Selected: false},
-			{Value: "moderator", Label: "Moderator", Selected: false},
+			{Value: "role:user", Label: "User", Selected: true},
+			{Value: "role:admin", Label: "Admin", Selected: false},
+			{Value: "role:moderator", Label: "Moderator", Selected: false},
 		}
 	}
 	// Init form field selector

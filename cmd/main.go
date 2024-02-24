@@ -16,7 +16,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/controller"
 	"github.com/dmawardi/Go-Template/internal/db"
-	"github.com/dmawardi/Go-Template/internal/email"
+	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	"github.com/dmawardi/Go-Template/internal/routes"
 	"github.com/dmawardi/Go-Template/internal/service"
@@ -122,7 +122,7 @@ func main() {
 // Edit this to use the entire appconfig instead of just the client
 // Build API and store the services and repos in the config
 func ApiSetup(client *gorm.DB) routes.Api {
-	mail := email.NewSMTPEmail()
+	mail := &helpers.EmailMock{}
 	// Authorization
 	groupRepo := repository.NewAuthPolicyRepository(client)
 	groupService := service.NewAuthPolicyService(groupRepo)

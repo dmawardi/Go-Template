@@ -331,6 +331,7 @@ func TestUserController_Create(t *testing.T) {
 	}
 }
 
+// My Profile
 func TestUserController_GetMyUserDetails(t *testing.T) {
 	// Create a request url
 	requestUrl := "me"
@@ -420,6 +421,8 @@ func TestUserController_UpdateMyProfile(t *testing.T) {
 			"Name":     "solu",
 		}, true, testModule.accounts.user.token, http.StatusBadRequest, false, *testModule.accounts.user.details},
 	}
+	t.Errorf("Created admin account details: %+v", testModule.accounts.admin.details)
+	t.Fatalf("Created user account details: %+v", testModule.accounts.user.details)
 
 	for _, v := range tests {
 		// Make new request with user update in body
@@ -435,8 +438,8 @@ func TestUserController_UpdateMyProfile(t *testing.T) {
 
 		// Check response is failed for normal user to update another
 		if status := rr.Code; status != v.expectedResponseStatus {
-			t.Errorf("%v: got %v want %v.", v.testName,
-				status, v.expectedResponseStatus)
+			t.Errorf("%v: got %v want %v. Msg: %s\n", v.testName,
+				status, v.expectedResponseStatus, rr.Body.String())
 		}
 
 		// If need to check details
@@ -467,6 +470,7 @@ func TestUserController_UpdateMyProfile(t *testing.T) {
 	}
 }
 
+// Login
 func TestUserController_Login(t *testing.T) {
 	// Create a request url with an "id" URL parameter
 	requestUrl := "users/login"
@@ -538,4 +542,125 @@ func TestUserController_Login(t *testing.T) {
 		}
 
 	}
+}
+
+func TestUserController_ResetPassword(t *testing.T) {
+	// Create a request url with an "id" URL parameter
+	requestUrl := "users/forgot-password"
+
+	var tests = []struct {
+		testName               string
+		data                   models.ResetPasswordAndEmailVerification
+		expectedResponseStatus int
+		checkMessage           bool
+		expectedMessage        string
+	}{
+		{"Successful reset password", models.ResetPasswordAndEmailVerification{
+			Email: testModule.accounts.admin.details.Email,
+		}, http.StatusOK, false, ""},
+		{"Fail: Non existent user reset password", models.ResetPasswordAndEmailVerification{
+			Email: "baffoon@snailmail.com"}, http.StatusBadRequest, true, "Password reset request failed\n"},
+		// The below tests should return a validation errors object
+		{"Fail: Invalid email user reset password", models.ResetPasswordAndEmailVerification{
+			Email: "baffoon"}, http.StatusBadRequest, false, ""},
+		{"Fail: Empty email user reset password", models.ResetPasswordAndEmailVerification{
+			Email: ""}, http.StatusBadRequest, false, ""},
+	}
+
+	for _, v := range tests {
+
+		req, err := buildApiRequest("POST", requestUrl, buildReqBody(v.data), false, "")
+		// Make request with update in body
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Create a response recorder
+		rr := httptest.NewRecorder()
+
+		// Send update request to mock server
+		testModule.router.ServeHTTP(rr, req)
+
+		// Check response is failed for normal user to update another
+		if status := rr.Code; status != v.expectedResponseStatus {
+			t.Errorf("%v: Got %v want %v. \nResp: %v", v.testName,
+				status, v.expectedResponseStatus, rr.Body)
+		}
+
+		// If failure is expected
+		if v.checkMessage {
+			// Form req body
+			reqBody := rr.Body.String()
+			// Check if matches with expectation
+			if reqBody != v.expectedMessage {
+				t.Errorf("%v: The body is: %v. expected: %v.", v.testName, rr.Body.String(), v.expectedMessage)
+			}
+
+		}
+
+	}
+}
+
+func TestUserController_ResendVerificationEmail(t *testing.T) {
+	// Create a request url with an "id" URL parameter
+	requestUrl := "users/send-verification-email"
+
+	var tests = []struct {
+		testName               string
+		useToken               bool
+		tokenToUse             string
+		expectedResponseStatus int
+		checkMessage           bool
+		expectedMessage        string
+	}{
+		{"Successful (user): resend verification email", true, testModule.accounts.user.token, http.StatusOK, false, ""},
+		{"Successful (admin): resend verification email", true, testModule.accounts.admin.token, http.StatusOK, false, ""},
+		{"Fail: Not logged in", false, "", http.StatusForbidden, true, "Error parsing authentication token\n"},
+	}
+
+	for _, v := range tests {
+		req := &http.Request{}
+		err := error(nil)
+
+		// If using token
+		if v.useToken {
+			req, err = buildApiRequest("POST", requestUrl, nil, v.useToken, v.tokenToUse)
+			// Make request with update in body
+			if err != nil {
+				t.Fatal(err)
+			}
+			// Else build without token
+		} else {
+			req, err = buildApiRequest("POST", requestUrl, nil, false, "")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+		}
+
+		// Make request with update in body
+		// Create a response recorder
+		rr := httptest.NewRecorder()
+
+		// Send update request to mock server
+		testModule.router.ServeHTTP(rr, req)
+
+		// Check response is failed for normal user to update another
+		if status := rr.Code; status != v.expectedResponseStatus {
+			t.Errorf("%v: Got %v want %v. \nResp: %v", v.testName,
+				status, v.expectedResponseStatus, rr.Body)
+		}
+
+		// If failure is expected
+		if v.checkMessage {
+			// Form req body
+			reqBody := rr.Body.String()
+			// Check if matches with expectation
+			if reqBody != v.expectedMessage {
+				t.Errorf("%v: The body is: %v. expected: %v.", v.testName, rr.Body.String(), v.expectedMessage)
+			}
+
+		}
+
+	}
+
 }

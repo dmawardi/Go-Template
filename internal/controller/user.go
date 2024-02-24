@@ -539,7 +539,7 @@ func (c userController) ResendVerificationEmail(w http.ResponseWriter, r *http.R
 	}
 
 	// Call the service to resend a verification email for the associated user
-	err = c.service.ResendEmailVerification(int(found.ID))
+	err = c.service.ResendVerificationEmail(int(found.ID))
 	if err != nil {
 		// Handle the error
 		http.Error(w, "Error sending verification email", http.StatusUnauthorized)

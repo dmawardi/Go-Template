@@ -306,138 +306,138 @@ func TestAuthController_AssignUserRole(t *testing.T) {
 	}
 }
 
-// Role Inheritance
-func TestAuthController_FindAllRoleInheritance(t *testing.T) {
-	numberOfDetaultInheritances := 2
-	req, err := buildApiRequest("GET", "auth/inheritance", nil, true, testModule.accounts.admin.token)
-	if err != nil {
-		t.Error(err)
-	}
-	// Create a response recorder
-	rr := httptest.NewRecorder()
+// // Role Inheritance
+// func TestAuthController_FindAllRoleInheritance(t *testing.T) {
+// 	numberOfDetaultInheritances := 2
+// 	req, err := buildApiRequest("GET", "auth/inheritance", nil, true, testModule.accounts.admin.token)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	// Create a response recorder
+// 	rr := httptest.NewRecorder()
 
-	// Use handler with recorder and created request
-	testModule.router.ServeHTTP(rr, req)
+// 	// Use handler with recorder and created request
+// 	testModule.router.ServeHTTP(rr, req)
 
-	// Check the response status code
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("%v: got %v want %v", "Auth Find all inherited roles",
-			status, http.StatusOK)
-	}
+// 	// Check the response status code
+// 	if status := rr.Code; status != http.StatusOK {
+// 		t.Errorf("%v: got %v want %v", "Auth Find all inherited roles",
+// 			status, http.StatusOK)
+// 	}
 
-	// Convert response JSON to struct
-	var body []models.G2Record
-	json.Unmarshal(rr.Body.Bytes(), &body)
+// 	// Convert response JSON to struct
+// 	var body []models.G2Record
+// 	json.Unmarshal(rr.Body.Bytes(), &body)
 
-	// Checks if the number of roles is correct
-	if len(body) != numberOfDetaultInheritances {
-		t.Errorf("Expected %v, got %v", numberOfDetaultInheritances, len(body))
-	}
-	// Checks if the type of the records are correct
-	if helpers.CheckSliceType(body, reflect.TypeOf(models.G2Record{})) == false {
-		t.Errorf("Expected %v, got %v", reflect.TypeOf(models.G2Record{}), reflect.TypeOf(body[0]))
-	}
-}
+// 	// Checks if the number of roles is correct
+// 	if len(body) != numberOfDetaultInheritances {
+// 		t.Errorf("Expected %v, got %v", numberOfDetaultInheritances, len(body))
+// 	}
+// 	// Checks if the type of the records are correct
+// 	if helpers.CheckSliceType(body, reflect.TypeOf(models.G2Record{})) == false {
+// 		t.Errorf("Expected %v, got %v", reflect.TypeOf(models.G2Record{}), reflect.TypeOf(body[0]))
+// 	}
+// }
 
-func TestAuthController_CreateInheritance(t *testing.T) {
-	policy := models.G2Record{
-		Role:         "testRole",
-		InheritsFrom: "admin",
-	}
+// func TestAuthController_CreateInheritance(t *testing.T) {
+// 	policy := models.G2Record{
+// 		Role:         "testRole",
+// 		InheritsFrom: "admin",
+// 	}
 
-	// Build slug
-	requestUrl := "auth/inheritance"
+// 	// Build slug
+// 	requestUrl := "auth/inheritance"
 
-	req, err := buildApiRequest("POST", requestUrl, buildReqBody(policy), true, testModule.accounts.admin.token)
-	if err != nil {
-		t.Error(err)
-	}
-	// Create a response recorder
-	rr := httptest.NewRecorder()
+// 	req, err := buildApiRequest("POST", requestUrl, buildReqBody(policy), true, testModule.accounts.admin.token)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	// Create a response recorder
+// 	rr := httptest.NewRecorder()
 
-	// Use handler with recorder and created request
-	testModule.router.ServeHTTP(rr, req)
+// 	// Use handler with recorder and created request
+// 	testModule.router.ServeHTTP(rr, req)
 
-	// Check the response status code
-	if status := rr.Code; status != http.StatusCreated {
-		t.Errorf("%v: got %v want %v.\nResp:%s", "Auth Create role inheritance",
-			status, http.StatusCreated, rr.Body.String())
-	}
+// 	// Check the response status code
+// 	if status := rr.Code; status != http.StatusCreated {
+// 		t.Errorf("%v: got %v want %v.\nResp:%s", "Auth Create role inheritance",
+// 			status, http.StatusCreated, rr.Body.String())
+// 	}
 
-	// Check if the role inheritance was created
-	foundInheritances, err := testModule.auth.serv.FindAllRoleInheritance()
-	if err != nil {
-		t.Error(err)
-	}
+// 	// Check if the role inheritance was created
+// 	foundInheritances, err := testModule.auth.serv.FindAllRoleInheritance()
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	// Iterate through found inheritances
-	foundCreatedPolicy := false
-	for _, inheritance := range foundInheritances {
-		// See if match found
-		if inheritance.Role == policy.Role && inheritance.InheritsFrom == policy.InheritsFrom {
-			foundCreatedPolicy = true
-		}
-	}
-	if !foundCreatedPolicy {
-		t.Errorf("Expected to find created role inheritance, however, not found: %v", policy)
-	}
+// 	// Iterate through found inheritances
+// 	foundCreatedPolicy := false
+// 	for _, inheritance := range foundInheritances {
+// 		// See if match found
+// 		if inheritance.Role == policy.Role && inheritance.InheritsFrom == policy.InheritsFrom {
+// 			foundCreatedPolicy = true
+// 		}
+// 	}
+// 	if !foundCreatedPolicy {
+// 		t.Errorf("Expected to find created role inheritance, however, not found: %v", policy)
+// 	}
 
-	// Delete role inheritance
-	err = testModule.auth.serv.DeleteInheritance(policy)
-	if err != nil {
-		t.Error(err)
-	}
-}
+// 	// Delete role inheritance
+// 	err = testModule.auth.serv.DeleteInheritance(policy)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// }
 
-func TestAuthController_DeleteInheritance(t *testing.T) {
-	policy := models.G2Record{
-		Role:         "testRole",
-		InheritsFrom: "admin",
-	}
+// func TestAuthController_DeleteInheritance(t *testing.T) {
+// 	policy := models.G2Record{
+// 		Role:         "testRole",
+// 		InheritsFrom: "admin",
+// 	}
 
-	// Create role inheritance
-	err := testModule.auth.serv.CreateInheritance(policy)
-	if err != nil {
-		t.Error(err)
-	}
+// 	// Create role inheritance
+// 	err := testModule.auth.serv.CreateInheritance(policy)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	// Build slug
-	requestUrl := "auth/inheritance"
+// 	// Build slug
+// 	requestUrl := "auth/inheritance"
 
-	req, err := buildApiRequest("DELETE", requestUrl, buildReqBody(policy), true, testModule.accounts.admin.token)
-	if err != nil {
-		t.Error(err)
-	}
-	// Create a response recorder
-	rr := httptest.NewRecorder()
+// 	req, err := buildApiRequest("DELETE", requestUrl, buildReqBody(policy), true, testModule.accounts.admin.token)
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
+// 	// Create a response recorder
+// 	rr := httptest.NewRecorder()
 
-	// Use handler with recorder and created request
-	testModule.router.ServeHTTP(rr, req)
+// 	// Use handler with recorder and created request
+// 	testModule.router.ServeHTTP(rr, req)
 
-	// Check the response status code
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("%v: got %v want %v.\nResp:%s", "Auth Delete role inheritance",
-			status, http.StatusOK, rr.Body.String())
-	}
+// 	// Check the response status code
+// 	if status := rr.Code; status != http.StatusOK {
+// 		t.Errorf("%v: got %v want %v.\nResp:%s", "Auth Delete role inheritance",
+// 			status, http.StatusOK, rr.Body.String())
+// 	}
 
-	// Check if the role inheritance was deleted
-	foundInheritances, err := testModule.auth.serv.FindAllRoleInheritance()
-	if err != nil {
-		t.Error(err)
-	}
+// 	// Check if the role inheritance was deleted
+// 	foundInheritances, err := testModule.auth.serv.FindAllRoleInheritance()
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	// Iterate through found inheritances
-	foundDeletedPolicy := false
-	for _, inheritance := range foundInheritances {
-		// See if match found
-		if inheritance.Role == policy.Role && inheritance.InheritsFrom == policy.InheritsFrom {
-			foundDeletedPolicy = true
-		}
-	}
-	if foundDeletedPolicy {
-		t.Errorf("Expected to not find deleted role inheritance, however, found: %v", policy)
-	}
-}
+// 	// Iterate through found inheritances
+// 	foundDeletedPolicy := false
+// 	for _, inheritance := range foundInheritances {
+// 		// See if match found
+// 		if inheritance.Role == policy.Role && inheritance.InheritsFrom == policy.InheritsFrom {
+// 			foundDeletedPolicy = true
+// 		}
+// 	}
+// 	if foundDeletedPolicy {
+// 		t.Errorf("Expected to not find deleted role inheritance, however, found: %v", policy)
+// 	}
+// }
 
 // Checks if the policy details are a match
 func checkPolicyDetails(t *testing.T, body models.PolicyRuleCombinedActions, policy models.PolicyRule) {

@@ -32,7 +32,7 @@ type UserService interface {
 	// Verifies user email in database
 	VerifyEmailCode(token string) error
 	// Sends verification email for user
-	ResendEmailVerification(id int) error
+	ResendVerificationEmail(id int) error
 }
 
 type userService struct {
@@ -70,7 +70,7 @@ func (s *userService) Create(user *models.CreateUser) (*models.UserWithRole, err
 
 	// If no role found, assign user role
 	if user.Role == "" {
-		user.Role = "user"
+		user.Role = "role:user"
 	}
 	// Assign user role
 	success, err := s.auth.AssignUserRole(fmt.Sprint(created.ID), user.Role)
@@ -348,17 +348,21 @@ func (s *userService) VerifyEmailCode(token string) error {
 }
 
 // Sends verification email for user
-func (s *userService) ResendEmailVerification(id int) error {
+func (s *userService) ResendVerificationEmail(id int) error {
 	// Find user by id
 	user, err := s.repo.FindById(id)
 	if err != nil {
 		return err
 	}
-	// Generate verification code and set expiry
-	helpers.GenerateVerificationCodeAndSetExpiry(user)
+	// Generate verification code and set expiry and store in user update
+	userUpdate, err := helpers.GenerateVerificationCodeAndSetExpiry()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Updatedd User: %+v", userUpdate)
 
 	// Update user in database
-	_, err = s.repo.Update(int(user.ID), user)
+	_, err = s.repo.Update(int(user.ID), userUpdate)
 	if err != nil {
 		return err
 	}
@@ -375,13 +379,13 @@ func (s *userService) ResendEmailVerification(id int) error {
 	}
 
 	// Build HTML email template from file using injected data
-	emailString, err := helpers.LoadTemplate(helpers.BuildPathFromWorkingDirectory("internal/email/templates/email-verification.tmpl"), data)
+	emailString, err := helpers.LoadTemplate(helpers.BuildPathFromWorkingDirectory("/internal/email/templates/email-verification.tmpl"), data)
 	if err != nil {
 		fmt.Printf("error in loading template: %v", err)
 		return err
 	}
 
-	// Send email with new password async (non-blocking)
+	// Send email with verification async (non-blocking)
 	go s.mail.SendEmail(user.Email, "Please Verify your Email", emailString)
 
 	// Return no error found

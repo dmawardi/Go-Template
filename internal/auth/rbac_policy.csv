@@ -1,49 +1,47 @@
 # User Policies
-p,user,/api/me,read
-p,user,/api/me,update
-p,user,/api/posts,read
+p,role:user,/api/me,read
+p,role:user,/api/me,update
+p,role:user,/api/posts,read
 # Email Verification
-p,user,/api/users/send-verification-email,create
+p,role:user,/api/users/send-verification-email,create
+
+
 
 # Moderator Policies
-p,moderator,/api/users,read
-p,moderator,/api/me,read
-p,moderator,/api/me,update
-p,moderator,/api/posts,create
-p,moderator,/api/posts,update
-p,moderator,/api/posts,delete
+p,role:moderator,/api/users,read
+p,role:moderator,/api/me,read
+p,role:moderator,/api/me,update
+p,role:moderator,/api/posts,create
+p,role:moderator,/api/posts,update
+p,role:moderator,/api/posts,delete
 
 
 # Admin Policies
-p,admin,/api/users,read
-p,admin,/api/users,create
-p,admin,/api/users,update
-p,admin,/api/users,delete
-p,admin,/api/me,read
-p,admin,/api/me,update
+p,role:admin,/api/users,read
+p,role:admin,/api/users,create
+p,role:admin,/api/users,update
+p,role:admin,/api/users,delete
+p,role:admin,/api/me,read
+p,role:admin,/api/me,update
 # Authorization Policies
-p,admin,/api/auth,read
-p,admin,/api/auth,create
-p,admin,/api/auth,update
-p,admin,/api/auth,delete
-p,admin,/api/auth/**,read
-p,admin,/api/auth/**,create
-p,admin,/api/auth/**,update
-p,admin,/api/auth/**,delete
-p,admin,/api/auth/roles,read
-p,admin,/api/auth/roles,update
-p,admin,/api/auth/roles,delete
-p,admin,/api/auth/roles,read
+p,role:admin,/api/auth,read
+p,role:admin,/api/auth,create
+p,role:admin,/api/auth,update
+p,role:admin,/api/auth,delete
+p,role:admin,/api/auth/**,read
+p,role:admin,/api/auth/**,create
+p,role:admin,/api/auth/**,update
+p,role:admin,/api/auth/**,delete
+p,role:admin,/api/auth/roles,read
+p,role:admin,/api/auth/roles,update
+p,role:admin,/api/auth/roles,delete
+p,role:admin,/api/auth/roles,read
 # Admin panel
-p,admin,/admin/**,create
-p,admin,/admin/**,read
-p,admin,/admin/**,update
-p,admin,/admin/**,delete
-
-
-# User Roles
-g,1,admin
+p,role:admin,/admin/**,create
+p,role:admin,/admin/**,read
+p,role:admin,/admin/**,update
+p,role:admin,/admin/**,delete
 
 # Group Inheritance
-g2,moderator,user
-g2,admin,moderator
+g,role:moderator,role:user
+g,role:admin,role:moderator

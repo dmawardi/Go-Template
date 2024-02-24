@@ -64,6 +64,7 @@ func determineInvalidTokenRedirectURL(object string) string {
 
 // Middleware to check whether user is authorized
 func Authorize(userId, object, action string) bool {
+	permissionCheck := false
 	// Load Authorization policy from Database
 	err := app.Auth.Enforcer.LoadPolicy()
 	if err != nil {
@@ -71,16 +72,20 @@ func Authorize(userId, object, action string) bool {
 		return false
 	}
 
-	// Enforce policy for user's role using their ID
-	ok, err := app.Auth.Enforcer.Enforce(userId, object, action)
+	// Enforce policy for user's role using their ID and explicit policy (permissions assigned by user's role)
+	permissionCheck, err = app.Auth.Enforcer.Enforce(userId, object, action)
 	if err != nil {
 		fmt.Print("Failed to enforce RBAC policy in Authorization middleware: ", err, "\nUser ID: ", userId, "\nObject: ", object, "\nAction: ", action, "\n")
 		return false
 	}
-	fmt.Printf("User with ID %s is accessing %s to %s. Allowed? %v\n", userId, object, action, ok)
+	roles, err := app.Auth.Enforcer.GetRolesForUser(userId)
+	if err != nil {
+		fmt.Println("Error getting roles for user in Authorization middleware: ", err)
+	}
+	fmt.Printf("User with ID %s (Role: %s) is accessing %s to %s. Allowed? %v\n", userId, roles, object, action, permissionCheck)
 
 	// Return result of enforcement
-	return ok
+	return permissionCheck
 }
 
 // Find user in database by email (for authentication)
