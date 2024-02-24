@@ -15,8 +15,8 @@ func GenerateVerificationCodeAndSetExpiry() (*db.User, error) {
 		return nil, err
 	}
 	// Update user to be unverified
-	unVerified := false
-	userUpdate.Verified = &unVerified
+	verified := false
+	userUpdate.Verified = &verified
 	// Set token code
 	userUpdate.VerificationCode = tokenCode
 	// Set verification code expiry to 12 hours from now

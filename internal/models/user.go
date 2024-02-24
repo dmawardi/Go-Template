@@ -65,9 +65,9 @@ type UserWithRole struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 	Name      string         `json:"name,omitempty"`
 	Username  string         `json:"username,omitempty"`
-	Email     string         `json:"email,omitempty" gorm:"uniqueIndex"`
+	Email     string         `json:"email,omitempty"`
 	Password  string         `json:"-"`
-	Role      string         `json:"role,omitempty" gorm:"default:user"`
+	Role      string         `json:"role,omitempty"`
 	// Verification
 	Verified               *bool     `json:"verified,omitempty" gorm:"default:false"`
 	VerificationCode       string    `json:"verification_code,omitempty" gorm:"default:null"`

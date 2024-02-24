@@ -164,11 +164,12 @@ func (t *controllerTestModule) setupDummyAccounts(adminUser *models.CreateUser, 
 	t.accounts.admin.details = createdAdminUser
 	t.accounts.admin.token = adminToken
 
+	basicUser.Role = "role:user"
 	// Build normal user
-	normalUser, userToken := t.generateUserWithRoleAndToken(
+	createdBasicUser, userToken := t.generateUserWithRoleAndToken(
 		basicUser)
 	// Store credentials
-	t.accounts.user.details = normalUser
+	t.accounts.user.details = createdBasicUser
 	t.accounts.user.token = userToken
 }
 

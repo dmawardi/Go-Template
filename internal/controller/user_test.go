@@ -421,8 +421,6 @@ func TestUserController_UpdateMyProfile(t *testing.T) {
 			"Name":     "solu",
 		}, true, testModule.accounts.user.token, http.StatusBadRequest, false, *testModule.accounts.user.details},
 	}
-	t.Errorf("Created admin account details: %+v", testModule.accounts.admin.details)
-	t.Fatalf("Created user account details: %+v", testModule.accounts.user.details)
 
 	for _, v := range tests {
 		// Make new request with user update in body
@@ -662,5 +660,4 @@ func TestUserController_ResendVerificationEmail(t *testing.T) {
 		}
 
 	}
-
 }

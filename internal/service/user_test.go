@@ -316,18 +316,26 @@ func TestUserService_CheckPasswordMatch(t *testing.T) {
 }
 
 func TestUserService_VerifyEmailCode(t *testing.T) {
+	// Generate verification code and set expiry
+	verifiedDetails, err := helpers.GenerateVerificationCodeAndSetExpiry()
+	if err != nil {
+		t.Fatalf("failed to generate verification code: %v", err)
+	}
+
 	// Create test user
 	createdUser, err := helpers.HashPassAndGenerateUserInDb(&db.User{
-		Username: "Jabar",
-		Email:    "update-wgz@ymail.com",
-		Password: "password",
-		Name:     "Crimson",
+		Username:               "Jabar",
+		Email:                  "update-wgz@ymail.com",
+		Password:               "password",
+		Name:                   "Crimson",
+		Verified:               verifiedDetails.Verified,
+		VerificationCode:       verifiedDetails.VerificationCode,
+		VerificationCodeExpiry: verifiedDetails.VerificationCodeExpiry,
 	}, testModule.dbClient, t)
 	if err != nil {
 		t.Fatalf("failed to create test user: %v", err)
 	}
-	// Generate verification code and set expiry
-	helpers.GenerateVerificationCodeAndSetExpiry(createdUser)
+
 	// Update user
 	result := testModule.dbClient.Save(createdUser)
 	if result.Error != nil {
@@ -348,7 +356,7 @@ func TestUserService_VerifyEmailCode(t *testing.T) {
 	}
 }
 
-func TestUserService_ResendEmailVerification(t *testing.T) {
+func TestUserService_ResendVerificationEmail(t *testing.T) {
 	// Create test user
 	createdUser, err := helpers.HashPassAndGenerateUserInDb(&db.User{
 		Username: "Jabar",
@@ -362,7 +370,7 @@ func TestUserService_ResendEmailVerification(t *testing.T) {
 
 	// Test function
 	// Resend email verification
-	err = testModule.users.serv.ResendEmailVerification(int(createdUser.ID))
+	err = testModule.users.serv.ResendVerificationEmail(int(createdUser.ID))
 	if err != nil {
 		t.Fatalf("failed to resend email verification: %v", err)
 	}

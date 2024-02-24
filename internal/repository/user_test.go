@@ -104,16 +104,19 @@ func TestUserRepository_FindByEmail(t *testing.T) {
 }
 
 func TestUserRepository_FindByVerificationCode(t *testing.T) {
-	userToCreate := &db.User{
-		Username: "Jabar",
-		Email:    "scribble@ymail.com",
-		Password: "password",
-		Name:     "Bamba",
-	}
 	// Generate verification code and set expiry
-	err := helpers.GenerateVerificationCodeAndSetExpiry(userToCreate)
+	verificationDetails, err := helpers.GenerateVerificationCodeAndSetExpiry()
 	if err != nil {
 		t.Fatalf("failed to generate verification code: %v", err)
+	}
+	userToCreate := &db.User{
+		Username:               "Jabar",
+		Email:                  "scribble@ymail.com",
+		Password:               "password",
+		Name:                   "Bamba",
+		Verified:               verificationDetails.Verified,
+		VerificationCode:       verificationDetails.VerificationCode,
+		VerificationCodeExpiry: verificationDetails.VerificationCodeExpiry,
 	}
 
 	createdUser, err := hashPassAndGenerateUserInDb(userToCreate, t)

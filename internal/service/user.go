@@ -359,7 +359,6 @@ func (s *userService) ResendVerificationEmail(id int) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Updatedd User: %+v", userUpdate)
 
 	// Update user in database
 	_, err = s.repo.Update(int(user.ID), userUpdate)
