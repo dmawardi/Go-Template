@@ -3,7 +3,6 @@ package repository_test
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/dmawardi/Go-Template/internal/db"
@@ -109,16 +108,9 @@ func TestAuthPolicyRepository_AssignUserRole(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error creating user: %v", err)
 	}
-	// Create a new role
-	testModule.auth.repo.CreateRole(fmt.Sprint(createdUser1.ID), "role:admin")
-	// Create second user for role assignment
-	createdUser2, err := testModule.users.repo.Create(&db.User{Email: "batybag@gmail.com", Password: "password"})
-	if err != nil {
-		t.Errorf("Error creating user: %v", err)
-	}
 
 	// Test function
-	success, err := testModule.auth.repo.AssignUserRole(fmt.Sprint(createdUser2.ID), "role:admin")
+	success, err := testModule.auth.repo.AssignUserRole(fmt.Sprint(createdUser1.ID), "admin")
 	if err != nil {
 		t.Errorf("Error assigning role to user: %v", err)
 	}
@@ -131,17 +123,6 @@ func TestAuthPolicyRepository_AssignUserRole(t *testing.T) {
 		t.Errorf("Error deleting user: %v", err)
 	}
 	success, err = testModule.auth.repo.DeleteRolesForUser(fmt.Sprint(createdUser1.ID))
-	if err != nil {
-		t.Errorf("Error deleting roles for user: %v", err)
-	}
-	if !*success {
-		t.Errorf("Expected true, found %v", *success)
-	}
-	err = testModule.users.repo.Delete(int(createdUser2.ID))
-	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
-	}
-	success, err = testModule.auth.repo.DeleteRolesForUser(fmt.Sprint(createdUser2.ID))
 	if err != nil {
 		t.Errorf("Error deleting roles for user: %v", err)
 	}
@@ -150,64 +131,17 @@ func TestAuthPolicyRepository_AssignUserRole(t *testing.T) {
 	}
 }
 func TestAuthPolicyRepository_FindAllRoles(t *testing.T) {
-	createdUser1, err := testModule.users.repo.Create(&db.User{Email: "catman@gmail.com", Password: "password"})
-	if err != nil {
-		t.Errorf("Error creating user: %v", err)
-	}
-	createdUser2, err := testModule.users.repo.Create(&db.User{Email: "dogman@gmail.com", Password: "password"})
-	if err != nil {
-		t.Errorf("Error creating user: %v", err)
-	}
-
-	role1 := "admin"
-	role2 := "user"
-	// Setup
-	success, err := testModule.auth.repo.CreateRole(fmt.Sprint(createdUser1.ID), role1)
-	if err != nil {
-		t.Errorf("Error assigning role to user: %v", err)
-	}
-	if !*success {
-		t.Errorf("Expected true, found %v", *success)
-	}
-	success, err = testModule.auth.repo.CreateRole(fmt.Sprint(createdUser2.ID), role2)
-	if err != nil {
-		t.Errorf("Error assigning role to user: %v", err)
-	}
-	if !*success {
-		t.Errorf("Expected true, found %v", *success)
-	}
 	// Test function
 	roles, err := testModule.auth.repo.FindAllRoles()
 	if err != nil {
 		t.Errorf("Error finding roles: %v", err)
 	}
-	if len(roles) != 2 {
-		t.Errorf("Expected 2 roles, found %v", len(roles))
+
+	// Check that default roles are available
+	if len(roles) != 3 {
+		t.Errorf("Expected 2 roles, found %v: %v", len(roles), roles)
 	}
 
-	// Cleanup
-	err = testModule.users.repo.Delete(int(createdUser1.ID))
-	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
-	}
-	err = testModule.users.repo.Delete(int(createdUser2.ID))
-	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
-	}
-	success, err = testModule.auth.repo.DeleteRolesForUser(fmt.Sprint(createdUser1.ID))
-	if err != nil {
-		t.Errorf("Error deleting roles for user: %v", err)
-	}
-	if !*success {
-		t.Errorf("Expected true, found %v", *success)
-	}
-	success, err = testModule.auth.repo.DeleteRolesForUser(fmt.Sprint(createdUser2.ID))
-	if err != nil {
-		t.Errorf("Error deleting roles for user: %v", err)
-	}
-	if !*success {
-		t.Errorf("Expected true, found %v", *success)
-	}
 }
 func TestAuthPolicyRepository_FindRoleByUserId(t *testing.T) {
 	// Create user
@@ -314,69 +248,92 @@ func TestAuthRoleRepository_DeleteRolesForUser(t *testing.T) {
 
 // // Role inheritances
 func TestAuthPolicyRepository_CreateInheritance(t *testing.T) {
-	// Create non-convention role names
-	role1 := "admin"
-	role2 := "user"
-	// The created user roles contain the naming convention
-	createdUser1, createdUser1Role := createUserAndSetRole(db.User{Email: "smartman@gmail.com", Password: "password"}, role1, t)
-	createdUser2, createdUser2Role := createUserAndSetRole(db.User{Email: "fartman@gmail.com", Password: "password"}, role2, t)
-	if createdUser1 == nil || createdUser2 == nil {
-		t.Errorf("Error creating users")
+	// Setup
+	createdUser, err := testModule.users.repo.Create(&db.User{Email: "piapaika@gmail.com", Password: "password"})
+	if err != nil {
+		t.Errorf("Error creating user: %v", err)
+	}
+	success, err := testModule.auth.repo.CreateRole(fmt.Sprint(createdUser.ID), "superadmin")
+	if err != nil {
+		t.Errorf("Error assigning role to user: %v", err)
+	}
+	if !*success {
+		t.Errorf("Expected true, found %v", *success)
+	}
+
+	// inheritance preparation
+	inheritanceToCreate := models.GRecord{
+		Role: "superadmin", InheritsFrom: "admin",
 	}
 
 	// Test function
-	err := testModule.auth.repo.CreateInheritance(models.GRecord{Role: role1, InheritsFrom: role2})
+	err = testModule.auth.repo.CreateInheritance(inheritanceToCreate)
 	if err != nil {
 		t.Errorf("Error adding role inheritance: %v", err)
 	}
 
 	// Check that role has been created
-	inheritance := app.Auth.Enforcer.GetNamedGroupingPolicy("g")
-	if len(inheritance) != 3 {
-		t.Errorf("Expected 3, found %v", len(inheritance))
+	rolesAndAssignments := app.Auth.Enforcer.GetNamedGroupingPolicy("g")
+	// Filter out only inheritance records
+	inheritances, err := helpers.FilterOnlyInheritanceToGRecords(rolesAndAssignments)
+	if err != nil {
+		t.Errorf("Error filtering roles from enforcer: %v", err)
 	}
-	for _, policy := range inheritance {
-		// Assuming policy[0] contains the role/subject and policy[1] contains the inherited role
-		// Adjust the indexing based on your actual policy structure
-		if strings.HasPrefix(policy[0], "role:") && strings.HasPrefix(policy[1], "role:") {
-			// Check that the details match the created role inheritance
-			if policy[0] != createdUser1Role || policy[1] != createdUser2Role {
-				t.Errorf("Expected %v, found %v", fmt.Sprintf("Role: %s inherits from: %s", role1, role2), policy)
+	if len(inheritances) != 3 {
+		t.Errorf("Expected 3, found %v", len(rolesAndAssignments))
+	}
+
+	// Look for created inheritance
+	for _, inheritance := range inheritances {
+		// Check values
+		if inheritance.Role == "role:superadmin" {
+			if inheritance.InheritsFrom != "role:admin" {
+				t.Errorf("Expected admin, found %v", inheritance.InheritsFrom)
 			}
 		}
 	}
 
 	// Cleanup
-	removed, err := app.Auth.Enforcer.RemoveNamedGroupingPolicies("g", [][]string{{createdUser1Role, createdUser2Role}})
+	// Apply naming convention to new role record
+	helpers.ApplyNamingConventionToRoleInheritanceRecord(&inheritanceToCreate)
+	// Remove policy from enforcer
+	removed, err := app.Auth.Enforcer.RemoveGroupingPolicy(inheritanceToCreate.Role, inheritanceToCreate.InheritsFrom)
 	if err != nil {
 		t.Errorf("Error removing role inheritance: %v", err)
 	}
 	if !removed {
 		t.Errorf("Expected true, found %v", removed)
 	}
-
-	err = deleteUserAndRole(createdUser1, t)
+	// Remove Delete user and role
+	err = testModule.users.repo.Delete(int(createdUser.ID))
 	if err != nil {
 		t.Errorf("Error deleting user: %v", err)
 	}
-	err = deleteUserAndRole(createdUser2, t)
+	success, err = testModule.auth.repo.DeleteRolesForUser(fmt.Sprint(createdUser.ID))
 	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
+		t.Errorf("Error deleting roles for user: %v", err)
+	}
+	if !*success {
+		t.Errorf("Expected true, found %v", *success)
 	}
 }
 
 func TestAuthPolicyRepository_DeleteInheritance(t *testing.T) {
 	// Create non-convention role names
-	role1 := "admin"
-	role2 := "user"
+	inheritanceToCreate := &models.GRecord{Role: "superadmin", InheritsFrom: "admin"}
 	// The created user roles contain the naming convention
-	createdUser1, createdUser1Role := createUserAndSetRole(db.User{Email: "wysiwyg@gmail.com", Password: "password"}, role1, t)
-	createdUser2, createdUser2Role := createUserAndSetRole(db.User{Email: "cartmanyoyu@gmail.com", Password: "password"}, role2, t)
-	if createdUser1 == nil || createdUser2 == nil {
+	createdUser1, createdUser1Role := createUserAndSetRole(db.User{Email: "wysiwyg@gmail.com", Password: "password"}, inheritanceToCreate.Role, t)
+	if createdUser1 == nil {
 		t.Errorf("Error creating users")
 	}
+	fmt.Printf("Created user 1: %+v role: %v\n", createdUser1, createdUser1Role)
 
-	success, err := app.Auth.Enforcer.AddNamedGroupingPolicy("g", createdUser1Role, createdUser2Role)
+	// Apply naming convention to new role record
+	conventionalInheritanceToCreate := *inheritanceToCreate
+	// Apply naming convention to new role record
+	helpers.ApplyNamingConventionToRoleInheritanceRecord(&conventionalInheritanceToCreate)
+	// Add role inheritance
+	success, err := app.Auth.Enforcer.AddGroupingPolicy(conventionalInheritanceToCreate.Role, conventionalInheritanceToCreate.InheritsFrom)
 	if err != nil {
 		t.Fatalf("Error adding role inheritance: %v", err)
 	}
@@ -385,7 +342,7 @@ func TestAuthPolicyRepository_DeleteInheritance(t *testing.T) {
 	}
 
 	// Test function
-	err = testModule.auth.repo.DeleteInheritance(models.GRecord{Role: role1, InheritsFrom: role2})
+	err = testModule.auth.repo.DeleteInheritance(models.GRecord{Role: inheritanceToCreate.Role, InheritsFrom: inheritanceToCreate.InheritsFrom})
 	if err != nil {
 		t.Errorf("Error deleting role inheritance: %v", err)
 	}
@@ -393,8 +350,8 @@ func TestAuthPolicyRepository_DeleteInheritance(t *testing.T) {
 	// Check that role has been deleted (Should only be 2 (users with roles) left)
 	inheritance := app.Auth.Enforcer.GetNamedGroupingPolicy("g")
 
-	if len(inheritance) != 2 {
-		t.Errorf("Expected 2, found %v.\nInheritance: %v", len(inheritance), inheritance)
+	if len(inheritance) != 3 {
+		t.Errorf("Expected 3, found %v.\nInheritance: %v", len(inheritance), inheritance)
 	}
 
 	// Cleanup
@@ -402,37 +359,9 @@ func TestAuthPolicyRepository_DeleteInheritance(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error deleting user: %v", err)
 	}
-	err = deleteUserAndRole(createdUser2, t)
-	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
-	}
 }
 
 func TestAuthPolicyRepository_FindAllInheritances(t *testing.T) {
-	// Setup
-	createdRole1 := "admin"
-	createdRole2 := "user"
-	createdRole3 := "snail"
-
-	//  Create users
-	createdUser1, createdUser1Role := createUserAndSetRole(db.User{Email: "scoresetlle@gmail.com", Password: "password"}, createdRole1, t)
-	createdUser2, createdUser2Role := createUserAndSetRole(db.User{Email: "scaryscong@gmail.com", Password: "password"}, createdRole2, t)
-	createdUser3, createdUser3Role := createUserAndSetRole(db.User{Email: "snailman@smail.com", Password: "password"}, createdRole3, t)
-	if createdUser1 == nil || createdUser2 == nil || createdUser3 == nil {
-		t.Fatalf("Error creating users")
-	}
-	// Create inheritances
-	inheritance1 := models.GRecord{Role: createdRole1, InheritsFrom: createdRole2}
-	inheritance2 := models.GRecord{Role: createdRole2, InheritsFrom: createdRole3}
-	err := testModule.auth.repo.CreateInheritance(inheritance1)
-	if err != nil {
-		t.Fatalf("Error adding role inheritance: %v", err)
-	}
-	err = testModule.auth.repo.CreateInheritance(inheritance2)
-	if err != nil {
-		t.Fatalf("Error adding role inheritance: %v", err)
-	}
-
 	// Test function
 	inheritances, err := testModule.auth.repo.FindAllRoleInheritance()
 	if err != nil {
@@ -442,41 +371,18 @@ func TestAuthPolicyRepository_FindAllInheritances(t *testing.T) {
 		t.Errorf("Expected 2 inheritances, found %v", len(inheritances))
 	}
 
-	expectedInheritance1 := models.GRecord{Role: createdUser1Role, InheritsFrom: createdUser2Role}
-	expectedInheritance2 := models.GRecord{Role: createdUser2Role, InheritsFrom: createdUser3Role}
+	expectedInheritance1 := models.GRecord{Role: "admin", InheritsFrom: "moderator"}
+	expectedInheritance2 := models.GRecord{Role: "moderator", InheritsFrom: "user"}
 
 	// Check details of each inheritance
 	for _, inheritance := range inheritances {
 		// If match found to inheritance 1
-		if inheritance.Role == createdUser1Role {
+		if inheritance.Role == expectedInheritance1.Role {
 			helpers.CompareObjects(expectedInheritance1, inheritance, t, []string{"Role", "InheritsFrom"})
-
 			// Else if match found to inheritance 2
-		} else if inheritance.Role == createdUser2Role {
+		} else if inheritance.Role == expectedInheritance2.Role {
 			helpers.CompareObjects(expectedInheritance2, inheritance, t, []string{"Role", "InheritsFrom"})
 		}
-	}
-
-	// Cleanup
-	err = testModule.auth.repo.DeleteInheritance(inheritance1)
-	if err != nil {
-		t.Errorf("Error deleting role inheritance: %v", err)
-	}
-	err = testModule.auth.repo.DeleteInheritance(inheritance2)
-	if err != nil {
-		t.Errorf("Error deleting role inheritance: %v", err)
-	}
-	err = deleteUserAndRole(createdUser1, t)
-	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
-	}
-	err = deleteUserAndRole(createdUser2, t)
-	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
-	}
-	err = deleteUserAndRole(createdUser3, t)
-	if err != nil {
-		t.Errorf("Error deleting user: %v", err)
 	}
 }
 

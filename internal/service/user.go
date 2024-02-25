@@ -62,6 +62,8 @@ func (s *userService) Create(user *models.CreateUser) (*models.UserWithRole, err
 		Verified: &user.Verified,
 	}
 
+	fmt.Printf("User to create: %+v", toCreate)
+
 	// Create above user in database
 	created, err := s.repo.Create(&toCreate)
 	if err != nil {
@@ -78,7 +80,7 @@ func (s *userService) Create(user *models.CreateUser) (*models.UserWithRole, err
 		return nil, fmt.Errorf("failed assigning user role: %w", err)
 	}
 	if err != nil {
-		fmt.Printf("Role: %s does not exit. Creating...", err)
+		fmt.Printf("Role: %s does not exist. Creating...", err)
 		success, err = s.auth.CreateRole(fmt.Sprint(created.ID), user.Role)
 		if err != nil {
 			return nil, fmt.Errorf("failed assigning user role: %w", err)

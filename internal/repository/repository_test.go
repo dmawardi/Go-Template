@@ -61,6 +61,15 @@ func TestMain(m *testing.M) {
 
 	testModule.TestRepoSetup(testModule.dbClient)
 
+	// Set up roles
+	success, err := app.Auth.Enforcer.AddGroupingPolicies([][]string{{"role:admin", "role:moderator"}, {"role:moderator", "role:user"}})
+	if !success {
+		fmt.Println("Error setting up roles")
+	}
+	if err != nil {
+		fmt.Println("Error setting up roles")
+	}
+
 	// Run the tests
 	exitCode := m.Run()
 	// exit with the same exit code as the tests

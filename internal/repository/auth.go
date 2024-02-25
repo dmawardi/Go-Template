@@ -56,9 +56,6 @@ func (r *authPolicyRepository) FindAllRoleInheritance() ([]models.GRecord, error
 	rolesAndAssignments := r.auth.Enforcer.GetNamedGroupingPolicy("g")
 	fmt.Printf("Roles: %v\n", rolesAndAssignments)
 	// Filter out the roles that are not user assigned
-	// Filtered slice
-	// var roles []string
-
 	var roleInheritancePolicies []models.GRecord
 
 	for _, policy := range rolesAndAssignments {
@@ -73,15 +70,20 @@ func (r *authPolicyRepository) FindAllRoleInheritance() ([]models.GRecord, error
 }
 func (r *authPolicyRepository) CreateInheritance(inherit models.GRecord) error {
 	// Apply naming convention to new role record
-	addRolePrefix(&inherit)
 
-	roles := r.auth.Enforcer.GetAllRoles()
+	// Grab all roles
+	roles, err := r.FindAllRoles()
+	if err != nil {
+		return err
+	}
+
 	roleFound1 := helpers.ArrayContainsString(roles, inherit.Role)
 	roleFound2 := helpers.ArrayContainsString(roles, inherit.InheritsFrom)
 	if !roleFound1 || !roleFound2 {
-		return errors.New("inheritance roles not found")
+		return fmt.Errorf("inheritance roles not found. Roles: %v + %v not found in: %+v\n", inherit.Role, inherit.InheritsFrom, roles)
 	}
 
+	addRolePrefix(&inherit)
 	// Else, proceed to add the policy
 	// Add policy to enforcer using add role for user, but it will be role to role
 	newPolicy, err := r.auth.Enforcer.AddNamedGroupingPolicy("g", inherit.Role, inherit.InheritsFrom)
@@ -99,7 +101,7 @@ func (r *authPolicyRepository) DeleteInheritance(inherit models.GRecord) error {
 	// Apply naming convention to new role record
 	addRolePrefix(&inherit)
 	// Remove policy from enforcer
-	removed, err := r.auth.Enforcer.RemoveNamedGroupingPolicy("g", inherit.Role, inherit.InheritsFrom)
+	removed, err := r.auth.Enforcer.RemoveGroupingPolicy(inherit.Role, inherit.InheritsFrom)
 	if err != nil {
 		return err
 	}
@@ -115,8 +117,17 @@ func (r *authPolicyRepository) DeleteInheritance(inherit models.GRecord) error {
 
 // Roles
 func (r *authPolicyRepository) FindAllRoles() ([]string, error) {
-	// return all policies found in the databaseq
-	roles := r.auth.Enforcer.GetAllRoles()
+	// return all policies found in the database
+	rolesAndAssignments := r.auth.Enforcer.GetNamedGroupingPolicy("g")
+
+	// Filter out all roles found in the roles and assignments (including inheritance + non-inheritance)
+	roles := helpers.FilterOnlyRolesToList(rolesAndAssignments)
+
+	// Strip prefixes from every item in roles slice
+	for i, role := range roles {
+		roles[i] = strings.TrimPrefix(role, "role:")
+	}
+
 	return roles, nil
 }
 func (r *authPolicyRepository) FindRoleByUserId(userId string) (string, error) {
@@ -133,8 +144,6 @@ func (r *authPolicyRepository) FindRoleByUserId(userId string) (string, error) {
 	return roles[0], nil
 }
 func (r *authPolicyRepository) AssignUserRole(userId, roleToApply string) (*bool, error) {
-	// Apply naming convention role to apply
-	roleToApply = "role:" + roleToApply
 	// Check if user exists
 	user := db.User{}
 	result := r.db.Where("id = ?", userId).First(&user)
@@ -146,11 +155,12 @@ func (r *authPolicyRepository) AssignUserRole(userId, roleToApply string) (*bool
 	// If user exists, proceed to check if role exists
 	roles, err := r.FindAllRoles()
 	if err != nil {
-		fmt.Printf("Error finding roles: %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("error assigning role to user: %v\n", err)
 	}
 
+	// Check if role exists
 	roleFound := helpers.ArrayContainsString(roles, roleToApply)
+	// Check if role found
 	if !roleFound {
 		fmt.Printf("Role not found: %v\nCurrent roles: %v\n", roleToApply, roles)
 		return nil, errors.New("role not found")

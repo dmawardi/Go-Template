@@ -62,8 +62,19 @@ func TestMain(m *testing.M) {
 
 	// Set app config in repository
 	repository.SetAppConfig(&app)
+	service.SetAppConfig(&app)
+	auth.SetStateInAuth(&app)
 
 	testModule.TestServSetup(testModule.dbClient)
+
+	// Set up roles
+	success, err := app.Auth.Enforcer.AddGroupingPolicies([][]string{{"role:admin", "role:moderator"}, {"role:moderator", "role:user"}})
+	if !success {
+		fmt.Println("Error setting up roles")
+	}
+	if err != nil {
+		fmt.Println("Error setting up roles")
+	}
 
 	// Run the tests
 	exitCode := m.Run()
@@ -84,4 +95,5 @@ func (t *repositoryTestModule) TestServSetup(client *gorm.DB) {
 	// Posts
 	t.posts.repo = repository.NewPostRepository(client)
 	t.posts.serv = service.NewPostService(t.posts.repo)
+
 }

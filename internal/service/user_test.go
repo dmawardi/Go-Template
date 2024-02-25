@@ -38,7 +38,7 @@ func TestUserService_Create(t *testing.T) {
 	}
 
 	// Check if default role applied
-	if createdUser.Role != "role:user" {
+	if createdUser.Role != "user" {
 		t.Errorf("created user has incorrect role: expected 'role:user', got %s", createdUser.Role)
 	}
 

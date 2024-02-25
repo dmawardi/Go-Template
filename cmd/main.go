@@ -96,7 +96,7 @@ func main() {
 	controller.SetStateInHandlers(&app)
 	auth.SetStateInAuth(&app)
 	adminpanel.SetStateInAdminPanel(&app)
-	service.BuildServiceState(&app)
+	service.SetAppConfig(&app)
 	repository.SetAppConfig(&app)
 	routes.BuildRouteState(&app)
 

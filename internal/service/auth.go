@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
@@ -21,9 +22,9 @@ type AuthPolicyService interface {
 	AssignUserRole(userId, roleToApply string) (*bool, error)
 	CreateRole(userId, roleToApply string) (*bool, error)
 	// Inheritance
-	// FindAllRoleInheritance() ([]models.GRecord, error)
-	// CreateInheritance(inherit models.GRecord) error
-	// DeleteInheritance(inherit models.GRecord) error
+	FindAllRoleInheritance() ([]models.GRecord, error)
+	CreateInheritance(inherit models.GRecord) error
+	DeleteInheritance(inherit models.GRecord) error
 	// Not for controller usage (used in auth)
 	FindRoleByUserId(userId int) (string, error)
 }
@@ -132,31 +133,19 @@ func (s *authPolicyService) AssignUserRole(userId, roleToApply string) (*bool, e
 // Inheritance
 //
 
-// func (s *authPolicyService) FindAllRoleInheritance() ([]models.GRecord, error) {
-// 	formattedG2Records := []models.GRecord{}
-// 	g2Records, err := s.repo.FindAllRoleInheritance()
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func (s *authPolicyService) FindAllRoleInheritance() ([]models.GRecord, error) {
+	return s.repo.FindAllRoleInheritance()
+}
+func (s *authPolicyService) CreateInheritance(inherit models.GRecord) error {
+	return s.repo.CreateInheritance(inherit)
+}
 
-// 	// Iterate through g2Records and format into array of G2Record struct
-// 	for _, policy := range g2Records {
-// 		record := models.GRecord{
-// 			Role:         policy[0],
-// 			InheritsFrom: policy[1],
-// 		}
-// 		formattedG2Records = append(formattedG2Records, record)
-// 	}
-// 	return formattedG2Records, nil
-// }
-// func (s *authPolicyService) CreateInheritance(inherit models.GRecord) error {
-// 	return s.repo.CreateInheritance(inherit)
-// }
-// func (s *authPolicyService) DeleteInheritance(inherit models.GRecord) error {
-// 	return s.repo.DeleteInheritance(inherit)
-// }
+func (s *authPolicyService) DeleteInheritance(inherit models.GRecord) error {
+	return s.repo.DeleteInheritance(inherit)
+}
 
 // Transform data from enforcer policies to User friendly response
+// (removes prefix from role as well)
 func transformDataToResponse(data [][]string) []models.PolicyRuleCombinedActions {
 	// Response format
 	var response []models.PolicyRuleCombinedActions
@@ -172,7 +161,8 @@ func transformDataToResponse(data [][]string) []models.PolicyRuleCombinedActions
 		// If key does not exist, create new entry
 		if _, ok := policyDict[key]; !ok {
 			policyDict[key] = &models.PolicyRuleCombinedActions{
-				Role:     role,
+				// Remove role: prefix
+				Role:     strings.TrimPrefix(role, "role:"),
 				Resource: resource,
 				Action:   []string{action},
 			}

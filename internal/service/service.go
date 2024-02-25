@@ -6,6 +6,6 @@ import "github.com/dmawardi/Go-Template/internal/config"
 var app *config.AppConfig
 
 // Create new service repository
-func BuildServiceState(a *config.AppConfig) {
+func SetAppConfig(a *config.AppConfig) {
 	app = a
 }
