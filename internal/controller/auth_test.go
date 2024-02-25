@@ -326,7 +326,7 @@ func TestAuthController_Update(t *testing.T) {
 // // 	}
 
 // // 	// Convert response JSON to struct
-// // 	var body []models.G2Record
+// // 	var body []models.GRecord
 // // 	json.Unmarshal(rr.Body.Bytes(), &body)
 
 // // 	// Checks if the number of roles is correct
@@ -334,13 +334,13 @@ func TestAuthController_Update(t *testing.T) {
 // // 		t.Errorf("Expected %v, got %v", numberOfDetaultInheritances, len(body))
 // // 	}
 // // 	// Checks if the type of the records are correct
-// // 	if helpers.CheckSliceType(body, reflect.TypeOf(models.G2Record{})) == false {
-// // 		t.Errorf("Expected %v, got %v", reflect.TypeOf(models.G2Record{}), reflect.TypeOf(body[0]))
+// // 	if helpers.CheckSliceType(body, reflect.TypeOf(models.GRecord{})) == false {
+// // 		t.Errorf("Expected %v, got %v", reflect.TypeOf(models.GRecord{}), reflect.TypeOf(body[0]))
 // // 	}
 // // }
 
 // // func TestAuthController_CreateInheritance(t *testing.T) {
-// // 	policy := models.G2Record{
+// // 	policy := models.GRecord{
 // // 		Role:         "testRole",
 // // 		InheritsFrom: "admin",
 // // 	}
@@ -390,7 +390,7 @@ func TestAuthController_Update(t *testing.T) {
 // // }
 
 // // func TestAuthController_DeleteInheritance(t *testing.T) {
-// // 	policy := models.G2Record{
+// // 	policy := models.GRecord{
 // // 		Role:         "testRole",
 // // 		InheritsFrom: "admin",
 // // 	}

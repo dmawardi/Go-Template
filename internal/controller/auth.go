@@ -21,10 +21,11 @@ type AuthPolicyController interface {
 	// Roles
 	FindAllRoles(w http.ResponseWriter, r *http.Request)
 	AssignUserRole(w http.ResponseWriter, r *http.Request)
+	CreateRole(w http.ResponseWriter, r *http.Request)
 	// Inheritance
-	FindAllRoleInheritance(w http.ResponseWriter, r *http.Request)
-	CreateInheritance(w http.ResponseWriter, r *http.Request)
-	DeleteInheritance(w http.ResponseWriter, r *http.Request)
+	// FindAllRoleInheritance(w http.ResponseWriter, r *http.Request)
+	// CreateInheritance(w http.ResponseWriter, r *http.Request)
+	// DeleteInheritance(w http.ResponseWriter, r *http.Request)
 }
 
 type authPolicyController struct {
@@ -274,42 +275,19 @@ func (c authPolicyController) AssignUserRole(w http.ResponseWriter, r *http.Requ
 	w.Write([]byte("User assigned role successfully!"))
 }
 
-// INHERITANCE
-//
-
-// @Summary      Finds a list of role inheritance
-// @Description  Returns a list of role inheritance policies
+// @Summary      Creates a new role and assigns a user to it
+// @Description  Accepts a user_id and role as a JSON body and assigns the new role to the associated user
 // @Tags         Authorization
 // @Accept       json
 // @Produce      json
-// @Success      200 {object} []map[string]string
-// @Failure      400 {string} string "Can't find roles"
-// @Router       /auth/inheritance [get]
+// @Param        RoleAssignment   body      models.CasbinRoleAssignment  true  "Role Assignment"
+// @Success      200 {string} string "Role creation successful!"
+// @Failure      400 {string} string "Can't create role"
+// @Router       /auth/roles [post]
 // @Security BearerToken
-func (c authPolicyController) FindAllRoleInheritance(w http.ResponseWriter, r *http.Request) {
-	// Find all roles
-	roles, err := c.service.FindAllRoleInheritance()
-	if err != nil {
-		http.Error(w, "Can't find roles", http.StatusBadRequest)
-		return
-	}
-	// Return posts
-	helpers.WriteAsJSON(w, roles)
-}
-
-// @Summary      Creates a role inheritance
-// @Description  Accepts a role inheritance as a JSON body and creates the role inheritance
-// @Tags         Authorization
-// @Accept       json
-// @Produce      json
-// @Param        inheritance   body      models.G2Record  true  "Inheritance Record"
-// @Success      201 {string} string "Inheritance creation successful!"
-// @Failure      400 {string} string "Can't create inheritance"
-// @Router       /auth/inheritance [post]
-// @Security BearerToken
-func (c authPolicyController) CreateInheritance(w http.ResponseWriter, r *http.Request) {
+func (c authPolicyController) CreateRole(w http.ResponseWriter, r *http.Request) {
 	// Grab request body as models.CasbinRule
-	var pol models.G2Record
+	var pol models.CasbinRoleAssignment
 	err := json.NewDecoder(r.Body).Decode(&pol)
 	if err != nil {
 		http.Error(w, "Invalid policy", http.StatusBadRequest)
@@ -328,55 +306,124 @@ func (c authPolicyController) CreateInheritance(w http.ResponseWriter, r *http.R
 	}
 	// else, validation passes and allow through
 
-	err = c.service.CreateInheritance(pol)
+	success, err := c.service.CreateRole(pol.UserId, pol.Role)
 	if err != nil {
-		http.Error(w, "Can't create inheritance", http.StatusBadRequest)
+		http.Error(w, "Can't create role", http.StatusBadRequest)
+		return
+	}
+	if !*success {
+		http.Error(w, "Can't create role", http.StatusBadRequest)
 		return
 	}
 
 	// Return success
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Inheritance creation successful!"))
+	w.Write([]byte("Role creation successful!"))
 }
 
-// @Summary      Deletes a role inheritance
-// @Description  Accepts a role inheritance as a JSON body and deletes the role inheritance
-// @Tags         Authorization
-// @Accept       json
-// @Produce      json
-// @Param        inheritance   body      models.G2Record  true  "Inheritance Record"
-// @Success      200 {string} string "Inheritance deletion successful!"
-// @Failure      400 {string} string "Can't delete inheritance"
-// @Router       /auth/inheritance [delete]
-// @Security BearerToken
-func (c authPolicyController) DeleteInheritance(w http.ResponseWriter, r *http.Request) {
-	// Grab request body as models.CasbinRule
-	var pol models.G2Record
-	err := json.NewDecoder(r.Body).Decode(&pol)
-	if err != nil {
-		http.Error(w, "Invalid policy", http.StatusBadRequest)
-		return
-	}
+// INHERITANCE
+//
 
-	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&pol)
-	// If failure detected
-	if !pass {
-		// Write bad request header
-		w.WriteHeader(http.StatusBadRequest)
-		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
-		return
-	}
-	// else, validation passes and allow through
+// // @Summary      Finds a list of role inheritance
+// // @Description  Returns a list of role inheritance policies
+// // @Tags         Authorization
+// // @Accept       json
+// // @Produce      json
+// // @Success      200 {object} []map[string]string
+// // @Failure      400 {string} string "Can't find roles"
+// // @Router       /auth/inheritance [get]
+// // @Security BearerToken
+// func (c authPolicyController) FindAllRoleInheritance(w http.ResponseWriter, r *http.Request) {
+// 	// Find all roles
+// 	roles, err := c.service.FindAllRoleInheritance()
+// 	if err != nil {
+// 		http.Error(w, "Can't find roles", http.StatusBadRequest)
+// 		return
+// 	}
+// 	// Return posts
+// 	helpers.WriteAsJSON(w, roles)
+// }
 
-	err = c.service.DeleteInheritance(pol)
-	if err != nil {
-		http.Error(w, "Can't delete inheritance", http.StatusBadRequest)
-		return
-	}
+// // @Summary      Creates a role inheritance
+// // @Description  Accepts a role inheritance as a JSON body and creates the role inheritance
+// // @Tags         Authorization
+// // @Accept       json
+// // @Produce      json
+// // @Param        inheritance   body      models.GRecord  true  "Inheritance Record"
+// // @Success      201 {string} string "Inheritance creation successful!"
+// // @Failure      400 {string} string "Can't create inheritance"
+// // @Router       /auth/inheritance [post]
+// // @Security BearerToken
+// func (c authPolicyController) CreateInheritance(w http.ResponseWriter, r *http.Request) {
+// 	// Grab request body as models.CasbinRule
+// 	var pol models.GRecord
+// 	err := json.NewDecoder(r.Body).Decode(&pol)
+// 	if err != nil {
+// 		http.Error(w, "Invalid policy", http.StatusBadRequest)
+// 		return
+// 	}
 
-	// Return success
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Inheritance deletion successful!"))
-}
+// 	// Validate the incoming DTO
+// 	pass, valErrors := helpers.GoValidateStruct(&pol)
+// 	// If failure detected
+// 	if !pass {
+// 		// Write bad request header
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		// Write validation errors to JSON
+// 		helpers.WriteAsJSON(w, valErrors)
+// 		return
+// 	}
+// 	// else, validation passes and allow through
+
+// 	err = c.service.CreateInheritance(pol)
+// 	if err != nil {
+// 		http.Error(w, "Can't create inheritance", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	// Return success
+// 	w.WriteHeader(http.StatusCreated)
+// 	w.Write([]byte("Inheritance creation successful!"))
+// }
+
+// // @Summary      Deletes a role inheritance
+// // @Description  Accepts a role inheritance as a JSON body and deletes the role inheritance
+// // @Tags         Authorization
+// // @Accept       json
+// // @Produce      json
+// // @Param        inheritance   body      models.GRecord  true  "Inheritance Record"
+// // @Success      200 {string} string "Inheritance deletion successful!"
+// // @Failure      400 {string} string "Can't delete inheritance"
+// // @Router       /auth/inheritance [delete]
+// // @Security BearerToken
+// func (c authPolicyController) DeleteInheritance(w http.ResponseWriter, r *http.Request) {
+// 	// Grab request body as models.CasbinRule
+// 	var pol models.GRecord
+// 	err := json.NewDecoder(r.Body).Decode(&pol)
+// 	if err != nil {
+// 		http.Error(w, "Invalid policy", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	// Validate the incoming DTO
+// 	pass, valErrors := helpers.GoValidateStruct(&pol)
+// 	// If failure detected
+// 	if !pass {
+// 		// Write bad request header
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		// Write validation errors to JSON
+// 		helpers.WriteAsJSON(w, valErrors)
+// 		return
+// 	}
+// 	// else, validation passes and allow through
+
+// 	err = c.service.DeleteInheritance(pol)
+// 	if err != nil {
+// 		http.Error(w, "Can't delete inheritance", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	// Return success
+// 	w.WriteHeader(http.StatusOK)
+// 	w.Write([]byte("Inheritance deletion successful!"))
+// }

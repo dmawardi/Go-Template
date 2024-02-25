@@ -6,7 +6,6 @@ import (
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -119,17 +118,6 @@ func (r *userRepository) Update(id int, user *db.User) (*db.User, error) {
 	if err != nil {
 		fmt.Println("User to update not found: ", err)
 		return nil, err
-	}
-
-	// If password from update object is not empty, use bcrypt to encrypt
-	if user.Password != "" {
-		// Build hashed password
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return nil, err
-		}
-		// Save in user update object
-		user.Password = string(hashedPassword)
 	}
 
 	// Update user using found user

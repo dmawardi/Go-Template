@@ -213,6 +213,7 @@ func TestAuthPolicyService_Update(t *testing.T) {
 // Roles
 
 func TestAuthPolicyService_FindAllRoles(t *testing.T) {
+	t.Errorf("TestAuthPolicyService_FindAllRoles")
 	// Create a user with a role
 	createdUser1, err := testModule.users.serv.Create(&models.CreateUser{
 		Email:    "wallyhjango@gmial.com",
@@ -230,12 +231,13 @@ func TestAuthPolicyService_FindAllRoles(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error creating user: %v", err)
 	}
-
+	t.Errorf("Created user: %v\n", createdUser1)
 	// Test function
 	roles, err := testModule.auth.serv.FindAllRoles()
 	if err != nil {
 		t.Errorf("Error finding roles: %v", err)
 	}
+	t.Errorf("Roles: %v", roles)
 
 	// Test if all roles are found
 	if len(roles) != 2 {
@@ -370,8 +372,8 @@ func TestAuthPolicyService_AssignUserRole(t *testing.T) {
 // 	}
 
 // 	// Build inheritances
-// 	inheritance1 := models.G2Record{Role: "admin", InheritsFrom: "moderator"}
-// 	inheritance2 := models.G2Record{Role: "moderator", InheritsFrom: "user"}
+// 	inheritance1 := models.GRecord{Role: "admin", InheritsFrom: "moderator"}
+// 	inheritance2 := models.GRecord{Role: "moderator", InheritsFrom: "user"}
 
 // 	// Create inheritance
 // 	err = testModule.auth.serv.CreateInheritance(inheritance1)
@@ -456,7 +458,7 @@ func TestAuthPolicyService_AssignUserRole(t *testing.T) {
 // 	}
 
 // 	// Test function
-// 	inheritance := models.G2Record{Role: "admin", InheritsFrom: "user"}
+// 	inheritance := models.GRecord{Role: "admin", InheritsFrom: "user"}
 // 	err = testModule.auth.serv.CreateInheritance(inheritance)
 // 	if err != nil {
 // 		t.Errorf("Error creating inheritance: %v", err)
@@ -517,7 +519,7 @@ func TestAuthPolicyService_AssignUserRole(t *testing.T) {
 // 	}
 
 // 	// Test function
-// 	inheritance := models.G2Record{Role: "admin", InheritsFrom: "user"}
+// 	inheritance := models.GRecord{Role: "admin", InheritsFrom: "user"}
 // 	err = testModule.auth.serv.CreateInheritance(inheritance)
 // 	if err != nil {
 // 		t.Errorf("Error creating inheritance: %v", err)

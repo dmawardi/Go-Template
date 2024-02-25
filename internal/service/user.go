@@ -70,15 +70,22 @@ func (s *userService) Create(user *models.CreateUser) (*models.UserWithRole, err
 
 	// If no role found, assign user role
 	if user.Role == "" {
-		user.Role = "role:user"
+		user.Role = "user"
 	}
 	// Assign user role
 	success, err := s.auth.AssignUserRole(fmt.Sprint(created.ID), user.Role)
-	if err != nil {
-		return nil, fmt.Errorf("failed assigning user role: %w", err)
-	}
 	if !*success {
 		return nil, fmt.Errorf("failed assigning user role: %w", err)
+	}
+	if err != nil {
+		fmt.Printf("Role: %s does not exit. Creating...", err)
+		success, err = s.auth.CreateRole(fmt.Sprint(created.ID), user.Role)
+		if err != nil {
+			return nil, fmt.Errorf("failed assigning user role: %w", err)
+		}
+		if !*success {
+			return nil, fmt.Errorf("failed assigning user role: %w", err)
+		}
 	}
 
 	// Combine user and role data
@@ -198,9 +205,20 @@ func (s *userService) BulkDelete(ids []int) error {
 
 // Updates user in database
 func (s *userService) Update(id int, user *models.UpdateUser) (*models.UserWithRole, error) {
-	// Create db User type from incoming DTO
-	toUpdate := &db.User{Name: user.Name, Username: user.Username, Email: user.Email, Password: user.Password, Verified: &user.Verified}
 
+	// Create db User type from incoming DTO
+	toUpdate := &db.User{Name: user.Name, Username: user.Username, Email: user.Email, Verified: &user.Verified}
+
+	// If the user password is not empty
+	if user.Password != "" {
+		// Build hashed password from user password input
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, fmt.Errorf("failed to encrypt password: %w", err)
+		}
+		// Save in user update object
+		toUpdate.Password = string(hashedPassword)
+	}
 	// Update using repo
 	updated, err := s.repo.Update(id, toUpdate)
 	if err != nil {

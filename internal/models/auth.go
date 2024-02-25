@@ -37,7 +37,7 @@ type PolicyRuleCombinedActions struct {
 	Action   []string `json:"action" valid:"required"`
 }
 
-type G2Record struct {
+type GRecord struct {
 	Role         string `json:"role" valid:"required"`
 	InheritsFrom string `json:"inherits_from" valid:"required"`
 }

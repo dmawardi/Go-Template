@@ -19,10 +19,11 @@ type AuthPolicyService interface {
 	// Roles
 	FindAllRoles() ([]string, error)
 	AssignUserRole(userId, roleToApply string) (*bool, error)
+	CreateRole(userId, roleToApply string) (*bool, error)
 	// Inheritance
-	FindAllRoleInheritance() ([]models.G2Record, error)
-	CreateInheritance(inherit models.G2Record) error
-	DeleteInheritance(inherit models.G2Record) error
+	// FindAllRoleInheritance() ([]models.GRecord, error)
+	// CreateInheritance(inherit models.GRecord) error
+	// DeleteInheritance(inherit models.GRecord) error
 	// Not for controller usage (used in auth)
 	FindRoleByUserId(userId int) (string, error)
 }
@@ -117,8 +118,9 @@ func (s *authPolicyService) FindRoleByUserId(userId int) (string, error) {
 	// Convert the userId to string then pass to repo
 	return s.repo.FindRoleByUserId(fmt.Sprint(userId))
 }
-
-// Assigning a user a role will automatically create a new role with the user as the first member if not already found
+func (s *authPolicyService) CreateRole(userId, roleToApply string) (*bool, error) {
+	return s.repo.CreateRole(userId, roleToApply)
+}
 func (s *authPolicyService) AssignUserRole(userId, roleToApply string) (*bool, error) {
 	success, err := s.repo.AssignUserRole(userId, roleToApply)
 	if err != nil {
@@ -130,29 +132,29 @@ func (s *authPolicyService) AssignUserRole(userId, roleToApply string) (*bool, e
 // Inheritance
 //
 
-func (s *authPolicyService) FindAllRoleInheritance() ([]models.G2Record, error) {
-	formattedG2Records := []models.G2Record{}
-	g2Records, err := s.repo.FindAllRoleInheritance()
-	if err != nil {
-		return nil, err
-	}
+// func (s *authPolicyService) FindAllRoleInheritance() ([]models.GRecord, error) {
+// 	formattedG2Records := []models.GRecord{}
+// 	g2Records, err := s.repo.FindAllRoleInheritance()
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	// Iterate through g2Records and format into array of G2Record struct
-	for _, policy := range g2Records {
-		record := models.G2Record{
-			Role:         policy[0],
-			InheritsFrom: policy[1],
-		}
-		formattedG2Records = append(formattedG2Records, record)
-	}
-	return formattedG2Records, nil
-}
-func (s *authPolicyService) CreateInheritance(inherit models.G2Record) error {
-	return s.repo.CreateInheritance(inherit)
-}
-func (s *authPolicyService) DeleteInheritance(inherit models.G2Record) error {
-	return s.repo.DeleteInheritance(inherit)
-}
+// 	// Iterate through g2Records and format into array of G2Record struct
+// 	for _, policy := range g2Records {
+// 		record := models.GRecord{
+// 			Role:         policy[0],
+// 			InheritsFrom: policy[1],
+// 		}
+// 		formattedG2Records = append(formattedG2Records, record)
+// 	}
+// 	return formattedG2Records, nil
+// }
+// func (s *authPolicyService) CreateInheritance(inherit models.GRecord) error {
+// 	return s.repo.CreateInheritance(inherit)
+// }
+// func (s *authPolicyService) DeleteInheritance(inherit models.GRecord) error {
+// 	return s.repo.DeleteInheritance(inherit)
+// }
 
 // Transform data from enforcer policies to User friendly response
 func transformDataToResponse(data [][]string) []models.PolicyRuleCombinedActions {

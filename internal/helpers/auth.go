@@ -51,8 +51,8 @@ func SearchMapKeysFor(maps []map[string]string, mapKeysToSearch []string, search
 }
 
 // SearchG2Records searches through all fields of each G2Record for the searchTerm and adds any match found in the results
-func SearchG2Records(records []models.G2Record, searchTerm string) []models.G2Record {
-	var result []models.G2Record
+func SearchG2Records(records []models.GRecord, searchTerm string) []models.GRecord {
+	var result []models.GRecord
 
 	// Iterate through the slice of G2Records
 	for _, record := range records {

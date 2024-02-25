@@ -78,6 +78,7 @@ func TestMain(m *testing.M) {
 	// Set Gorm client
 	app.DbClient = testModule.dbClient
 
+	fmt.Printf("Preparing to build enforcer\n")
 	// Build enforcer
 	enforcer, err := auth.EnforcerSetup(testModule.dbClient, true)
 	if err != nil {
@@ -93,6 +94,7 @@ func TestMain(m *testing.M) {
 	// build API for serving requests
 	testModule.api = testModule.TestApiSetup(testModule.dbClient)
 	testModule.router = testModule.api.Routes()
+	fmt.Printf("API setup complete\n")
 
 	// Setup accounts for mocking authentication
 	testModule.setupDummyAccounts(&models.CreateUser{
@@ -175,7 +177,7 @@ func (t *controllerTestModule) setupDummyAccounts(adminUser *models.CreateUser, 
 
 // Generates a new user, changes its role to admin and returns it with token
 func (t *controllerTestModule) generateUserWithRoleAndToken(user *models.CreateUser) (*models.UserWithRole, string) {
-	// Create user
+	// Create user (will create new roles if not found)
 	createdUser, err := t.users.serv.Create(user)
 
 	// If match found (no errors)

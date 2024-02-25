@@ -254,7 +254,7 @@ func BuildRoleTableData(roleSlice []string, adminSchemaBaseUrl string, tableHead
 }
 
 // Build auth role inheritance table data
-func BuildRoleInheritanceTableData(policySlice []models.G2Record, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
+func BuildRoleInheritanceTableData(policySlice []models.GRecord, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
 	var tableRows []TableRow
 
 	// Loop through policy slice to build table rows

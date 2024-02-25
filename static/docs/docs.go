@@ -262,7 +262,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.G2Record"
+                            "$ref": "#/definitions/models.GRecord"
                         }
                     }
                 ],
@@ -305,7 +305,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.G2Record"
+                            "$ref": "#/definitions/models.GRecord"
                         }
                     }
                 ],
@@ -1377,7 +1377,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.G2Record": {
+        "models.GRecord": {
             "type": "object",
             "properties": {
                 "inherits_from": {
