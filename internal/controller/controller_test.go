@@ -204,7 +204,7 @@ func SetAppWideState(appConfig config.AppConfig) {
 	controller.SetStateInHandlers(&appConfig)
 	auth.SetStateInAuth(&appConfig)
 	adminpanel.SetStateInAdminPanel(&appConfig)
-	service.BuildServiceState(&appConfig)
+	service.SetAppConfig(&appConfig)
 	repository.SetAppConfig(&appConfig)
 	routes.BuildRouteState(&appConfig)
 }
