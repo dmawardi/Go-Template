@@ -29,7 +29,7 @@ func TestUserService_Create(t *testing.T) {
 			Password: "HoolaHoops",
 			Role:     "admin",
 		}},
-		// Test with an inexistent role
+		// Test with an nonexistent role
 		{"Update with new role", false, &models.CreateUser{
 			Name:     "Wigwam",
 			Username: "Celebration",

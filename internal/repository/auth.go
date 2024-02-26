@@ -54,16 +54,22 @@ func NewAuthPolicyRepository(db *gorm.DB) AuthPolicyRepository {
 func (r *authPolicyRepository) FindAllRoleInheritance() ([]models.GRecord, error) {
 	// return all policies found in the database
 	rolesAndAssignments := r.auth.Enforcer.GetNamedGroupingPolicy("g")
-	fmt.Printf("Roles: %v\n", rolesAndAssignments)
+
 	// Filter out the roles that are not user assigned
 	var roleInheritancePolicies []models.GRecord
-
+	// Iterate through roles and assignments
 	for _, policy := range rolesAndAssignments {
 		// Assuming policy[0] contains the role/subject and policy[1] contains the inherited role
 		// Adjust the indexing based on your actual policy structure
 		if strings.HasPrefix(policy[0], "role:") && strings.HasPrefix(policy[1], "role:") {
 			roleInheritancePolicies = append(roleInheritancePolicies, models.GRecord{Role: policy[0], InheritsFrom: policy[1]})
 		}
+	}
+
+	// Strip prefixes from every item in roles slice
+	for i, role := range roleInheritancePolicies {
+		roleInheritancePolicies[i].Role = strings.TrimPrefix(role.Role, "role:")
+		roleInheritancePolicies[i].InheritsFrom = strings.TrimPrefix(role.InheritsFrom, "role:")
 	}
 
 	return roleInheritancePolicies, nil
