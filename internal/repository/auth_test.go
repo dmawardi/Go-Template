@@ -143,13 +143,15 @@ func TestAuthPolicyRepository_FindAllRoles(t *testing.T) {
 	}
 }
 func TestAuthPolicyRepository_FindRoleByUserId(t *testing.T) {
+	roleToCreate := "pikachu"
+	roleWithConvention := "role:" + roleToCreate
 	// Create user
 	createdUser, err := testModule.users.repo.Create(&db.User{Email: "pikachi@gmail.com", Password: "password"})
 	if err != nil {
 		t.Errorf("Error creating user: %v", err)
 	}
 	// Setup
-	success, err := testModule.auth.repo.CreateRole(fmt.Sprint(createdUser.ID), "admin")
+	success, err := testModule.auth.repo.CreateRole(fmt.Sprint(createdUser.ID), roleToCreate)
 	if err != nil {
 		t.Errorf("Error assigning role to user: %v", err)
 	}
@@ -162,7 +164,7 @@ func TestAuthPolicyRepository_FindRoleByUserId(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error finding role: %v", err)
 	}
-	if role != "role:admin" {
+	if role != roleWithConvention {
 		t.Errorf("Expected admin, found %v", role)
 	}
 

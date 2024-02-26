@@ -331,10 +331,11 @@ func TestAuthPolicyService_CreateRole(t *testing.T) {
 		roleToApply     string
 		expectedSuccess bool
 	}{
-		{"admin", true},
-		{"moderator", true},
-		{"user", true},
-		{"nonexistentrole", true},
+		{"squire", true},
+		{"knight", true},
+		{"zebra", true},
+		// Existing role should fail
+		{"admin", false},
 	}
 
 	for _, v := range tests {
@@ -353,7 +354,9 @@ func TestAuthPolicyService_CreateRole(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error finding roles: %v", err)
 		}
-		t.Errorf("Roles: %v", roles)
+		if !helpers.ArrayContainsString(roles, v.roleToApply) {
+			t.Errorf("Expected role %s to be created, got %v", v.roleToApply, roles)
+		}
 
 		// Test if role is assigned
 		role, err := testModule.auth.serv.FindRoleByUserId(int(createdUser.ID))
@@ -381,7 +384,7 @@ func TestAuthPolicyService_CreateRole(t *testing.T) {
 // 	createdUser1, err := testModule.users.serv.Create(&models.CreateUser{
 // 		Email:    "raylongo@gmial.com",
 // 		Password: "password",
-// 		Role:     "user",
+// 		Role:     "alien",
 // 	})
 // 	if err != nil {
 // 		t.Errorf("Error creating user: %v", err)
@@ -389,7 +392,7 @@ func TestAuthPolicyService_CreateRole(t *testing.T) {
 // 	createdUser2, err := testModule.users.serv.Create(&models.CreateUser{
 // 		Email:    "mongopak@gmial.com",
 // 		Password: "password",
-// 		Role:     "admin",
+// 		Role:     "eevee",
 // 	})
 // 	if err != nil {
 // 		t.Errorf("Error creating user: %v", err)
@@ -397,15 +400,16 @@ func TestAuthPolicyService_CreateRole(t *testing.T) {
 // 	createdUser3, err := testModule.users.serv.Create(&models.CreateUser{
 // 		Email:    "sideshowbob@gmial.com",
 // 		Password: "password",
-// 		Role:     "moderator",
+// 		Role:     "pikachu",
 // 	})
 // 	if err != nil {
 // 		t.Errorf("Error creating user: %v", err)
 // 	}
+// 	t.Errorf("Created users. 1:%v\n2:%v\n3.%v", createdUser1, createdUser2, createdUser3)
 
 // 	// Build inheritances
-// 	inheritance1 := models.GRecord{Role: "admin", InheritsFrom: "moderator"}
-// 	inheritance2 := models.GRecord{Role: "moderator", InheritsFrom: "user"}
+// 	inheritance1 := models.GRecord{Role: createdUser1.Role, InheritsFrom: createdUser2.Role}
+// 	inheritance2 := models.GRecord{Role: createdUser2.Role, InheritsFrom: createdUser3.Role}
 
 // 	// Create inheritance
 // 	err = testModule.auth.serv.CreateInheritance(inheritance1)
@@ -423,8 +427,8 @@ func TestAuthPolicyService_CreateRole(t *testing.T) {
 // 		t.Errorf("Error finding inheritance: %v", err)
 // 	}
 
-// 	// Test if all inheritances are found
-// 	if len(inheritances) != 2 {
+// 	// Test if all inheritances are found (2 on top of the default 3 roles)
+// 	if len(inheritances) != 5 {
 // 		t.Errorf("Expected 2 inheritances, got %d", len(inheritances))
 // 	}
 

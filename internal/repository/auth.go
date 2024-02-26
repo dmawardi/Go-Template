@@ -140,8 +140,11 @@ func (r *authPolicyRepository) FindRoleByUserId(userId string) (string, error) {
 	if len(roles) == 0 {
 		return "", errors.New("no roles found for user")
 	}
+	// Strip prefix from role
+	noPrefixRole := strings.TrimPrefix(roles[0], "role:")
+
 	// Return first found role (should be only role)
-	return roles[0], nil
+	return noPrefixRole, nil
 }
 func (r *authPolicyRepository) AssignUserRole(userId, roleToApply string) (*bool, error) {
 	// Check if user exists
@@ -194,10 +197,29 @@ func (r *authPolicyRepository) CreateRole(userId, roleToApply string) (*bool, er
 	// Apply naming convention to new role record
 	roleToApply = "role:" + roleToApply
 
-	// Create the new role with the user as the first member
-	success, err := r.auth.Enforcer.AddRoleForUser(userId, roleToApply)
+	// Check to ensure role doesn't already exist
+	roles, err := r.FindAllRoles()
 	if err != nil {
-		fmt.Printf("Error assigning role to user: %v\n", err)
+		return nil, fmt.Errorf("error creating role: %v", err)
+	}
+
+	// Check if role exists
+	roleFound := helpers.ArrayContainsString(roles, roleToApply)
+	if roleFound {
+		return nil, fmt.Errorf("error creating role: Role already exists")
+	}
+
+	// Else, proceed to delete the user's old role and add the new role
+	// First, remove the existing roles for the user (if found)
+	_, err = r.auth.Enforcer.DeleteRolesForUser(userId)
+	if err != nil {
+		fmt.Printf("Error removing roles for user: %v\n", err)
+		return nil, err
+	}
+	// Create the new role with the user as the first member
+	success, err := app.Auth.Enforcer.AddRoleForUser(userId, roleToApply)
+	if err != nil {
+		fmt.Printf("Error assigning role to user: %v\nRoles found: %v\n", err, roles)
 		return nil, err
 	}
 

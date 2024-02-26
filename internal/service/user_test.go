@@ -10,42 +10,71 @@ import (
 )
 
 func TestUserService_Create(t *testing.T) {
-	userToCreate := &models.CreateUser{
-		Name:     "Wigwam",
-		Username: "Celebration",
-		Email:    "wallow@smail.com",
-		Password: "HoolaHoops",
+	var tests = []struct {
+		testName        string
+		expectedSuccess bool
+		userToCreate    *models.CreateUser
+	}{
+		{"Normal update (without role)", true, &models.CreateUser{
+			Name:     "Wigwam",
+			Username: "Celebration",
+			Email:    "wallow@smail.com",
+			Password: "HoolaHoops",
+		}},
+		// Test with role creation
+		{"Update with existing role", true, &models.CreateUser{
+			Name:     "Wigwam",
+			Username: "Celebration",
+			Email:    "mallowsupermar@smail.com",
+			Password: "HoolaHoops",
+			Role:     "admin",
+		}},
+		// Test with an inexistent role
+		{"Update with new role", false, &models.CreateUser{
+			Name:     "Wigwam",
+			Username: "Celebration",
+			Email:    "Gandalf@smail.com",
+			Password: "HoolaHoops",
+			Role:     "alien",
+		}},
 	}
 
-	// Test function
-	createdUser, err := testModule.users.serv.Create(userToCreate)
-	if err != nil {
-		t.Fatalf("Failed to create user in service test: %v", err)
-	}
+	// Iterate through tests
+	for _, v := range tests {
+		// Test function
+		createdUser, err := testModule.users.serv.Create(v.userToCreate)
 
-	// Verify that the created user has an ID
-	if createdUser.ID == 0 {
-		t.Error("created user should have an ID")
-	}
+		// If expecting success
+		if v.expectedSuccess {
+			// Check for failure
+			if err != nil {
+				t.Fatalf("Failed to create user in service test: %v", err)
+			}
+			// Check ID is not 0
+			if createdUser.ID == 0 {
+				t.Error("created user should have an ID")
+			}
 
-	// Compare objects
-	fieldsToCheck := []string{"Name", "Username", "Email"}
-	helpers.CompareObjects(createdUser, userToCreate, t, fieldsToCheck)
+			// Compare objects
+			fieldsToCheck := []string{"Name", "Username", "Email"}
+			helpers.CompareObjects(createdUser, v.userToCreate, t, fieldsToCheck)
 
-	// Verify that the created user has a hashed password
-	if err := bcrypt.CompareHashAndPassword([]byte(createdUser.Password), []byte(userToCreate.Password)); err != nil {
-		t.Errorf("created user has incorrect password hash: %v", err)
-	}
+			// Verify that the created user has a hashed password
+			if err := bcrypt.CompareHashAndPassword([]byte(createdUser.Password), []byte(v.userToCreate.Password)); err != nil {
+				t.Errorf("created user has incorrect password hash: %v", err)
+			}
+			// Check if expected role applied
+			if createdUser.Role != v.userToCreate.Role {
+				t.Errorf("created user has incorrect role: expected %v, got %s", createdUser.Role, v.userToCreate.Role)
+			}
 
-	// Check if default role applied
-	if createdUser.Role != "user" {
-		t.Errorf("created user has incorrect role: expected 'role:user', got %s", createdUser.Role)
-	}
+			// Clean up: Delete created user
+			result := testModule.dbClient.Delete(&db.User{}, createdUser.ID)
+			if result.Error != nil {
+				t.Fatalf("failed to delete created user: %v", result.Error)
+			}
+		}
 
-	// Clean up: Delete created user
-	result := testModule.dbClient.Delete(&db.User{}, createdUser.ID)
-	if result.Error != nil {
-		t.Fatalf("failed to delete created user: %v", result.Error)
 	}
 }
 
@@ -142,6 +171,41 @@ func TestUserService_Delete(t *testing.T) {
 }
 
 func TestUserService_BulkDelete(t *testing.T) {
+	createdUser1, err := helpers.HashPassAndGenerateUserInDb(&db.User{
+		Username: "Jabar",
+		Email:    "zuko@ymail.com",
+		Password: "password",
+		Name:     "Crimson",
+	}, testModule.dbClient, t)
+	if err != nil {
+		t.Fatalf("failed to create test user: %v", err)
+	}
+	createdUser2, err := helpers.HashPassAndGenerateUserInDb(&db.User{
+		Username: "Jabar",
+		Email:    "euro@ymail.com",
+		Password: "password",
+		Name:     "Crimson",
+	}, testModule.dbClient, t)
+	if err != nil {
+		t.Fatalf("failed to create test user: %v", err)
+	}
+
+	// Test function
+	// Delete the created users
+	err = testModule.users.serv.BulkDelete([]int{int(createdUser1.ID), int(createdUser2.ID)})
+	if err != nil {
+		t.Fatalf("failed to delete created users: %v", err)
+	}
+
+	// Check to see if user has been deleted
+	userResults := []db.User{}
+	result := testModule.dbClient.Where("id IN (?)", []int{int(createdUser1.ID), int(createdUser2.ID)}).Find(&userResults)
+	if result.Error != nil {
+		t.Fatal("Expected an error but got none")
+	}
+	if len(userResults) > 0 {
+		t.Fatal("Expected an empty result but got some")
+	}
 }
 
 func TestUserService_Update(t *testing.T) {

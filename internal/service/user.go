@@ -48,6 +48,22 @@ func NewUserService(repo repository.UserRepository, auth repository.AuthPolicyRe
 
 // Creates a user in the database
 func (s *userService) Create(user *models.CreateUser) (*models.UserWithRole, error) {
+	// Process role
+	if user.Role != "" {
+		// Check if role exists
+		roles, err := s.auth.FindAllRoles()
+		if err != nil {
+			return nil, fmt.Errorf("failed creating user: %w", err)
+		}
+		// If role not found, return error
+		if !helpers.ArrayContainsString(roles, user.Role) {
+			return nil, errors.New("role not found")
+		}
+	} else {
+		// Else set as default role
+		user.Role = "user"
+	}
+
 	// Build hashed password from user password input
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -62,32 +78,19 @@ func (s *userService) Create(user *models.CreateUser) (*models.UserWithRole, err
 		Verified: &user.Verified,
 	}
 
-	fmt.Printf("User to create: %+v", toCreate)
-
 	// Create above user in database
 	created, err := s.repo.Create(&toCreate)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating user: %w", err)
 	}
 
-	// If no role found, assign user role
-	if user.Role == "" {
-		user.Role = "user"
-	}
 	// Assign user role
 	success, err := s.auth.AssignUserRole(fmt.Sprint(created.ID), user.Role)
-	if !*success {
-		return nil, fmt.Errorf("failed assigning user role: %w", err)
-	}
 	if err != nil {
-		fmt.Printf("Role: %s does not exist. Creating...", err)
-		success, err = s.auth.CreateRole(fmt.Sprint(created.ID), user.Role)
-		if err != nil {
-			return nil, fmt.Errorf("failed assigning user role: %w", err)
-		}
-		if !*success {
-			return nil, fmt.Errorf("failed assigning user role: %w", err)
-		}
+		return nil, fmt.Errorf("failed creating user: %w", err)
+	}
+	if !*success {
+		return nil, fmt.Errorf("failed creating user: %w", err)
 	}
 
 	// Combine user and role data
