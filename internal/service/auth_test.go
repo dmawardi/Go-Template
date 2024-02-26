@@ -1,12 +1,14 @@
 package service_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
+// Policies
 func TestAuthPolicyService_Create(t *testing.T) {
 	policyToCreate := models.PolicyRule{
 		Resource: "/testResource",
@@ -38,7 +40,6 @@ func TestAuthPolicyService_Create(t *testing.T) {
 		t.Errorf("Error deleting policy: %v", err)
 	}
 }
-
 func TestAuthPolicyService_Delete(t *testing.T) {
 	// Create a policy
 	policyToCreate := models.PolicyRule{
@@ -67,7 +68,6 @@ func TestAuthPolicyService_Delete(t *testing.T) {
 		t.Errorf("Expected 0 policy, got %d", len(policies))
 	}
 }
-
 func TestAuthPolicyService_FindByResource(t *testing.T) {
 	// Create a policy
 	policyToCreate := models.PolicyRule{
@@ -97,7 +97,6 @@ func TestAuthPolicyService_FindByResource(t *testing.T) {
 		t.Errorf("Error deleting policy: %v", err)
 	}
 }
-
 func TestAuthPolicyService_FindAll(t *testing.T) {
 	// Create a policy
 	policy1 := models.PolicyRule{
@@ -166,7 +165,6 @@ func TestAuthPolicyService_FindAll(t *testing.T) {
 		}
 	}
 }
-
 func TestAuthPolicyService_Update(t *testing.T) {
 	// Create a policy
 	policyToCreate := models.PolicyRule{
@@ -222,77 +220,159 @@ func TestAuthPolicyService_FindAllRoles(t *testing.T) {
 	if len(roles) != 3 {
 		t.Errorf("Expected 3 roles, got %d", len(roles))
 	}
-
-	// Clean up
 }
 
-// func TestAuthPolicyService_FindRoleByUserId(t *testing.T) {
-// 	// Create a user with a role
-// 	createdUser, err := testModule.users.serv.Create(&models.CreateUser{
-// 		Email:    "banjo@gmial.com",
-// 		Password: "password",
-// 		Role:     "admin",
-// 	})
-// 	if err != nil {
-// 		t.Errorf("Error creating user: %v", err)
-// 	}
+func TestAuthPolicyService_FindRoleByUserId(t *testing.T) {
+	// Create a user with a role
+	createdUser, err := testModule.users.serv.Create(&models.CreateUser{
+		Email:    "banjo@gmial.com",
+		Password: "password",
+		Role:     "admin",
+	})
+	if err != nil {
+		t.Errorf("Error creating user: %v", err)
+	}
 
-// 	// Test function
-// 	role, err := testModule.auth.serv.FindRoleByUserId(int(createdUser.ID))
-// 	if err != nil {
-// 		t.Errorf("Error finding role: %v", err)
-// 	}
+	// Test function
+	role, err := testModule.auth.serv.FindRoleByUserId(int(createdUser.ID))
+	if err != nil {
+		t.Errorf("Error finding role: %v", err)
+	}
 
-// 	// Test if role is found
-// 	if role != createdUser.Role {
-// 		t.Errorf("Expected role %s, got %s", createdUser.Role, role)
-// 	}
+	// Test if role is found
+	if role != createdUser.Role {
+		t.Errorf("Expected role %s, got %s", createdUser.Role, role)
+	}
 
-// 	// Clean up
-// 	err = testModule.users.serv.Delete(int(createdUser.ID))
-// 	if err != nil {
-// 		t.Errorf("Error deleting user: %v", err)
-// 	}
-// }
+	// Clean up
+	err = testModule.users.serv.Delete(int(createdUser.ID))
+	if err != nil {
+		t.Errorf("Error deleting user: %v", err)
+	}
+}
 
-// func TestAuthPolicyService_AssignUserRole(t *testing.T) {
-// 	// Create a user
-// 	createdUser, err := testModule.users.serv.Create(&models.CreateUser{
-// 		Email:    "willybongo@gmial.com",
-// 		Password: "password",
-// 		Role:     "admin",
-// 	})
-// 	if err != nil {
-// 		t.Errorf("Error creating user: %v", err)
-// 	}
+func TestAuthPolicyService_AssignUserRole(t *testing.T) {
+	// Create a user
+	createdUser, err := testModule.users.serv.Create(&models.CreateUser{
+		Email:    "willybongo@gmial.com",
+		Password: "password",
+		Role:     "admin",
+	})
+	if err != nil {
+		t.Errorf("Error creating user: %v", err)
+	}
 
-// 	// Test function
-// 	roleToApply := "user"
-// 	success, err := testModule.auth.serv.AssignUserRole(fmt.Sprint(createdUser.ID), roleToApply)
-// 	if err != nil {
-// 		t.Errorf("Error assigning role: %v", err)
-// 	}
-// 	if !*success {
-// 		t.Errorf("Expected success, got %v", success)
-// 	}
+	var tests = []struct {
+		roleToApply     string
+		expectedSuccess bool
+	}{
+		{"admin", true},
+		{"moderator", true},
+		{"user", true},
+		{"nonexistentrole", false},
+	}
 
-// 	// Test if role is assigned
-// 	role, err := testModule.auth.serv.FindRoleByUserId(int(createdUser.ID))
-// 	if err != nil {
-// 		t.Errorf("Error finding role: %v", err)
-// 	}
+	for _, v := range tests {
+		// Test function
+		success, err := testModule.auth.serv.AssignUserRole(fmt.Sprint(createdUser.ID), v.roleToApply)
 
-// 	// Test if role is found as required
-// 	if role != roleToApply {
-// 		t.Errorf("Expected role %s, got %s", roleToApply, role)
-// 	}
+		// If success is expected
+		if v.expectedSuccess {
+			// Check that there is no error
+			if err != nil {
+				t.Errorf("Error assigning role: %v", err)
+			}
+			if !*success {
+				t.Errorf("Expected success, got %v", success)
+			}
 
-// 	// Clean up
-// 	err = testModule.users.serv.Delete(int(createdUser.ID))
-// 	if err != nil {
-// 		t.Errorf("Error deleting user: %v", err)
-// 	}
-// }
+			// Test if role is assigned
+			role, err := testModule.auth.serv.FindRoleByUserId(int(createdUser.ID))
+			if err != nil {
+				t.Errorf("Error finding role: %v", err)
+			}
+
+			// Test if role is found as required
+			if role != v.roleToApply {
+				t.Errorf("Expected role %s, got %s", v.roleToApply, role)
+			}
+
+			// Else if failure expected
+		} else {
+			// Check that there is an error
+			if err == nil {
+				t.Errorf("Expected error, got nil")
+			}
+			if success != nil {
+				t.Errorf("Expected success to be nil, got %v", success)
+			}
+		}
+	}
+
+	// Clean up
+	err = testModule.users.serv.Delete(int(createdUser.ID))
+	if err != nil {
+		t.Errorf("Error deleting user: %v", err)
+	}
+}
+
+func TestAuthPolicyService_CreateRole(t *testing.T) {
+	// Create a user
+	createdUser, err := testModule.users.serv.Create(&models.CreateUser{
+		Email:    "KurtBangle@gmial.com",
+		Password: "password",
+		Role:     "admin",
+	})
+	if err != nil {
+		t.Errorf("Error creating user: %v", err)
+	}
+
+	var tests = []struct {
+		roleToApply     string
+		expectedSuccess bool
+	}{
+		{"admin", true},
+		{"moderator", true},
+		{"user", true},
+		{"nonexistentrole", true},
+	}
+
+	for _, v := range tests {
+		// Test function
+		success, err := testModule.auth.serv.CreateRole(fmt.Sprint(createdUser.ID), v.roleToApply)
+
+		// Check that there is no error
+		if err != nil {
+			t.Errorf("Error assigning role: %v", err)
+		}
+		if !*success {
+			t.Errorf("Expected success, got %v", success)
+		}
+
+		roles, err := testModule.auth.serv.FindAllRoles()
+		if err != nil {
+			t.Errorf("Error finding roles: %v", err)
+		}
+		t.Errorf("Roles: %v", roles)
+
+		// Test if role is assigned
+		role, err := testModule.auth.serv.FindRoleByUserId(int(createdUser.ID))
+		if err != nil {
+			t.Errorf("Error finding role: %v", err)
+		}
+
+		// Test if role is found as required
+		if role != v.roleToApply {
+			t.Errorf("Expected role %s, got %s", v.roleToApply, role)
+		}
+	}
+
+	// Clean up
+	err = testModule.users.serv.Delete(int(createdUser.ID))
+	if err != nil {
+		t.Errorf("Error deleting user: %v", err)
+	}
+}
 
 // Role inheritance
 

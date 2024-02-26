@@ -58,6 +58,7 @@ func TestMain(m *testing.M) {
 
 	// Set app config in repository
 	repository.SetAppConfig(&app)
+	auth.SetStateInAuth(&app)
 
 	testModule.TestRepoSetup(testModule.dbClient)
 

@@ -141,7 +141,6 @@ func TestAuthPolicyRepository_FindAllRoles(t *testing.T) {
 	if len(roles) != 3 {
 		t.Errorf("Expected 2 roles, found %v: %v", len(roles), roles)
 	}
-
 }
 func TestAuthPolicyRepository_FindRoleByUserId(t *testing.T) {
 	// Create user
@@ -195,9 +194,12 @@ func TestAuthPolicyRepository_CreateRole(t *testing.T) {
 	}
 
 	// Check that role has been created
-	roles := app.Auth.Enforcer.GetAllRoles()
+	roles, err := testModule.auth.repo.FindAllRoles()
+	if err != nil {
+		t.Errorf("Error finding roles: %v", err)
+	}
 
-	rolesContains := helpers.ArrayContainsString(roles, fmt.Sprintf("role:%v", roleToCreate))
+	rolesContains := helpers.ArrayContainsString(roles, roleToCreate)
 
 	if !rolesContains {
 		t.Errorf("Did not find %v contained in %v", role, roles)
@@ -230,6 +232,7 @@ func TestAuthRoleRepository_DeleteRolesForUser(t *testing.T) {
 	if !*success {
 		t.Errorf("Expected true, found %v", *success)
 	}
+
 	// Test function
 	success, err = testModule.auth.repo.DeleteRolesForUser(fmt.Sprint(createdUser.ID))
 	if err != nil {
@@ -237,6 +240,12 @@ func TestAuthRoleRepository_DeleteRolesForUser(t *testing.T) {
 	}
 	if !*success {
 		t.Errorf("Expected true, found %v", *success)
+	}
+
+	// Check that role has been deleted
+	gRecords := app.Auth.Enforcer.GetGroupingPolicy()
+	if len(gRecords) != 2 {
+		t.Errorf("Expected to have only default 2, found %v", len(gRecords))
 	}
 
 	// Cleanup
