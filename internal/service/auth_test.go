@@ -342,32 +342,36 @@ func TestAuthPolicyService_CreateRole(t *testing.T) {
 		// Test function
 		success, err := testModule.auth.serv.CreateRole(fmt.Sprint(createdUser.ID), v.roleToApply)
 
-		// Check that there is no error
-		if err != nil {
-			t.Errorf("Error assigning role: %v", err)
-		}
-		if !*success {
-			t.Errorf("Expected success, got %v", success)
+		if v.expectedSuccess {
+			// Check that there is no error
+			if err != nil {
+				t.Errorf("Error assigning role: %v", err)
+			}
+			if !*success {
+				t.Errorf("Expected success, got %v", success)
+			}
+
+			// Check role is created
+			roles, err := testModule.auth.serv.FindAllRoles()
+			if err != nil {
+				t.Errorf("Error finding roles: %v", err)
+			}
+			if !helpers.ArrayContainsString(roles, v.roleToApply) {
+				t.Errorf("Expected role %s to be created, got %v", v.roleToApply, roles)
+			}
+
+			// Test if role is assigned
+			role, err := testModule.auth.serv.FindRoleByUserId(int(createdUser.ID))
+			if err != nil {
+				t.Errorf("Error finding role: %v", err)
+			}
+
+			// Test if role is found as required
+			if role != v.roleToApply {
+				t.Errorf("Expected role %s, got %s", v.roleToApply, role)
+			}
 		}
 
-		roles, err := testModule.auth.serv.FindAllRoles()
-		if err != nil {
-			t.Errorf("Error finding roles: %v", err)
-		}
-		if !helpers.ArrayContainsString(roles, v.roleToApply) {
-			t.Errorf("Expected role %s to be created, got %v", v.roleToApply, roles)
-		}
-
-		// Test if role is assigned
-		role, err := testModule.auth.serv.FindRoleByUserId(int(createdUser.ID))
-		if err != nil {
-			t.Errorf("Error finding role: %v", err)
-		}
-
-		// Test if role is found as required
-		if role != v.roleToApply {
-			t.Errorf("Expected role %s, got %s", v.roleToApply, role)
-		}
 	}
 
 	// Clean up
