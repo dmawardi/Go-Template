@@ -109,6 +109,10 @@ func TestMain(m *testing.M) {
 		Name:     "Bamba",
 	})
 
+	// Get g records
+	gRecords := app.Auth.Enforcer.GetGroupingPolicy()
+	fmt.Println("G records: ", gRecords)
+
 	// Run the rest of the tests
 	exitCode := m.Run()
 	// exit with the same exit code as the tests
@@ -158,7 +162,7 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 //
 // Setup dummy admin and user account and apply to test connection
 func (t *controllerTestModule) setupDummyAccounts(adminUser *models.CreateUser, basicUser *models.CreateUser) {
-	adminUser.Role = "role:admin"
+	adminUser.Role = "admin"
 	// Build admin user
 	createdAdminUser, adminToken := t.generateUserWithRoleAndToken(
 		adminUser)
@@ -166,7 +170,7 @@ func (t *controllerTestModule) setupDummyAccounts(adminUser *models.CreateUser, 
 	t.accounts.admin.details = createdAdminUser
 	t.accounts.admin.token = adminToken
 
-	basicUser.Role = "role:user"
+	basicUser.Role = "user"
 	// Build normal user
 	createdBasicUser, userToken := t.generateUserWithRoleAndToken(
 		basicUser)
@@ -178,23 +182,27 @@ func (t *controllerTestModule) setupDummyAccounts(adminUser *models.CreateUser, 
 // Generates a new user, changes its role to admin and returns it with token
 func (t *controllerTestModule) generateUserWithRoleAndToken(user *models.CreateUser) (*models.UserWithRole, string) {
 	// Create user (will create new roles if not found)
+	// The creation of user is incorrect. not applying naming convention to role
 	createdUser, err := t.users.serv.Create(user)
+	if err != nil {
+		fmt.Println("Failed to create user: ", err)
+		return nil, ""
 
-	// If match found (no errors)
-	if err == nil {
-		fmt.Println("Generating token for: ", createdUser.Email)
-		// Set login status to true
-		tokenString, err := auth.GenerateJWT(int(createdUser.ID), createdUser.Email, createdUser.Role)
-		if err != nil {
-			fmt.Println("Failed to create JWT")
-		}
-
-		// Add unhashed password to returned object
-		createdUser.Password = user.Password
-		// Send to user in body
-		return createdUser, tokenString
 	}
-	return nil, ""
+
+	// If successful, generate token
+	fmt.Println("Generating token for: ", createdUser.Email)
+	// Set login status to true
+	tokenString, err := auth.GenerateJWT(int(createdUser.ID), createdUser.Email, createdUser.Role)
+	if err != nil {
+		fmt.Println("Failed to create JWT")
+	}
+
+	// Add unhashed password to returned object
+	createdUser.Password = user.Password
+	// Send to user in body
+	return createdUser, tokenString
+
 }
 
 // Helper functions

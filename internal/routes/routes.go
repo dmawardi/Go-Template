@@ -149,9 +149,9 @@ func (a api) AddAuthRBACApiRoutes(router *chi.Mux) *chi.Mux {
 			mux.Put("/api/auth/roles", a.Policy.AssignUserRole)
 			mux.Post("/api/auth/roles", a.Policy.CreateRole)
 			// Inheritance
-			// mux.Get("/api/auth/inheritance", a.Policy.FindAllRoleInheritance)
-			// mux.Post("/api/auth/inheritance", a.Policy.CreateInheritance)
-			// mux.Delete("/api/auth/inheritance", a.Policy.DeleteInheritance)
+			mux.Get("/api/auth/inheritance", a.Policy.FindAllRoleInheritance)
+			mux.Post("/api/auth/inheritance", a.Policy.CreateInheritance)
+			mux.Delete("/api/auth/inheritance", a.Policy.DeleteInheritance)
 		})
 
 	})

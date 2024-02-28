@@ -23,9 +23,9 @@ type AuthPolicyController interface {
 	AssignUserRole(w http.ResponseWriter, r *http.Request)
 	CreateRole(w http.ResponseWriter, r *http.Request)
 	// Inheritance
-	// FindAllRoleInheritance(w http.ResponseWriter, r *http.Request)
-	// CreateInheritance(w http.ResponseWriter, r *http.Request)
-	// DeleteInheritance(w http.ResponseWriter, r *http.Request)
+	FindAllRoleInheritance(w http.ResponseWriter, r *http.Request)
+	CreateInheritance(w http.ResponseWriter, r *http.Request)
+	DeleteInheritance(w http.ResponseWriter, r *http.Request)
 }
 
 type authPolicyController struct {
@@ -333,16 +333,16 @@ func (c authPolicyController) CreateRole(w http.ResponseWriter, r *http.Request)
 // // @Failure      400 {string} string "Can't find roles"
 // // @Router       /auth/inheritance [get]
 // // @Security BearerToken
-// func (c authPolicyController) FindAllRoleInheritance(w http.ResponseWriter, r *http.Request) {
-// 	// Find all roles
-// 	roles, err := c.service.FindAllRoleInheritance()
-// 	if err != nil {
-// 		http.Error(w, "Can't find roles", http.StatusBadRequest)
-// 		return
-// 	}
-// 	// Return posts
-// 	helpers.WriteAsJSON(w, roles)
-// }
+func (c authPolicyController) FindAllRoleInheritance(w http.ResponseWriter, r *http.Request) {
+	// Find all roles
+	roles, err := c.service.FindAllRoleInheritance()
+	if err != nil {
+		http.Error(w, "Can't find roles", http.StatusBadRequest)
+		return
+	}
+	// Return posts
+	helpers.WriteAsJSON(w, roles)
+}
 
 // // @Summary      Creates a role inheritance
 // // @Description  Accepts a role inheritance as a JSON body and creates the role inheritance
@@ -354,37 +354,37 @@ func (c authPolicyController) CreateRole(w http.ResponseWriter, r *http.Request)
 // // @Failure      400 {string} string "Can't create inheritance"
 // // @Router       /auth/inheritance [post]
 // // @Security BearerToken
-// func (c authPolicyController) CreateInheritance(w http.ResponseWriter, r *http.Request) {
-// 	// Grab request body as models.CasbinRule
-// 	var pol models.GRecord
-// 	err := json.NewDecoder(r.Body).Decode(&pol)
-// 	if err != nil {
-// 		http.Error(w, "Invalid policy", http.StatusBadRequest)
-// 		return
-// 	}
+func (c authPolicyController) CreateInheritance(w http.ResponseWriter, r *http.Request) {
+	// Grab request body as models.CasbinRule
+	var pol models.GRecord
+	err := json.NewDecoder(r.Body).Decode(&pol)
+	if err != nil {
+		http.Error(w, "Invalid policy", http.StatusBadRequest)
+		return
+	}
 
-// 	// Validate the incoming DTO
-// 	pass, valErrors := helpers.GoValidateStruct(&pol)
-// 	// If failure detected
-// 	if !pass {
-// 		// Write bad request header
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		// Write validation errors to JSON
-// 		helpers.WriteAsJSON(w, valErrors)
-// 		return
-// 	}
-// 	// else, validation passes and allow through
+	// Validate the incoming DTO
+	pass, valErrors := helpers.GoValidateStruct(&pol)
+	// If failure detected
+	if !pass {
+		// Write bad request header
+		w.WriteHeader(http.StatusBadRequest)
+		// Write validation errors to JSON
+		helpers.WriteAsJSON(w, valErrors)
+		return
+	}
+	// else, validation passes and allow through
 
-// 	err = c.service.CreateInheritance(pol)
-// 	if err != nil {
-// 		http.Error(w, "Can't create inheritance", http.StatusBadRequest)
-// 		return
-// 	}
+	err = c.service.CreateInheritance(pol)
+	if err != nil {
+		http.Error(w, "Can't create inheritance", http.StatusBadRequest)
+		return
+	}
 
-// 	// Return success
-// 	w.WriteHeader(http.StatusCreated)
-// 	w.Write([]byte("Inheritance creation successful!"))
-// }
+	// Return success
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte("Inheritance creation successful!"))
+}
 
 // // @Summary      Deletes a role inheritance
 // // @Description  Accepts a role inheritance as a JSON body and deletes the role inheritance
@@ -396,34 +396,34 @@ func (c authPolicyController) CreateRole(w http.ResponseWriter, r *http.Request)
 // // @Failure      400 {string} string "Can't delete inheritance"
 // // @Router       /auth/inheritance [delete]
 // // @Security BearerToken
-// func (c authPolicyController) DeleteInheritance(w http.ResponseWriter, r *http.Request) {
-// 	// Grab request body as models.CasbinRule
-// 	var pol models.GRecord
-// 	err := json.NewDecoder(r.Body).Decode(&pol)
-// 	if err != nil {
-// 		http.Error(w, "Invalid policy", http.StatusBadRequest)
-// 		return
-// 	}
+func (c authPolicyController) DeleteInheritance(w http.ResponseWriter, r *http.Request) {
+	// Grab request body as models.CasbinRule
+	var pol models.GRecord
+	err := json.NewDecoder(r.Body).Decode(&pol)
+	if err != nil {
+		http.Error(w, "Invalid policy", http.StatusBadRequest)
+		return
+	}
 
-// 	// Validate the incoming DTO
-// 	pass, valErrors := helpers.GoValidateStruct(&pol)
-// 	// If failure detected
-// 	if !pass {
-// 		// Write bad request header
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		// Write validation errors to JSON
-// 		helpers.WriteAsJSON(w, valErrors)
-// 		return
-// 	}
-// 	// else, validation passes and allow through
+	// Validate the incoming DTO
+	pass, valErrors := helpers.GoValidateStruct(&pol)
+	// If failure detected
+	if !pass {
+		// Write bad request header
+		w.WriteHeader(http.StatusBadRequest)
+		// Write validation errors to JSON
+		helpers.WriteAsJSON(w, valErrors)
+		return
+	}
+	// else, validation passes and allow through
 
-// 	err = c.service.DeleteInheritance(pol)
-// 	if err != nil {
-// 		http.Error(w, "Can't delete inheritance", http.StatusBadRequest)
-// 		return
-// 	}
+	err = c.service.DeleteInheritance(pol)
+	if err != nil {
+		http.Error(w, "Can't delete inheritance", http.StatusBadRequest)
+		return
+	}
 
-// 	// Return success
-// 	w.WriteHeader(http.StatusOK)
-// 	w.Write([]byte("Inheritance deletion successful!"))
-// }
+	// Return success
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Inheritance deletion successful!"))
+}

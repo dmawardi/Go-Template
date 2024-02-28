@@ -13,6 +13,8 @@ import (
 )
 
 func TestAuthController_FindAll(t *testing.T) {
+	testName := "Auth Find all"
+	expectedStatusResponse := http.StatusOK
 	req, err := buildApiRequest("GET", "auth", nil, true, testModule.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
@@ -24,17 +26,18 @@ func TestAuthController_FindAll(t *testing.T) {
 	testModule.router.ServeHTTP(rr, req)
 
 	// Check the response status code
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("%v: got %v want %v", "Auth Find all",
-			status, http.StatusOK)
+	if status := rr.Code; status != expectedStatusResponse {
+		t.Errorf("%v: got %v want %v: %v", testName,
+			status, expectedStatusResponse, rr.Body.String())
 	}
+	t.Errorf("Admin token: %v", testModule.accounts.admin.token)
 
 	// Convert response JSON to struct
 	var body []models.PolicyRuleCombinedActions
 	json.Unmarshal(rr.Body.Bytes(), &body)
 
+	// Check if type matches
 	match := helpers.CheckSliceType(body, reflect.TypeOf(models.PolicyRuleCombinedActions{}))
-
 	if match == false {
 		t.Errorf("Expected %v, got %v", reflect.TypeOf(models.PolicyRuleCombinedActions{}), reflect.TypeOf(body))
 	}

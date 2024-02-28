@@ -78,6 +78,7 @@ func Authorize(userId, object, action string) bool {
 		fmt.Print("Failed to enforce RBAC policy in Authorization middleware: ", err, "\nUser ID: ", userId, "\nObject: ", object, "\nAction: ", action, "\n")
 		return false
 	}
+	// Get roles for user
 	roles, err := app.Auth.Enforcer.GetRolesForUser(userId)
 	if err != nil {
 		fmt.Println("Error getting roles for user in Authorization middleware: ", err)

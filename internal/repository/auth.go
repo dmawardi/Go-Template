@@ -182,6 +182,8 @@ func (r *authPolicyRepository) AssignUserRole(userId, roleToApply string) (*bool
 		return nil, err
 	}
 
+	// Apply naming convention to new role record
+	roleToApply = "role:" + roleToApply
 	// Add the new role for the user.
 	success, err := r.auth.Enforcer.AddRoleForUser(userId, roleToApply)
 	if err != nil {
