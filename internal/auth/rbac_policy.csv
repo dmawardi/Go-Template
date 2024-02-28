@@ -45,4 +45,3 @@ p,role:admin,/admin/**,delete
 # Group Inheritance
 g,role:moderator,role:user
 g,role:admin,role:moderator
-g,role:superadmin,role:admin

@@ -202,10 +202,7 @@ func (r *authPolicyRepository) CreateRole(userId, roleToApply string) (*bool, er
 		return nil, result.Error
 	}
 
-	// Apply naming convention to new role record
-	roleToApply = "role:" + roleToApply
-
-	// Check to ensure role doesn't already exist
+	// Check to ensure role doesn't already exist (Naming convention removed as using repo function)
 	roles, err := r.FindAllRoles()
 	if err != nil {
 		return nil, fmt.Errorf("error creating role: %v", err)
@@ -216,6 +213,7 @@ func (r *authPolicyRepository) CreateRole(userId, roleToApply string) (*bool, er
 	if roleFound {
 		return nil, fmt.Errorf("error creating role: Role already exists")
 	}
+	fmt.Printf("Role not found: %v\nCurrent roles: %v\n", roleToApply, roles)
 
 	// Else, proceed to delete the user's old role and add the new role
 	// First, remove the existing roles for the user (if found)
@@ -224,6 +222,9 @@ func (r *authPolicyRepository) CreateRole(userId, roleToApply string) (*bool, er
 		fmt.Printf("Error removing roles for user: %v\n", err)
 		return nil, err
 	}
+
+	// Apply naming convention to new role record
+	roleToApply = "role:" + roleToApply
 	// Create the new role with the user as the first member
 	success, err := app.Auth.Enforcer.AddRoleForUser(userId, roleToApply)
 	if err != nil {
