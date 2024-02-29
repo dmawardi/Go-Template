@@ -72,7 +72,7 @@ Follow these steps to add a feature to the API. This template uses the clean arc
 11. Add the routes in the AddAdminRoutes function in ./internal/routes/routes.go
 12. Add the route to the RBAC authorization policy file (./internal/auth/rbac_policy.go)
 
-13. (Testing) For e2e testing, you will need to update the controllers_test.go file in ./internal/controller. Updates are required in the testDbRepo struct, buildAPI, setupDatabase & setupDBAuthAppModels functions
+13. (Testing) For e2e testing, you will need to update the controllers_test.go file in ./internal/controller. Updates are required in the controllerTestModule struct, TestApiSetup, & setupTestDatabase functions. You will need to create a new module to add to the Test Module struct. This module will contain the repository, service, and controller for the new feature. You will also need to add the new module to the controllerTestModule struct in the setupTestDatabase function.
 
 ---
 
