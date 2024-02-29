@@ -151,22 +151,35 @@ eg. Assigning read permission to user role for /api/me endpoint
 | ------ | ---- | ------- | ---- |
 | p | user | /api/me | read |
 
-g = Used to assign roles to users
+g = Used to assign roles to users & used to assign permissions to roles
+Each g record is either a role assignment to a user or a role inheritance to another role.
+All roles start with a 'role:' prefix
+
+A role assignment is considered a role inheritance to a user: eg. user with id 2 has moderator role
+An inheritance record is considered a role inheritance to another role: eg. admin role has all permissions of moderator role
+
 eg. Assigning a moderator role to user with id 2
 | p type | v0 | v1 |
 | ------ | ---- | ------- |
-| g | 2 | moderator |
-
-g2 = Used to assign roles to roles to create an inheritance heirarchy
-eg. Allocating all permissions for moderator role to admin role
-| p type | v0 | v1 |
-| ------ | ---- | ------- |
-| g2 | admin | moderator |
+| g | 2 | role:moderator |
+| g | role:admin | role:moderator |
 
 What about record level control?
 eg. User can only edit their own profile
 
 For sake of flexibility, reducing casbin policy model complexity, and to avoid having to create a new policy for each new record, we will use custom application logic within handlers to check if the user is the owner of the record to allow passing of the request to the service.
+
+Another option is to use the casbin policy to check if the user is the owner of the record. However, this would require a new policy for each new record type.
+
+### Wild cards
+
+Policy resources allow for wild cards to be more flexible. This is useful for allowing a role to access all records of a certain type.
+
+eg. admin, /api/v1/users/_, POST
+or admin, /api/v1/users/\*\* _/, GET
+
+\*: would allow for the admin role to access all resources under /api/v1/users. However, this doesn't proceed past the first level of the resource.(till the next '/')
+**: **would allow for the admin role to access all resources under /api/v1/users. This would proceed past the first level of the resource.
 
 Request -> Authorization (does user have permission through role?) -> Validation (does user own record?) -> Service (perform CRUD operation)
 
