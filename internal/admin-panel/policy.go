@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
+	"strings"
 
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
@@ -54,9 +56,9 @@ type AdminAuthPolicyController interface {
 	CreateRole(w http.ResponseWriter, r *http.Request)
 	CreateRoleSuccess(w http.ResponseWriter, r *http.Request)
 	// Inheritance
-	// FindAllRoleInheritance(w http.ResponseWriter, r *http.Request)
-	// CreateInheritance(w http.ResponseWriter, r *http.Request)
-	// DeleteInheritance(w http.ResponseWriter, r *http.Request)
+	FindAllRoleInheritance(w http.ResponseWriter, r *http.Request)
+	CreateInheritance(w http.ResponseWriter, r *http.Request)
+	DeleteInheritance(w http.ResponseWriter, r *http.Request)
 	CreateInheritanceSuccess(w http.ResponseWriter, r *http.Request)
 	DeleteInheritanceSuccess(w http.ResponseWriter, r *http.Request)
 	// For sidebar
@@ -381,7 +383,7 @@ func (c adminAuthPolicyController) CreateRole(w http.ResponseWriter, r *http.Req
 		// If validation passes
 		if pass {
 			// Create
-			success, err := c.service.AssignUserRole(toValidate.UserId, toValidate.Role)
+			success, err := c.service.CreateRole(toValidate.UserId, toValidate.Role)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Error assigning role %s", c.schemaName), http.StatusInternalServerError)
 				return
@@ -442,181 +444,181 @@ func (c adminAuthPolicyController) generateCreateRoleForm() []FormField {
 }
 
 // Inheritance
-// func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter, r *http.Request) {
-// 	// Grab query parameters
-// 	searchQuery := r.URL.Query().Get("search")
+func (c adminAuthPolicyController) FindAllRoleInheritance(w http.ResponseWriter, r *http.Request) {
+	// Grab query parameters
+	searchQuery := r.URL.Query().Get("search")
 
-// 	// Find all with options from database
-// 	inheritanceSlice, err := c.service.FindAllRoleInheritance()
-// 	if err != nil {
-// 		http.Error(w, "Error finding data", http.StatusInternalServerError)
-// 		return
-// 	}
-// 	// // Filter by search query
-// 	inheritanceSlice = helpers.SearchG2Records(inheritanceSlice, searchQuery)
+	// Find all with options from database
+	inheritanceSlice, err := c.service.FindAllRoleInheritance()
+	if err != nil {
+		http.Error(w, "Error finding data", http.StatusInternalServerError)
+		return
+	}
+	// // Filter by search query
+	inheritanceSlice = helpers.SearchGRecords(inheritanceSlice, searchQuery)
 
-// 	// Sort by resource alphabetically
-// 	sort.Slice(inheritanceSlice, func(i, j int) bool {
-// 		// Give two items to compare to alphabetic sorter
-// 		return inheritanceSlice[i].Role < inheritanceSlice[j].Role
-// 	})
+	// Sort by resource alphabetically
+	sort.Slice(inheritanceSlice, func(i, j int) bool {
+		// Give two items to compare to alphabetic sorter
+		return inheritanceSlice[i].Role < inheritanceSlice[j].Role
+	})
 
-// 	// // Build the roles table data
-// 	tableData := BuildRoleInheritanceTableData(inheritanceSlice, c.adminHomeUrl, c.inheritanceTableHeaders)
+	// // Build the roles table data
+	tableData := BuildRoleInheritanceTableData(inheritanceSlice, c.adminHomeUrl, c.inheritanceTableHeaders)
 
-// 	// Data to be injected into template
-// 	data := PageRenderData{
-// 		PageTitle:    "Admin: " + c.pluralSchemaName,
-// 		SectionTitle: fmt.Sprintf("Select a %s to edit", c.schemaName),
-// 		SidebarList:  sidebar,
-// 		TableData:    tableData,
-// 		SchemaHome:   c.adminHomeUrl,
-// 		SearchTerm:   searchQuery,
-// 		PageType: PageType{
-// 			EditPage:   false,
-// 			ReadPage:   true,
-// 			CreatePage: false,
-// 			DeletePage: false,
-// 			PolicyMode: "inheritance",
-// 		},
-// 		FormData: FormData{
-// 			FormDetails: FormDetails{
-// 				FormAction: c.adminHomeUrl + "/inheritance",
-// 				FormMethod: "get",
-// 			},
-// 			FormFields: []FormField{},
-// 		},
-// 		HeaderSection: header,
-// 	}
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    "Admin: " + c.pluralSchemaName,
+		SectionTitle: fmt.Sprintf("Select a %s to edit", c.schemaName),
+		SidebarList:  sidebar,
+		TableData:    tableData,
+		SchemaHome:   c.adminHomeUrl,
+		SearchTerm:   searchQuery,
+		PageType: PageType{
+			EditPage:   false,
+			ReadPage:   true,
+			CreatePage: false,
+			DeletePage: false,
+			PolicyMode: "inheritance",
+		},
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: c.adminHomeUrl + "/inheritance",
+				FormMethod: "get",
+			},
+			FormFields: []FormField{},
+		},
+		HeaderSection: header,
+	}
 
-// 	// Execute the template with data and write to response
-// 	err = app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
-// 	if err != nil {
-// 		fmt.Println(err.Error())
-// 		return
-// 	}
-// }
-// func (c adminAuthPolicyController) CreateInheritance(w http.ResponseWriter, r *http.Request) {
-// 	// Init new form
-// 	createForm := c.generateCreateInheritanceForm()
-// 	// Extract user form submission
-// 	formFieldMap, err := parseFormToMap(r)
-// 	if err != nil {
-// 		http.Error(w, "Error parsing form", http.StatusBadRequest)
-// 		return
-// 	}
-// 	// If form is being submitted (method = POST)
-// 	if r.Method == "POST" {
-// 		// Convert to role assignment struct
-// 		submittedForm := models.GRecord{
-// 			Role:         formFieldMap["role"],
-// 			InheritsFrom: formFieldMap["inherits_from"],
-// 		}
-// 		// Validate struct
-// 		pass, valErrors := helpers.GoValidateStruct(submittedForm)
-// 		// If failure detected
-// 		// If validation passes
-// 		if pass {
-// 			// Create
-// 			err := c.service.CreateInheritance(models.GRecord{Role: submittedForm.Role, InheritsFrom: submittedForm.InheritsFrom})
-// 			if err != nil {
-// 				http.Error(w, fmt.Sprintf("Error assigning role %s", c.schemaName), http.StatusInternalServerError)
-// 				return
-// 			}
+	// Execute the template with data and write to response
+	err = app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+func (c adminAuthPolicyController) CreateInheritance(w http.ResponseWriter, r *http.Request) {
+	// Init new form
+	createForm := c.generateCreateInheritanceForm()
+	// Extract user form submission
+	formFieldMap, err := parseFormToMap(r)
+	if err != nil {
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+	// If form is being submitted (method = POST)
+	if r.Method == "POST" {
+		// Convert to role assignment struct
+		submittedForm := models.GRecord{
+			Role:         formFieldMap["role"],
+			InheritsFrom: formFieldMap["inherits_from"],
+		}
+		// Validate struct
+		pass, valErrors := helpers.GoValidateStruct(submittedForm)
+		// If failure detected
+		// If validation passes
+		if pass {
+			// Create
+			err := c.service.CreateInheritance(models.GRecord{Role: submittedForm.Role, InheritsFrom: submittedForm.InheritsFrom})
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Error assigning role %s", c.schemaName), http.StatusInternalServerError)
+				return
+			}
 
-// 			// Redirect or render a success message
-// 			http.Redirect(w, r, fmt.Sprintf("%s/create-inheritance/success", c.adminHomeUrl), http.StatusSeeOther)
-// 			return
-// 		}
+			// Redirect or render a success message
+			http.Redirect(w, r, fmt.Sprintf("%s/create-inheritance/success", c.adminHomeUrl), http.StatusSeeOther)
+			return
+		}
 
-// 		// If validation fails
-// 		// Populate form field errors
-// 		SetValidationErrorsInForm(createForm, *valErrors)
-// 	}
+		// If validation fails
+		// Populate form field errors
+		SetValidationErrorsInForm(createForm, *valErrors)
+	}
 
-// 	// Render preparation
-// 	// Data to be injected into template
-// 	data := PageRenderData{
-// 		PageTitle:    fmt.Sprintf("Create %s Inheritance", c.schemaName),
-// 		SectionTitle: fmt.Sprintf("Create a new %s Inheritance", c.schemaName),
-// 		SidebarList:  sidebar,
-// 		PageType: PageType{
-// 			EditPage:   false,
-// 			ReadPage:   false,
-// 			CreatePage: true,
-// 			DeletePage: false,
-// 			PolicyMode: "policy",
-// 		},
-// 		FormData: FormData{
-// 			FormDetails: FormDetails{
-// 				FormAction: fmt.Sprintf("%s/create-inheritance", c.adminHomeUrl),
-// 				FormMethod: "post",
-// 			},
-// 			FormFields: createForm,
-// 		},
-// 		HeaderSection: header,
-// 	}
+	// Render preparation
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    fmt.Sprintf("Create %s Inheritance", c.schemaName),
+		SectionTitle: fmt.Sprintf("Create a new %s Inheritance", c.schemaName),
+		SidebarList:  sidebar,
+		PageType: PageType{
+			EditPage:   false,
+			ReadPage:   false,
+			CreatePage: true,
+			DeletePage: false,
+			PolicyMode: "policy",
+		},
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: fmt.Sprintf("%s/create-inheritance", c.adminHomeUrl),
+				FormMethod: "post",
+			},
+			FormFields: createForm,
+		},
+		HeaderSection: header,
+	}
 
-// 	// Execute the template with data and write to response
-// 	err = app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
-// 	if err != nil {
-// 		fmt.Println(err.Error())
-// 		return
-// 	}
-// }
-// func (c adminAuthPolicyController) DeleteInheritance(w http.ResponseWriter, r *http.Request) {
-// 	// Grab params from URL
-// 	inheritSlug := chi.URLParam(r, "inherit-slug")
-// 	// Split by comma to separate the two params
-// 	inheritArray := strings.Split(inheritSlug, ",")
-// 	// Assign individually
-// 	role := inheritArray[0]
-// 	inherits := inheritArray[1]
+	// Execute the template with data and write to response
+	err = app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+func (c adminAuthPolicyController) DeleteInheritance(w http.ResponseWriter, r *http.Request) {
+	// Grab params from URL
+	inheritSlug := chi.URLParam(r, "inherit-slug")
+	// Split by comma to separate the two params
+	inheritArray := strings.Split(inheritSlug, ",")
+	// Assign individually
+	role := inheritArray[0]
+	inherits := inheritArray[1]
 
-// 	// If form is being submitted (method = POST)
-// 	if r.Method == "POST" {
-// 		// Delete user
-// 		err := c.service.DeleteInheritance(models.GRecord{Role: role, InheritsFrom: inherits})
-// 		if err != nil {
-// 			http.Error(w, fmt.Sprintf("Error deleting %s", c.schemaName), http.StatusInternalServerError)
-// 			return
-// 		}
-// 		// Redirect to success page
-// 		http.Redirect(w, r, fmt.Sprintf("%s/delete-inheritance/success", c.adminHomeUrl), http.StatusSeeOther)
-// 		return
-// 	}
+	// If form is being submitted (method = POST)
+	if r.Method == "POST" {
+		// Delete user
+		err := c.service.DeleteInheritance(models.GRecord{Role: role, InheritsFrom: inherits})
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error deleting %s", c.schemaName), http.StatusInternalServerError)
+			return
+		}
+		// Redirect to success page
+		http.Redirect(w, r, fmt.Sprintf("%s/delete-inheritance/success", c.adminHomeUrl), http.StatusSeeOther)
+		return
+	}
 
-// 	// GET request
-// 	// Data to be injected into template
-// 	data := PageRenderData{
-// 		PageTitle:    fmt.Sprintf("Delete %s", c.schemaName),
-// 		SectionTitle: fmt.Sprintf("Are you sure you wish to delete: %s?", fmt.Sprintf("%s inherits from %s", role, inherits)),
-// 		SidebarList:  sidebar,
-// 		SchemaHome:   c.adminHomeUrl,
-// 		PageType: PageType{
-// 			EditPage:   false,
-// 			ReadPage:   false,
-// 			CreatePage: false,
-// 			DeletePage: true,
-// 			PolicyMode: "policy",
-// 		},
-// 		FormData: FormData{
-// 			FormDetails: FormDetails{
-// 				FormAction: fmt.Sprintf("%s/delete-inheritance/%s", c.adminHomeUrl, inheritSlug),
-// 				FormMethod: "post",
-// 			},
-// 			FormFields: []FormField{},
-// 		},
-// 		HeaderSection: header,
-// 	}
+	// GET request
+	// Data to be injected into template
+	data := PageRenderData{
+		PageTitle:    fmt.Sprintf("Delete %s", c.schemaName),
+		SectionTitle: fmt.Sprintf("Are you sure you wish to delete: %s?", fmt.Sprintf("%s inherits from %s", role, inherits)),
+		SidebarList:  sidebar,
+		SchemaHome:   c.adminHomeUrl,
+		PageType: PageType{
+			EditPage:   false,
+			ReadPage:   false,
+			CreatePage: false,
+			DeletePage: true,
+			PolicyMode: "policy",
+		},
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: fmt.Sprintf("%s/delete-inheritance/%s", c.adminHomeUrl, inheritSlug),
+				FormMethod: "post",
+			},
+			FormFields: []FormField{},
+		},
+		HeaderSection: header,
+	}
 
-//		// Execute the template with data and write to response
-//		err := app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
-//		if err != nil {
-//			fmt.Println(err.Error())
-//			return
-//		}
-//	}
+	// Execute the template with data and write to response
+	err := app.AdminTemplates.ExecuteTemplate(w, "policy.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
 func (c adminAuthPolicyController) CreateInheritanceSuccess(w http.ResponseWriter, r *http.Request) {
 	// Serve admin success page
 	serveAdminSuccess(w, fmt.Sprintf("Create %s Role Inheritance", c.schemaName), fmt.Sprintf("%s Role Inheritance Created Successfully!", c.schemaName))

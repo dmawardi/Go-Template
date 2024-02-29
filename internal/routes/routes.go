@@ -218,7 +218,7 @@ func (a api) AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension str
 		// Read (all users)
 		mux.Get(fmt.Sprintf("/admin/%s", urlExtension), controller.FindAll)
 		mux.Get(fmt.Sprintf("/admin/%s/roles", urlExtension), controller.FindAllRoles)
-		// mux.Get(fmt.Sprintf("/admin/%s/inheritance", urlExtension), controller.FindAllRoleInheritance)
+		mux.Get(fmt.Sprintf("/admin/%s/inheritance", urlExtension), controller.FindAllRoleInheritance)
 		// Create Policy (GET form / POST form)
 		mux.Get(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)
 		mux.Post(fmt.Sprintf("/admin/%s/create", urlExtension), controller.Create)
@@ -228,13 +228,13 @@ func (a api) AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension str
 		mux.Post(fmt.Sprintf("/admin/%s/create-role", urlExtension), controller.CreateRole)
 		mux.Get(fmt.Sprintf("/admin/%s/create-role/success", urlExtension), controller.CreateRoleSuccess)
 		// Create inheritance
-		// mux.Get(fmt.Sprintf("/admin/%s/create-inheritance", urlExtension), controller.CreateInheritance)
-		// mux.Post(fmt.Sprintf("/admin/%s/create-inheritance", urlExtension), controller.CreateInheritance)
-		// mux.Get(fmt.Sprintf("/admin/%s/create-inheritance/success", urlExtension), controller.CreateInheritanceSuccess)
+		mux.Get(fmt.Sprintf("/admin/%s/create-inheritance", urlExtension), controller.CreateInheritance)
+		mux.Post(fmt.Sprintf("/admin/%s/create-inheritance", urlExtension), controller.CreateInheritance)
+		mux.Get(fmt.Sprintf("/admin/%s/create-inheritance/success", urlExtension), controller.CreateInheritanceSuccess)
 		// // Delete Inheritance
-		// mux.Get(fmt.Sprintf("/admin/%s/delete-inheritance/{inherit-slug}", urlExtension), controller.DeleteInheritance)
-		// mux.Post(fmt.Sprintf("/admin/%s/delete-inheritance/{inherit-slug}", urlExtension), controller.DeleteInheritance)
-		// mux.Get(fmt.Sprintf("/admin/%s/delete-inheritance/success", urlExtension), controller.DeleteInheritanceSuccess)
+		mux.Get(fmt.Sprintf("/admin/%s/delete-inheritance/{inherit-slug}", urlExtension), controller.DeleteInheritance)
+		mux.Post(fmt.Sprintf("/admin/%s/delete-inheritance/{inherit-slug}", urlExtension), controller.DeleteInheritance)
+		mux.Get(fmt.Sprintf("/admin/%s/delete-inheritance/success", urlExtension), controller.DeleteInheritanceSuccess)
 
 		// Edit/Update (GET data in form / POST form)
 		mux.Get(fmt.Sprintf("/admin/%s/{id}", urlExtension), controller.Edit)
