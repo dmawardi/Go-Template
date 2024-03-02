@@ -25,7 +25,11 @@ func DbConnect() *gorm.DB {
 	}
 
 	// Migrate the schema
-	db.AutoMigrate(&User{}, &Post{})
+	for _, table := range Models {
+		if err := db.AutoMigrate(table); err != nil {
+			fmt.Printf("failed to migrate database schema: %v", err)
+		}
+	}
 
 	return db
 }

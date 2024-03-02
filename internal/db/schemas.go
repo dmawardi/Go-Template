@@ -6,6 +6,11 @@ import (
 	"gorm.io/gorm"
 )
 
+var Models = []interface{}{
+	&User{},
+	&Post{},
+}
+
 // Schemas
 type User struct {
 	// gorm.Model `json:"-"`

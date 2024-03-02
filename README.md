@@ -52,7 +52,7 @@ go run ./cmd
 
 Follow these steps to add a feature to the API. This template uses the clean architecture pattern
 
-1. Build schema and auto migrate in ./internal/db using ORM instructions below. (Be sure to build the receiver functions getID() and ObtainValue() for the admin panel)
+1. Build schema and place in models array in ./internal/db using ORM instructions below. (Be sure to build the receiver functions getID() and ObtainValue() for the admin panel)
 2. Build repository in ./internal/repository which is the interaction between the DB and the application. This should use a struct with receiver functions.
 3. Build incoming DTO models for Create and Update JSON requests in ./internal/models
 4. Build service in ./internal/service that uses the repository and applies business logic.
@@ -127,7 +127,7 @@ To edit schemas: Go to ./internal/db/schemas.go
 
 The schemas are Structs based off of gorm.Model.
 
-After creating the schema in schemas.go, go to db.go and add to automigrate.
+After creating the schema in schemas.go, make sure to add it to the models slice at the top for automigation in db.go.
 
 For the admin panel, you will need to add two receiver functions to your schema struct in order for it to adhere to the db.AdminPanelSchema interface.
 
