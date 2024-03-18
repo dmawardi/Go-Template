@@ -16,6 +16,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/controller"
 	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/dmawardi/Go-Template/internal/email"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	"github.com/dmawardi/Go-Template/internal/routes"
@@ -24,11 +25,21 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// Set default port number
-const portNumber = ":8080"
-
 // Init state
 var app config.AppConfig
+
+// Connect email service used in API setup to connect email services (forgot password, etc.)
+var connectEmailService = true
+
+// Slice of state setters
+var stateFuncs = []StateFunc{
+	controller.SetStateInHandlers,
+	auth.SetStateInAuth,
+	adminpanel.SetStateInAdminPanel,
+	service.SetAppConfig,
+	repository.SetAppConfig,
+	routes.BuildRouteState,
+}
 
 // API Details
 // @title           Go Template
@@ -63,6 +74,10 @@ func main() {
 	// Extract environment variables
 	serverUrl := os.Getenv("SERVER_BASE_URL")
 	portNumber := os.Getenv("SERVER_PORT")
+	// If port number is empty, set to default
+	if portNumber == "" {
+		portNumber = ":8080"
+	}
 
 	// Get BASE URL from environment variables
 	baseURL := fmt.Sprintf("%s%s", serverUrl, portNumber)
@@ -93,17 +108,12 @@ func main() {
 	app.Auth.Adapter = e.Adapter
 
 	// Set state in other packages
-	controller.SetStateInHandlers(&app)
-	auth.SetStateInAuth(&app)
-	adminpanel.SetStateInAdminPanel(&app)
-	service.SetAppConfig(&app)
-	repository.SetAppConfig(&app)
-	routes.BuildRouteState(&app)
+	setAppState(&app, stateFuncs)
 
 	// Create api
-	api := ApiSetup(client)
+	api := ApiSetup(client, connectEmailService)
 
-	fmt.Printf("Starting application on port: %s\n", portNumber)
+	fmt.Printf("Starting application: %s%s\n", serverUrl, portNumber)
 
 	// Server settings
 	srv := &http.Server{
@@ -114,15 +124,21 @@ func main() {
 	// Listen and serve using server settings above
 	err = srv.ListenAndServe()
 	if err != nil {
-
 		log.Fatal(err)
 	}
 }
 
 // Edit this to use the entire appconfig instead of just the client
 // Build API and store the services and repos in the config
-func ApiSetup(client *gorm.DB) routes.Api {
-	mail := &helpers.EmailMock{}
+func ApiSetup(client *gorm.DB, emailMock bool) routes.Api {
+	var mail email.Email
+	// If emailMock is false, use SMTP email
+	if !emailMock {
+		mail = email.NewSMTPEmail()
+	} else {
+		// Else, use email mock
+		mail = &helpers.EmailMock{}
+	}
 	// Authorization
 	groupRepo := repository.NewAuthPolicyRepository(client)
 	groupService := service.NewAuthPolicyService(groupRepo)
@@ -150,4 +166,18 @@ func ApiSetup(client *gorm.DB) routes.Api {
 	// Build API using controllers
 	api := routes.NewApi(adminController, userController, groupController, postController)
 	return api
+}
+
+// STATE MANAGEMENT
+//
+// The state of the app is set using a series of state functions.
+// StateFunc defines the type of function that can set state on App.
+// ie. Any function that takes app as an argument and returns nothing.
+type StateFunc func(*config.AppConfig)
+
+// setAppState sets the state of the app using the provided StateFuncs.
+func setAppState(app *config.AppConfig, funcs []StateFunc) {
+	for _, fn := range funcs {
+		fn(app)
+	}
 }
