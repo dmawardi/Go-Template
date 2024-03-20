@@ -33,7 +33,9 @@ type AdminController struct {
 	Base AdminBaseController
 	User AdminUserController
 	Auth AdminAuthPolicyController
+	// Basic modules
 	Post AdminPostController
+	// ADD BASIC MODULES HERE
 }
 
 // Constructor
@@ -53,16 +55,13 @@ type basicAdminController struct {
 	PluralSchemaName string
 }
 
-// Constructor
-func NewBasicAdminController(url, schema, schemaPlural string, obtainFields func() BasicAdminController) BasicAdminController {
-	return basicAdminController{url, schema, schemaPlural}
-}
-
 // RECEIVER FUNCTIONS
 func (b basicAdminController) ObtainFields() basicAdminController {
 	return basicAdminController{b.AdminHomeUrl, b.SchemaName, b.PluralSchemaName}
 }
 
+// ADMIN SIDEBAR CREATION
+//
 // Uses the ObtainFields method to get the fields of any Basic Admin Controller type
 func ObtainFieldsForAnyType(input interface{}) basicAdminController {
 	// Use reflection to call ObtainFields method if it exists.

@@ -143,7 +143,7 @@ func main() {
 	// Create api
 	api := ApiSetup(client, connectEmailService)
 
-	fmt.Printf("Starting application: %s%s\n", serverUrl, portNumber)
+	fmt.Printf("Starting application: http://%s%s\n", serverUrl, portNumber)
 
 	// Server settings
 	srv := &http.Server{
