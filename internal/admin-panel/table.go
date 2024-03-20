@@ -8,43 +8,9 @@ import (
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
-// Edit a slice of table rows to add row span to first column and remove <td> tags from
-// subsequent rows (Used on policy table)
-func editTableDataRowSpan(tableRows []TableRow) {
-	var lastRecordedStart struct {
-		resource string
-		index    int
-	}
-	for i, row := range tableRows {
-		// Extract row variables
-		rowData := row.Data
-		currentResource := rowData[0].Label
-
-		// If current resource is different from last recorded resource, then must edit row span
-		if currentResource != lastRecordedStart.resource {
-			// Calculate row span
-			rowSpan := i - lastRecordedStart.index
-
-			// If the difference between the current index and the last recorded index is greater than 1, then must edit row span
-			if i-lastRecordedStart.index > 1 {
-				// Add row span to first cell of last recorded start row
-				tableRows[lastRecordedStart.index].Data[0].RowSpan = rowSpan
-
-				// Remove <td> tags from subsequent rows: count from last recorded index + 1 till before current index
-				for j := lastRecordedStart.index + 1; j < i; j++ {
-					// Chop first element off of data
-					tableRows[j].Data = tableRows[j].Data[1:]
-				}
-			}
-			// Reassign lastRecordedResource details
-			lastRecordedStart.resource = currentResource
-			lastRecordedStart.index = i
-
-		}
-	}
-}
-
-// Data table
+// TABLE DEFINITIONS AND BUILDER
+//
+// Table data is used to store all data pertaining to a table
 type TableData struct {
 	AdminSchemaUrl string // eg. /users/
 	TableHeaders   []TableHeader
@@ -52,8 +18,6 @@ type TableData struct {
 	MetaData       models.ExtendedSchemaMetaData
 }
 
-// Table
-//
 // Used for table header information. Also holds information for sorting and pointer + data type
 type TableHeader struct {
 	Label string
@@ -87,6 +51,11 @@ type TableCell struct {
 type EditInfo struct {
 	EditUrl   string // eg. admin/users/1
 	DeleteUrl string // eg. admin/users/delete/1
+}
+
+// Used for bulk delete form on find all pages
+type BulkDeleteRequest struct {
+	SelectedItems []string `json:"selected_items"`
 }
 
 // Function to build table data from slice of adminpanel schema objects, admin schema url (eg. /admin/users) and table headers
@@ -153,7 +122,7 @@ func BuildTableData(listOfSchemaObjects []AdminPanelSchema, metaData models.Sche
 	return tableData
 }
 
-// Policy
+// POLICY TABLE
 //
 // Used in template file
 type PolicyEditSelectors struct {
@@ -290,5 +259,41 @@ func BuildRoleInheritanceTableData(policySlice []models.GRecord, adminSchemaBase
 		AdminSchemaUrl: adminSchemaBaseUrl, // You can set this value as needed
 		TableHeaders:   tableHeaders,
 		TableRows:      tableRows,
+	}
+}
+
+// Edit a slice of table rows to add row span to first column and remove <td> tags from
+// subsequent rows (Used on policy table)
+func editTableDataRowSpan(tableRows []TableRow) {
+	var lastRecordedStart struct {
+		resource string
+		index    int
+	}
+	for i, row := range tableRows {
+		// Extract row variables
+		rowData := row.Data
+		currentResource := rowData[0].Label
+
+		// If current resource is different from last recorded resource, then must edit row span
+		if currentResource != lastRecordedStart.resource {
+			// Calculate row span
+			rowSpan := i - lastRecordedStart.index
+
+			// If the difference between the current index and the last recorded index is greater than 1, then must edit row span
+			if i-lastRecordedStart.index > 1 {
+				// Add row span to first cell of last recorded start row
+				tableRows[lastRecordedStart.index].Data[0].RowSpan = rowSpan
+
+				// Remove <td> tags from subsequent rows: count from last recorded index + 1 till before current index
+				for j := lastRecordedStart.index + 1; j < i; j++ {
+					// Chop first element off of data
+					tableRows[j].Data = tableRows[j].Data[1:]
+				}
+			}
+			// Reassign lastRecordedResource details
+			lastRecordedStart.resource = currentResource
+			lastRecordedStart.index = i
+
+		}
 	}
 }
