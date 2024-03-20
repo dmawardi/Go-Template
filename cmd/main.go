@@ -18,6 +18,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/email"
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	"github.com/dmawardi/Go-Template/internal/routes"
 	"github.com/dmawardi/Go-Template/internal/service"
@@ -41,6 +42,35 @@ var stateFuncs = []StateFunc{
 	routes.BuildRouteState,
 }
 
+// Define setup configurations (to use in setupBasicModules within API setup function)
+var basicModulesToSetup = []models.EntityConfig{
+	{
+		Name: "Post",
+		NewRepo: func(db *gorm.DB) interface{} {
+			return repository.NewPostRepository(db)
+		},
+		NewService: func(repoInterface interface{}) interface{} {
+			// Perform a type assertion to convert repoInterface back to the expected repository type
+			repo, ok := repoInterface.(repository.PostRepository)
+			if !ok {
+				// Handle the error when the assertion fails
+				panic("Incorrect repository type")
+			}
+			return service.NewPostService(repo)
+		},
+		NewController: func(serviceInterface interface{}) interface{} {
+			// Perform a type assertion to convert serviceInterface back to the expected service type
+			service, ok := serviceInterface.(service.PostService)
+			if !ok {
+				// Handle the error when the assertion fails
+				panic("Incorrect service type")
+			}
+			return controller.NewPostController(service)
+		},
+	},
+	// ADD ADDITIONAL BASIC MODULES HERE
+}
+
 // API Details
 // @title           Go Template
 // @version         1.0
@@ -60,8 +90,8 @@ var stateFuncs = []StateFunc{
 // @securityDefinitions.apikey BearerToken
 // @in header
 // @name Authorization
-func main() {
 
+func main() {
 	// Build context
 	ctx := context.Background()
 	// Set context in app config
@@ -139,6 +169,7 @@ func ApiSetup(client *gorm.DB, emailMock bool) routes.Api {
 		// Else, use email mock
 		mail = &helpers.EmailMock{}
 	}
+
 	// Authorization
 	groupRepo := repository.NewAuthPolicyRepository(client)
 	groupService := service.NewAuthPolicyService(groupRepo)
@@ -147,24 +178,29 @@ func ApiSetup(client *gorm.DB, emailMock bool) routes.Api {
 	userRepo := repository.NewUserRepository(client)
 	userService := service.NewUserService(userRepo, groupRepo, mail)
 	userController := controller.NewUserController(userService)
-	// post
-	postRepo := repository.NewPostRepository(client)
-	postService := service.NewPostService(postRepo)
-	postController := controller.NewPostController(postService)
+
+	// Setup basic modules with new implementation
+	moduleMap := helpers.SetupBasicModules(basicModulesToSetup, client)
 
 	// Admin panel
 	selectorService := adminpanel.NewSelectorService(client, groupService)
 	adminController := adminpanel.NewAdminController(
 		adminpanel.NewAdminBaseController(userService),
 		adminpanel.NewAdminUserController(userService, selectorService),
-		adminpanel.NewAdminPostController(postService, selectorService),
-		adminpanel.NewAdminAuthPolicyController(groupService, selectorService))
+		adminpanel.NewAdminAuthPolicyController(groupService, selectorService),
+		// Basic modules
+		adminpanel.NewAdminPostController(moduleMap["Post"].Service.(service.PostService), selectorService),
+		// ADD ADDITIONAL BASIC MODULES HERE
+	)
 
 	// Generate admin sidebar list from admin controller
 	adminpanel.GenerateAndSetAdminSidebar(adminController)
 
 	// Build API using controllers
-	api := routes.NewApi(adminController, userController, groupController, postController)
+	api := routes.NewApi(adminController, userController, groupController,
+		// ADD BASIC MODULES HERE
+		moduleMap["Post"].Controller.(controller.PostController),
+	)
 	return api
 }
 

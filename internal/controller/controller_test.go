@@ -141,8 +141,9 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 	t.admin = adminpanel.NewAdminController(
 		adminpanel.NewAdminBaseController(t.users.serv),
 		adminpanel.NewAdminUserController(t.users.serv, selectorService),
+		adminpanel.NewAdminAuthPolicyController(t.auth.serv, selectorService),
 		adminpanel.NewAdminPostController(t.posts.serv, selectorService),
-		adminpanel.NewAdminAuthPolicyController(t.auth.serv, selectorService))
+	)
 
 	// Generate admin sidebar list from admin controller
 	adminpanel.GenerateAndSetAdminSidebar(t.admin)

@@ -32,13 +32,13 @@ func SetStateInAdminPanel(a *config.AppConfig) {
 type AdminController struct {
 	Base AdminBaseController
 	User AdminUserController
-	Post AdminPostController
 	Auth AdminAuthPolicyController
+	Post AdminPostController
 }
 
 // Constructor
-func NewAdminController(base AdminBaseController, users AdminUserController, posts AdminPostController, authPolicies AdminAuthPolicyController) AdminController {
-	return AdminController{base, users, posts, authPolicies}
+func NewAdminController(base AdminBaseController, users AdminUserController, authPolicies AdminAuthPolicyController, posts AdminPostController) AdminController {
+	return AdminController{base, users, authPolicies, posts}
 }
 
 // Interface for all basic admin controllers (used for Admin panel to dynamically generate sidebar)
