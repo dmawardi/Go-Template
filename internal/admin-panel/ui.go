@@ -21,7 +21,8 @@ type PageRenderData struct {
 	FormData  FormData
 	TableData TableData
 	// Search
-	SearchTerm string
+	SearchTerm             string
+	RecordsPerPageSelector []int
 	// Special section data for policies
 	PolicySection PolicySection
 	HeaderSection HeaderSection

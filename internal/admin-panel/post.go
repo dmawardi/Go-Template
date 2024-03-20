@@ -104,12 +104,13 @@ func (c adminPostController) FindAll(w http.ResponseWriter, r *http.Request) {
 
 	// Data to be injected into template
 	data := PageRenderData{
-		PageTitle:    "Admin: " + c.pluralSchemaName,
-		SectionTitle: fmt.Sprintf("Select a %s to edit", c.schemaName),
-		SidebarList:  sidebar,
-		TableData:    tableData,
-		SchemaHome:   c.adminHomeUrl,
-		SearchTerm:   searchQuery,
+		PageTitle:              "Admin: " + c.pluralSchemaName,
+		SectionTitle:           fmt.Sprintf("Select a %s to edit", c.schemaName),
+		SidebarList:            sidebar,
+		TableData:              tableData,
+		SchemaHome:             c.adminHomeUrl,
+		SearchTerm:             searchQuery,
+		RecordsPerPageSelector: recordsPerPage,
 		PageType: PageType{
 			EditPage:   false,
 			ReadPage:   true,

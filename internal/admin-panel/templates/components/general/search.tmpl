@@ -62,42 +62,21 @@
             name="limit"
             onchange="this.form.submit()"
           >
+            {{
+              range.RecordsPerPageSelector
+            }}
             <option
-              value="10"
+              value="{{.}}"
               {{if
               eq
-              .TableData.MetaData.Records_Per_Page
-              10}}selected{{end}}
+              $.TableData.MetaData.Records_Per_Page
+              .}}selected{{end}}
             >
-              10
+              {{.}}
             </option>
-            <option
-              value="20"
-              {{if
-              eq
-              .TableData.MetaData.Records_Per_Page
-              20}}selected{{end}}
-            >
-              20
-            </option>
-            <option
-              value="50"
-              {{if
-              eq
-              .TableData.MetaData.Records_Per_Page
-              50}}selected{{end}}
-            >
-              50
-            </option>
-            <option
-              value="100"
-              {{if
-              eq
-              .TableData.MetaData.Records_Per_Page
-              100}}selected{{end}}
-            >
-              100
-            </option>
+            {{
+              end
+            }}
           </select>
         </div>
       </div>
