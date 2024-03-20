@@ -26,6 +26,9 @@ func NewSelectorService(db *gorm.DB, auth service.AuthPolicyService) SelectorSer
 
 // Form Selectors
 // For role selection in form
+// Default Records Displayed on find all pages
+var recordsPerPage = []int{10, 25, 50, 100}
+
 var possibleActions = []string{"create", "read", "update", "delete"}
 
 func (c selectorService) RoleSelection() []FormFieldSelector {

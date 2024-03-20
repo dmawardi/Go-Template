@@ -7,8 +7,8 @@ import (
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
-// Default Records Displayed on find all pages
-var recordsPerPage = []int{10, 25, 50, 100}
+// FORM DATA AND FUNCTIONS
+//
 
 // Used to build form in Go Templates
 // Primary form data used in PagerenderData

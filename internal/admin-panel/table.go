@@ -292,10 +292,3 @@ func BuildRoleInheritanceTableData(policySlice []models.GRecord, adminSchemaBase
 		TableRows:      tableRows,
 	}
 }
-
-// Helper
-//
-// Function to unslugify a resource name
-func UnslugifyResourceName(slugifiedResourceName string) string {
-	return strings.ReplaceAll(slugifiedResourceName, "-", "/")
-}

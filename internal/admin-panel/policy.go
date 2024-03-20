@@ -231,7 +231,7 @@ func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Extract form submission
-		formFieldMap, err := parseFormToMap(r)
+		formFieldMap, err := helpers.ParseFormToMap(r)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
@@ -364,7 +364,7 @@ func (c adminAuthPolicyController) FindAllRoles(w http.ResponseWriter, r *http.R
 func (c adminAuthPolicyController) CreateRole(w http.ResponseWriter, r *http.Request) {
 	// Init new form
 	createForm := c.generateCreateRoleForm()
-	formFieldMap, err := parseFormToMap(r)
+	formFieldMap, err := helpers.ParseFormToMap(r)
 	if err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return
@@ -502,7 +502,7 @@ func (c adminAuthPolicyController) CreateInheritance(w http.ResponseWriter, r *h
 	// Init new form
 	createForm := c.generateCreateInheritanceForm()
 	// Extract user form submission
-	formFieldMap, err := parseFormToMap(r)
+	formFieldMap, err := helpers.ParseFormToMap(r)
 	if err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return

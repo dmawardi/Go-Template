@@ -70,7 +70,7 @@ func (c adminBaseController) Login(w http.ResponseWriter, r *http.Request) {
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Extract form data
-		loginMap, err := parseFormToMap(r)
+		loginMap, err := helpers.ParseFormToMap(r)
 		if err != nil {
 			fmt.Println(err.Error())
 			return
@@ -106,7 +106,7 @@ func (c adminBaseController) Login(w http.ResponseWriter, r *http.Request) {
 		SetValidationErrorsInForm(loginForm, *valErrors)
 
 		// Extract form submission from request and build into map[string]string
-		formFieldMap, err := parseFormToMap(r)
+		formFieldMap, err := helpers.ParseFormToMap(r)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
@@ -163,7 +163,7 @@ func (c adminBaseController) ChangePassword(w http.ResponseWriter, r *http.Reque
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Extract form data
-		form, err := parseFormToMap(r)
+		form, err := helpers.ParseFormToMap(r)
 		if err != nil {
 			fmt.Println(err.Error())
 			return

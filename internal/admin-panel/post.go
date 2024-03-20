@@ -140,7 +140,7 @@ func (c adminPostController) Create(w http.ResponseWriter, r *http.Request) {
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Extract form submission
-		formFieldMap, err := parseFormToMap(r)
+		formFieldMap, err := helpers.ParseFormToMap(r)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
@@ -230,7 +230,7 @@ func (c adminPostController) Edit(w http.ResponseWriter, r *http.Request) {
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Extract form submission
-		formFieldMap, err := parseFormToMap(r)
+		formFieldMap, err := helpers.ParseFormToMap(r)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
