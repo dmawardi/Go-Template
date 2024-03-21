@@ -6,6 +6,7 @@ import (
 
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
+	"github.com/dmawardi/Go-Template/internal/cache"
 	"github.com/gorilla/sessions"
 	"gorm.io/gorm"
 )
@@ -21,6 +22,8 @@ type AppConfig struct {
 	AdminTemplates *template.Template
 	// Should be set to the base url of the app upon server start
 	BaseURL string
+	// Cache
+	Cache cache.CacheMap
 }
 
 type AuthEnforcer struct {
