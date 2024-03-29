@@ -12,6 +12,7 @@ type Entry struct {
 }
 
 // CacheMap wraps sync.Map and provides basic TTL functionality
+// Example usage: m.Store("key", "value", 10 * time.Second)
 type CacheMap struct {
 	internal sync.Map
 }

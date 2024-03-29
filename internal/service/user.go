@@ -125,6 +125,12 @@ func (s *userService) FindAll(limit int, offset int, order string, conditions []
 
 // Find user in database by ID
 func (s *userService) FindById(userId int) (*models.UserWithRole, error) {
+	// Attempt to load the user from the cache first
+	cachedUser, found := app.Cache.Load(userId)
+	if found {
+		// If found and not expired, return the cached user
+		return cachedUser.(*models.UserWithRole), nil
+	}
 	// Find user by id
 	user, err := s.repo.FindById(userId)
 	// If error detected
@@ -137,7 +143,12 @@ func (s *userService) FindById(userId int) (*models.UserWithRole, error) {
 	if err != nil {
 		return nil, err
 	}
-	// else
+
+	// Cache the full user with a TTL before returning
+	// Assuming you have defined a duration for the TTL
+	ttl := 10 * time.Minute // For example, cache for 10 minutes
+	app.Cache.Store(userId, fullUser, ttl)
+
 	return fullUser, nil
 }
 
