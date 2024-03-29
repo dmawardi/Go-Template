@@ -117,5 +117,9 @@ func (s *postService) Update(id int, post *models.UpdatePost) (*db.Post, error) 
 		return nil, err
 	}
 
+	// Store updated post in cache
+	cacheKey := fmt.Sprintf("post:%d", id)
+	app.Cache.Store(cacheKey, updated, 10*time.Minute)
+
 	return updated, nil
 }

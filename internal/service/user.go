@@ -261,6 +261,10 @@ func (s *userService) Update(id int, user *models.UpdateUser) (*models.UserWithR
 		return nil, err
 	}
 
+	// Cache the full user with a TTL before returning
+	cacheKey := fmt.Sprintf("user:%d", id)
+	app.Cache.Store(cacheKey, fullUser, 10*time.Minute)
+
 	return fullUser, nil
 }
 
