@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/models"
@@ -54,13 +55,26 @@ func (s *postService) FindAll(limit int, offset int, order string, conditions []
 
 // Find post in database by ID
 func (s *postService) FindById(id int) (*db.Post, error) {
+	// Search cache
+	// Define a key with a naming convention
+	cacheKey := fmt.Sprintf("post:%d", id)
+	// Check if post is in cache
+	cachedPost, found := app.Cache.Load(cacheKey)
+	if found {
+		// If found, return cached post
+		return cachedPost.(*db.Post), nil
+	}
+
 	// Find post by id
 	post, err := s.repo.FindById(id)
 	// If error detected
 	if err != nil {
 		return nil, err
 	}
-	// else
+
+	// Store post in cache
+	app.Cache.Store(cacheKey, post, 10*time.Minute)
+
 	return post, nil
 }
 
