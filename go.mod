@@ -20,6 +20,7 @@ require (
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
+	github.com/bxcodec/faker/v3 v3.8.1 // indirect
 	github.com/casbin/ent-adapter v0.2.2 // indirect
 	github.com/casbin/gorm-adapter/v3 v3.14.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
