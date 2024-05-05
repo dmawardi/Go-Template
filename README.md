@@ -200,7 +200,13 @@ docker buildx build --platform linux/amd64 -t container-name .
 
 <!-- runs docker image and matches port -->
 docker run --publish 8080:8080 container-name
+
+<!-- The below command can be used to combine the build and to run with database in unison -->
+<!-- runs Docker compose to build the server and database and run together in a docker container -->
+docker-compose up --build
 ```
+
+Docker compose will expose the database for admin management using pgAdmin. The database will be accessible on port 5432.
 
 In order to run the Docker image on a server, you will need to push the image to a Docker registry (Docker Hub). This can be done using Docker Desktop
 
