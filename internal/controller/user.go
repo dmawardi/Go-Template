@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/dmawardi/Go-Template/internal/auth"
-	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
@@ -74,7 +74,7 @@ func UserConditionQueryParams() map[string]string {
 // @Security BearerToken
 func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab basic query params set defaults as needed
-	baseQueryParams, err := helpers.ExtractBasicFindAllQueryParams(r)
+	baseQueryParams, err := request.ExtractBasicFindAllQueryParams(r)
 	if err != nil {
 		http.Error(w, "Error extracting query params", http.StatusBadRequest)
 		return
@@ -83,7 +83,7 @@ func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Generate query params to extract
 	queryParamsToExtract := UserConditionQueryParams()
 	// Extract query params
-	extractedConditionParams, err := helpers.ExtractSearchAndConditionParams(r, queryParamsToExtract)
+	extractedConditionParams, err := request.ExtractSearchAndConditionParams(r, queryParamsToExtract)
 	if err != nil {
 		http.Error(w, "Error extracting query params", http.StatusBadRequest)
 		return
@@ -95,7 +95,7 @@ func (c userController) FindAll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Can't find users", http.StatusBadRequest)
 		return
 	}
-	err = helpers.WriteAsJSON(w, found)
+	err = request.WriteAsJSON(w, found)
 	if err != nil {
 		http.Error(w, "Can't find users", http.StatusBadRequest)
 		fmt.Println("error writing users to response: ", err)
@@ -128,7 +128,7 @@ func (c userController) Find(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Can't find user with ID: %v\n", idParameter), http.StatusBadRequest)
 		return
 	}
-	err = helpers.WriteAsJSON(w, found)
+	err = request.WriteAsJSON(w, found)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Can't find user with ID: %v\n", idParameter), http.StatusBadRequest)
 		return
@@ -155,13 +155,13 @@ func (c userController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&toCreate)
+	pass, valErrors := request.GoValidateStruct(&toCreate)
 	// If failure detected
 	if !pass {
 		// Write bad request header
 		w.WriteHeader(http.StatusBadRequest)
 		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
+		request.WriteAsJSON(w, valErrors)
 		return
 	}
 	// else, validation passes
@@ -209,13 +209,13 @@ func (c userController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&toUpdate)
+	pass, valErrors := request.GoValidateStruct(&toUpdate)
 	// If failure detected
 	if !pass {
 		// Write bad request header
 		w.WriteHeader(http.StatusBadRequest)
 		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
+		request.WriteAsJSON(w, valErrors)
 		return
 	}
 	// else, validation passes and allow through
@@ -232,7 +232,7 @@ func (c userController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Write user to output
-	err = helpers.WriteAsJSON(w, updated)
+	err = request.WriteAsJSON(w, updated)
 	if err != nil {
 		fmt.Printf("Error encountered when writing to JSON. Err: %s", err)
 	}
@@ -295,13 +295,13 @@ func (c userController) UpdateMyProfile(w http.ResponseWriter, r *http.Request) 
 	toUpdate.Role = "" // Prevent role from being updated
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&toUpdate)
+	pass, valErrors := request.GoValidateStruct(&toUpdate)
 	// If failure detected
 	if !pass {
 		// Write bad request header
 		w.WriteHeader(http.StatusBadRequest)
 		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
+		request.WriteAsJSON(w, valErrors)
 		return
 	}
 	// else, validation passes and allow through
@@ -326,7 +326,7 @@ func (c userController) UpdateMyProfile(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	// Write updated user to output
-	err = helpers.WriteAsJSON(w, updated)
+	err = request.WriteAsJSON(w, updated)
 	if err != nil {
 		fmt.Println("Error writing to JSON", err)
 		return
@@ -369,7 +369,7 @@ func (c userController) GetMyUserDetails(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Write found user data to Response
-	err = helpers.WriteAsJSON(w, found)
+	err = request.WriteAsJSON(w, found)
 	if err != nil {
 		http.Error(w, "Can't find user details", http.StatusBadRequest)
 		return
@@ -405,13 +405,13 @@ func (c userController) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&login)
+	pass, valErrors := request.GoValidateStruct(&login)
 	// If failure detected
 	if !pass {
 		// Write bad request header
 		w.WriteHeader(http.StatusBadRequest)
 		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
+		request.WriteAsJSON(w, valErrors)
 		return
 	}
 	// else, validation passes and allow through
@@ -425,7 +425,7 @@ func (c userController) Login(w http.ResponseWriter, r *http.Request) {
 	// Build login response
 	var loginResponse = models.LoginResponse{Token: tokenString}
 	// Send to user in body
-	helpers.WriteAsJSON(w, loginResponse)
+	request.WriteAsJSON(w, loginResponse)
 }
 
 // Reset password
@@ -452,13 +452,13 @@ func (c userController) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&resetPassword)
+	pass, valErrors := request.GoValidateStruct(&resetPassword)
 	// If failure detected
 	if !pass {
 		// Write bad request header
 		w.WriteHeader(http.StatusBadRequest)
 		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
+		request.WriteAsJSON(w, valErrors)
 		return
 	}
 	// else, validation passes and allow through
@@ -469,7 +469,7 @@ func (c userController) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Else
-	helpers.WriteAsJSON(w, "Password reset request successful!")
+	request.WriteAsJSON(w, "Password reset request successful!")
 }
 
 // Email Verification
@@ -502,7 +502,7 @@ func (c userController) EmailVerification(w http.ResponseWriter, r *http.Request
 
 	// Token is valid; you might want to redirect the user to a confirmation page or back to the app
 	w.WriteHeader(http.StatusOK)
-	helpers.WriteAsJSON(w, "Email verified successfully")
+	request.WriteAsJSON(w, "Email verified successfully")
 }
 
 // Send Verification Email
@@ -548,5 +548,5 @@ func (c userController) ResendVerificationEmail(w http.ResponseWriter, r *http.R
 
 	// Write successful response
 	w.WriteHeader(http.StatusOK)
-	helpers.WriteAsJSON(w, "Email sent successfully")
+	request.WriteAsJSON(w, "Email sent successfully")
 }

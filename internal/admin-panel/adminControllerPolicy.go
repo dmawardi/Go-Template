@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
@@ -149,7 +150,7 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 		}
 
 		// Validate the incoming DTO
-		pass, _ := helpers.GoValidateStruct(pol)
+		pass, _ := request.GoValidateStruct(pol)
 
 		// If passes
 		if pass {
@@ -244,7 +245,7 @@ func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request
 		}
 
 		// Validate struct
-		pass, valErrors := helpers.GoValidateStruct(toValidate)
+		pass, valErrors := request.GoValidateStruct(toValidate)
 		// If failure detected
 		// If validation passes
 		if pass {
@@ -378,7 +379,7 @@ func (c adminAuthPolicyController) CreateRole(w http.ResponseWriter, r *http.Req
 		}
 
 		// Validate struct
-		pass, valErrors := helpers.GoValidateStruct(toValidate)
+		pass, valErrors := request.GoValidateStruct(toValidate)
 		// If failure detected
 		// If validation passes
 		if pass {
@@ -515,7 +516,7 @@ func (c adminAuthPolicyController) CreateInheritance(w http.ResponseWriter, r *h
 			InheritsFrom: formFieldMap["inherits_from"],
 		}
 		// Validate struct
-		pass, valErrors := helpers.GoValidateStruct(submittedForm)
+		pass, valErrors := request.GoValidateStruct(submittedForm)
 		// If failure detected
 		// If validation passes
 		if pass {

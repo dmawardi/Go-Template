@@ -9,6 +9,7 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/controller"
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
@@ -67,7 +68,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab query parameters
 	searchQuery := r.URL.Query().Get("search")
 	// Grab basic query params
-	baseQueryParams, err := helpers.ExtractBasicFindAllQueryParams(r)
+	baseQueryParams, err := request.ExtractBasicFindAllQueryParams(r)
 	if err != nil {
 		http.Error(w, "Error extracting query params", http.StatusBadRequest)
 		return
@@ -76,7 +77,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Generate query params to extract
 	queryParamsToExtract := controller.UserConditionQueryParams()
 	// Extract query params
-	extractedConditionParams, err := helpers.ExtractSearchAndConditionParams(r, queryParamsToExtract)
+	extractedConditionParams, err := request.ExtractSearchAndConditionParams(r, queryParamsToExtract)
 	if err != nil {
 		fmt.Println("Error extracting conditions: ", err)
 		http.Error(w, "Can't find conditions", http.StatusBadRequest)
@@ -160,7 +161,7 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 			Verified: verified,
 		}
 		// Validate struct
-		pass, valErrors := helpers.GoValidateStruct(toValidate)
+		pass, valErrors := request.GoValidateStruct(toValidate)
 		// If failure detected
 		// If validation passes
 		if pass {
@@ -250,7 +251,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Validate struct
-		pass, valErrors := helpers.GoValidateStruct(toValidate)
+		pass, valErrors := request.GoValidateStruct(toValidate)
 		// If failure detected
 		// If validation passes
 		if pass {
@@ -399,7 +400,7 @@ func (c adminUserController) BulkDelete(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		bulkResponse.Errors = append(bulkResponse.Errors, err)
 		bulkResponse.Success = false
-		helpers.WriteAsJSON(w, bulkResponse)
+		request.WriteAsJSON(w, bulkResponse)
 		return
 	}
 
@@ -409,12 +410,12 @@ func (c adminUserController) BulkDelete(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		bulkResponse.Errors = append(bulkResponse.Errors, err)
 		bulkResponse.Success = false
-		helpers.WriteAsJSON(w, bulkResponse)
+		request.WriteAsJSON(w, bulkResponse)
 		return
 	}
 	// else if successful
 	bulkResponse.Success = true
-	helpers.WriteAsJSON(w, bulkResponse)
+	request.WriteAsJSON(w, bulkResponse)
 }
 
 // Success handlers

@@ -10,6 +10,7 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 )
@@ -82,7 +83,7 @@ func (c adminBaseController) Login(w http.ResponseWriter, r *http.Request) {
 		}
 		// Validate form data
 		// Validate struct
-		pass, valErrors := helpers.GoValidateStruct(login)
+		pass, valErrors := request.GoValidateStruct(login)
 
 		// If validation passes
 		if pass {
@@ -176,7 +177,7 @@ func (c adminBaseController) ChangePassword(w http.ResponseWriter, r *http.Reque
 		}
 		// // Validate form data
 		// // Validate struct
-		pass, valErrors := helpers.GoValidateStruct(changePassword)
+		pass, valErrors := request.GoValidateStruct(changePassword)
 
 		// If validation passes
 		if pass {

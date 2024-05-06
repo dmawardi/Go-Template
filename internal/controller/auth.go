@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
@@ -62,7 +63,7 @@ func (c authPolicyController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return
-	helpers.WriteAsJSON(w, policies)
+	request.WriteAsJSON(w, policies)
 }
 
 // @Summary      Finds a list of authorization policies by resource
@@ -89,7 +90,7 @@ func (c authPolicyController) FindByResource(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	// Return
-	helpers.WriteAsJSON(w, policies)
+	request.WriteAsJSON(w, policies)
 }
 
 // @Summary      Deletes an authorization policy
@@ -142,13 +143,13 @@ func (c authPolicyController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&pol)
+	pass, valErrors := request.GoValidateStruct(&pol)
 	// If failure detected
 	if !pass {
 		// Write bad request header
 		w.WriteHeader(http.StatusBadRequest)
 		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
+		request.WriteAsJSON(w, valErrors)
 		return
 	}
 	// else, validation passes and allow through
@@ -185,13 +186,13 @@ func (c authPolicyController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&pol)
+	pass, valErrors := request.GoValidateStruct(&pol)
 	// If failure detected
 	if !pass {
 		// Write bad request header
 		w.WriteHeader(http.StatusBadRequest)
 		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
+		request.WriteAsJSON(w, valErrors)
 		return
 	}
 	// else, validation passes and allow through
@@ -226,7 +227,7 @@ func (c authPolicyController) FindAllRoles(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	// Return posts
-	helpers.WriteAsJSON(w, roles)
+	request.WriteAsJSON(w, roles)
 }
 
 // @Summary      Assigns a role to a user
@@ -249,13 +250,13 @@ func (c authPolicyController) AssignUserRole(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&pol)
+	pass, valErrors := request.GoValidateStruct(&pol)
 	// If failure detected
 	if !pass {
 		// Write bad request header
 		w.WriteHeader(http.StatusBadRequest)
 		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
+		request.WriteAsJSON(w, valErrors)
 		return
 	}
 	// else, validation passes and allow through
@@ -295,13 +296,13 @@ func (c authPolicyController) CreateRole(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&pol)
+	pass, valErrors := request.GoValidateStruct(&pol)
 	// If failure detected
 	if !pass {
 		// Write bad request header
 		w.WriteHeader(http.StatusBadRequest)
 		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
+		request.WriteAsJSON(w, valErrors)
 		return
 	}
 	// else, validation passes and allow through
@@ -341,7 +342,7 @@ func (c authPolicyController) FindAllRoleInheritance(w http.ResponseWriter, r *h
 		return
 	}
 	// Return posts
-	helpers.WriteAsJSON(w, roles)
+	request.WriteAsJSON(w, roles)
 }
 
 // // @Summary      Creates a role inheritance
@@ -364,13 +365,13 @@ func (c authPolicyController) CreateInheritance(w http.ResponseWriter, r *http.R
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&pol)
+	pass, valErrors := request.GoValidateStruct(&pol)
 	// If failure detected
 	if !pass {
 		// Write bad request header
 		w.WriteHeader(http.StatusBadRequest)
 		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
+		request.WriteAsJSON(w, valErrors)
 		return
 	}
 	// else, validation passes and allow through
@@ -406,13 +407,13 @@ func (c authPolicyController) DeleteInheritance(w http.ResponseWriter, r *http.R
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&pol)
+	pass, valErrors := request.GoValidateStruct(&pol)
 	// If failure detected
 	if !pass {
 		// Write bad request header
 		w.WriteHeader(http.StatusBadRequest)
 		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
+		request.WriteAsJSON(w, valErrors)
 		return
 	}
 	// else, validation passes and allow through

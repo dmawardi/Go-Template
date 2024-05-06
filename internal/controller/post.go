@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
@@ -57,7 +57,7 @@ func PostConditionQueryParams() map[string]string {
 // @Security BearerToken
 func (c postController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab basic query params
-	baseQueryParams, err := helpers.ExtractBasicFindAllQueryParams(r)
+	baseQueryParams, err := request.ExtractBasicFindAllQueryParams(r)
 	if err != nil {
 		http.Error(w, "Error extracting query params", http.StatusBadRequest)
 		return
@@ -66,7 +66,7 @@ func (c postController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Generate query params to extract
 	queryParamsToExtract := PostConditionQueryParams()
 	// Extract query params
-	extractedConditionParams, err := helpers.ExtractSearchAndConditionParams(r, queryParamsToExtract)
+	extractedConditionParams, err := request.ExtractSearchAndConditionParams(r, queryParamsToExtract)
 	if err != nil {
 		http.Error(w, "Error extracting query params", http.StatusBadRequest)
 		return
@@ -84,7 +84,7 @@ func (c postController) FindAll(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Can't find posts", http.StatusBadRequest)
 		return
 	}
-	err = helpers.WriteAsJSON(w, found)
+	err = request.WriteAsJSON(w, found)
 	if err != nil {
 		http.Error(w, "Can't find posts", http.StatusBadRequest)
 		fmt.Println("error writing users to response: ", err)
@@ -117,7 +117,7 @@ func (c postController) Find(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Can't find post with ID: %v\n", idParameter), http.StatusBadRequest)
 		return
 	}
-	err = helpers.WriteAsJSON(w, found)
+	err = request.WriteAsJSON(w, found)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Can't find post with ID: %v\n", idParameter), http.StatusBadRequest)
 		return
@@ -145,13 +145,13 @@ func (c postController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&toCreate)
+	pass, valErrors := request.GoValidateStruct(&toCreate)
 	// If failure detected
 	if !pass {
 		// Write bad request header
 		w.WriteHeader(http.StatusBadRequest)
 		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
+		request.WriteAsJSON(w, valErrors)
 		return
 	}
 	// else, validation passes and allow through
@@ -192,13 +192,13 @@ func (c postController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate the incoming DTO
-	pass, valErrors := helpers.GoValidateStruct(&toUpdate)
+	pass, valErrors := request.GoValidateStruct(&toUpdate)
 	// If failure detected
 	if !pass {
 		// Write bad request header
 		w.WriteHeader(http.StatusBadRequest)
 		// Write validation errors to JSON
-		helpers.WriteAsJSON(w, valErrors)
+		request.WriteAsJSON(w, valErrors)
 		return
 	}
 	// else, validation passes and allow through
@@ -215,7 +215,7 @@ func (c postController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Write post to output
-	err = helpers.WriteAsJSON(w, updated)
+	err = request.WriteAsJSON(w, updated)
 	if err != nil {
 		fmt.Printf("Error encountered when writing to JSON. Err: %s", err)
 	}

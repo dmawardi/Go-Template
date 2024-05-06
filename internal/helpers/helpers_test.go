@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
@@ -72,7 +73,7 @@ func TestGoValidateStruct(t *testing.T) {
 	}
 	// for test struct in tests array
 	for _, tt := range testTable {
-		pass, validation := helpers.GoValidateStruct(tt.structToValidate)
+		pass, validation := request.GoValidateStruct(tt.structToValidate)
 		// Check that errors happen when they're supposed to
 		if tt.isErr {
 			if pass == true {
