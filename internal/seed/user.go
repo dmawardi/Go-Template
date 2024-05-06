@@ -16,7 +16,7 @@ func NewUserFactory(db *gorm.DB) BasicFactory {
 
 // factory generates and returns a slice of randomly generated users.
 // The number of users generated is determined by the `count` parameter.
-func (f userFactory) Generate() *db.User {
+func (f userFactory) GenerateRandom() *db.User {
 	user := &db.User{
 		Name:     faker.Name(),
 		Email:    faker.Email(),
@@ -31,9 +31,9 @@ func (f userFactory) Factory(count int) error {
 	users := []interface{}{}
 	// Loop to generate users and append them to the slice
 	for i := 0; i < count; i++ {
-		user := f.Generate()
+		user := f.GenerateRandom()
 		users = append(users, user)
 	}
 	// Insert into the database
-	return Seed(f.db, users)
+	return InsertUniqueRecord(f.db, users)
 }

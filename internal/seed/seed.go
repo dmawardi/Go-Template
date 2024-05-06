@@ -1,29 +1,9 @@
 package seed
 
-import (
-	"fmt"
-
-	"gorm.io/gorm"
-)
-
-// Seed inserts data into the database
-func Seed(db *gorm.DB, items []interface{}) error {
-	for _, item := range items {
-		// Attempt to find the existing item or create a new one if not found.
-		// This uses all non-zero fields of the item to check for an existing record.
-		result := db.FirstOrCreate(item, item)
-		if result.Error != nil {
-			return result.Error
-		}
-		if result.RowsAffected == 0 {
-			fmt.Println("Item already exists, skipping...")
-		} else {
-			fmt.Println("Seed item created")
-		}
-	}
-	return nil
-}
-
-type BasicFactory interface {
-	Factory(count int) error
+// Seed creates dummy data and runs at server boot
+// This is useful for testing purposes, as it allows you to test the application with a large amount of data without having to manually input it.
+func seed(seed map[string]BasicFactory) {
+	// This is where you would place seed commands to run at the start of the application.
+	// Using the Name given in the factory registration, you can access the factory from the map
+	seed["User"].Factory(10)
 }

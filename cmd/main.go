@@ -21,6 +21,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	"github.com/dmawardi/Go-Template/internal/routes"
+	"github.com/dmawardi/Go-Template/internal/seed"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -32,7 +33,7 @@ var app config.AppConfig
 // Connect email service used in API setup to connect email services (forgot password, etc.)
 var connectEmailService = true
 
-// Slice of state setters
+// Slice of state setters for each module
 var stateFuncs = []StateFunc{
 	controller.SetStateInHandlers,
 	auth.SetStateInAuth,
@@ -139,6 +140,13 @@ func main() {
 
 	// Set state in other packages
 	setAppState(&app, stateFuncs)
+
+	// Seed the database
+	err = seed.Boot(client)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Database seeded\n")
 
 	// Create api
 	api := ApiSetup(client, connectEmailService)
