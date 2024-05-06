@@ -1,6 +1,7 @@
 package seed
 
 import (
+	"github.com/dmawardi/Go-Template/internal/seed/schemas"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +17,7 @@ func Boot(db *gorm.DB) error {
 }
 
 // Builds the factory map and prepares it for use by user
-func PrepareSeedFactoryMap(db *gorm.DB) map[string]BasicFactory {
+func PrepareSeedFactoryMap(db *gorm.DB) map[string]schemas.BasicFactory {
 	// Build the list of factories
 	factoryList := factoryRegister(db)
 
@@ -27,9 +28,9 @@ func PrepareSeedFactoryMap(db *gorm.DB) map[string]BasicFactory {
 }
 
 // Takes a list of FactoryRegistrations and builds a map of the factories for easy usage
-func buildFactoryMap(factoryList []FactoryRegistration) map[string]BasicFactory {
+func buildFactoryMap(factoryList []schemas.FactoryRegistration) map[string]schemas.BasicFactory {
 	// Create a map to store the factories
-	factoryMap := make(map[string]BasicFactory)
+	factoryMap := make(map[string]schemas.BasicFactory)
 
 	// Loop through the list of factory registrations
 	for _, record := range factoryList {

@@ -1,8 +1,10 @@
-package seed
+package factory
 
 import (
 	"github.com/bxcodec/faker/v3"
 	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/seed/schemas"
 	"gorm.io/gorm"
 )
 
@@ -10,7 +12,7 @@ type userFactory struct {
 	db *gorm.DB
 }
 
-func NewUserFactory(db *gorm.DB) BasicFactory {
+func NewUserFactory(db *gorm.DB) schemas.BasicFactory {
 	return &userFactory{db: db}
 }
 
@@ -35,5 +37,5 @@ func (f userFactory) Factory(count int) error {
 		users = append(users, user)
 	}
 	// Insert into the database
-	return InsertUniqueRecord(f.db, users)
+	return helpers.InsertUniqueRecord(f.db, users)
 }
