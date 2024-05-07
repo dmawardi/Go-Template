@@ -7,7 +7,7 @@ import (
 
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	"github.com/dmawardi/Go-Template/internal/models"
-	"github.com/dmawardi/Go-Template/internal/repository"
+	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
 )
 
 type AuthPolicyService interface {
@@ -30,10 +30,10 @@ type AuthPolicyService interface {
 }
 
 type authPolicyService struct {
-	repo repository.AuthPolicyRepository
+	repo corerepositories.AuthPolicyRepository
 }
 
-func NewAuthPolicyService(repo repository.AuthPolicyRepository) AuthPolicyService {
+func NewAuthPolicyService(repo corerepositories.AuthPolicyRepository) AuthPolicyService {
 	return &authPolicyService{repo}
 }
 
