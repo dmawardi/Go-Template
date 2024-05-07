@@ -12,6 +12,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/email"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/helpers/utility"
+	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	"golang.org/x/crypto/bcrypt"
@@ -296,7 +297,7 @@ func (s *userService) ResetPasswordAndSendEmail(userEmail string) error {
 	}
 
 	// Build HTML email template from file using injected data
-	emailString, err := helpers.LoadTemplate(helpers.BuildPathFromWorkingDirectory("internal/email/templates/password-reset.tmpl"), data)
+	emailString, err := webapi.LoadTemplate(webapi.BuildPathFromWorkingDirectory("internal/email/templates/password-reset.tmpl"), data)
 	if err != nil {
 		fmt.Printf("error in loading template: %v", err)
 		return err
@@ -419,7 +420,7 @@ func (s *userService) ResendVerificationEmail(id int) error {
 	}
 
 	// Build HTML email template from file using injected data
-	emailString, err := helpers.LoadTemplate(helpers.BuildPathFromWorkingDirectory("/internal/email/templates/email-verification.tmpl"), data)
+	emailString, err := webapi.LoadTemplate(webapi.BuildPathFromWorkingDirectory("/internal/email/templates/email-verification.tmpl"), data)
 	if err != nil {
 		fmt.Printf("error in loading template: %v", err)
 		return err

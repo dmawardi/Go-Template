@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/dmawardi/Go-Template/internal/db"
-	"github.com/dmawardi/Go-Template/internal/helpers"
+	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 )
 
 // Middleware to check whether user is authenticated
@@ -17,7 +17,7 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 		// Determine associated action based on HTTP method
 		action := ActionFromMethod(httpMethod)
 		// Extract current URL being accessed
-		object := helpers.ExtractBasePath(r)
+		object := webapi.ExtractBasePath(r)
 
 		// Validate the token
 		tokenData, err := ValidateAndParseToken(w, r)

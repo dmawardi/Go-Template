@@ -8,6 +8,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"gorm.io/gorm"
@@ -44,7 +45,7 @@ func TestMain(m *testing.M) {
 
 	fmt.Printf("Setting up test connection\n")
 	// Set URL in app state
-	app.BaseURL = helpers.BuildBaseUrl()
+	app.BaseURL = webapi.BuildBaseUrl()
 
 	// Setup DB
 	testModule.dbClient = helpers.SetupTestDatabase()

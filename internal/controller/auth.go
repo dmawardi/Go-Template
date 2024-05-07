@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
+	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
@@ -81,7 +81,7 @@ func (c authPolicyController) FindByResource(w http.ResponseWriter, r *http.Requ
 	policyResource := chi.URLParam(r, "policy-slug")
 
 	// Unslugify
-	policyResource = helpers.Unslugify(policyResource)
+	policyResource = webapi.Unslugify(policyResource)
 
 	// Find all
 	policies, err := c.service.FindByResource(policyResource)

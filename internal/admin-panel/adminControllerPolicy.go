@@ -11,6 +11,7 @@ import (
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/helpers/utility"
+	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
@@ -136,7 +137,7 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 	// Grab slug from URL
 	policySlug := chi.URLParam(r, "id")
 	// Unslug
-	policyUnslug := helpers.Unslugify(policySlug)
+	policyUnslug := webapi.Unslugify(policySlug)
 	// Detect request method
 	method := r.Method
 

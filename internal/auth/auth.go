@@ -13,7 +13,7 @@ import (
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/dmawardi/Go-Template/internal/config"
-	"github.com/dmawardi/Go-Template/internal/helpers"
+	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/golang-jwt/jwt/v4"
 	"gorm.io/gorm"
 )
@@ -50,7 +50,7 @@ func EnforcerSetup(db *gorm.DB, setupDefaultPolicy bool) (*config.AuthEnforcer, 
 	}
 
 	// Build path to policy model
-	rbacModelPath := helpers.BuildPathFromWorkingDirectory("/internal/auth/rbac_model.conf")
+	rbacModelPath := webapi.BuildPathFromWorkingDirectory("/internal/auth/rbac_model.conf")
 
 	// Initialize RBAC Authorization
 	enforcer, err := casbin.NewEnforcer(rbacModelPath, adapter)
@@ -177,7 +177,7 @@ func ActionFromMethod(httpMethod string) string {
 // Set up policy settings in DB for casbin rules
 func SetupDefaultCasbinPolicy(enforcer *casbin.Enforcer) {
 	// Build path to default policies CSV file
-	pathToPolicies := helpers.BuildPathFromWorkingDirectory("/internal/auth/rbac_policy.csv")
+	pathToPolicies := webapi.BuildPathFromWorkingDirectory("/internal/auth/rbac_policy.csv")
 	// Open the CSV file
 	f, err := os.Open(pathToPolicies)
 	if err != nil {

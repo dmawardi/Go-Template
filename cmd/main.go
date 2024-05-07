@@ -18,6 +18,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/email"
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	"github.com/dmawardi/Go-Template/internal/routes"
@@ -188,7 +189,7 @@ func ApiSetup(client *gorm.DB, emailMock bool) routes.Api {
 	userController := controller.NewUserController(userService)
 
 	// Setup basic modules with new implementation
-	moduleMap := helpers.SetupBasicModules(basicModulesToSetup, client)
+	moduleMap := webapi.SetupBasicModules(basicModulesToSetup, client)
 
 	// Admin panel
 	selectorService := adminpanel.NewSelectorService(client, groupService)

@@ -8,9 +8,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/dmawardi/Go-Template/internal/helpers"
 	data "github.com/dmawardi/Go-Template/internal/helpers/data"
 	"github.com/dmawardi/Go-Template/internal/helpers/utility"
+	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
@@ -55,7 +55,7 @@ func TestAuthController_FindByResource(t *testing.T) {
 		t.Error(err)
 	}
 	// Build slug
-	slug := helpers.Slugify(policy1.Resource)
+	slug := webapi.Slugify(policy1.Resource)
 	requestUrl := fmt.Sprintf("auth/%s", slug)
 
 	req, err := buildApiRequest("GET", requestUrl, nil, true, testModule.accounts.admin.token)
