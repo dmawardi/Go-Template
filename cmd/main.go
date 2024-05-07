@@ -187,7 +187,7 @@ func ApiSetup(client *gorm.DB, emailMock bool) routes.Api {
 	// user
 	userRepo := repository.NewUserRepository(client)
 	userService := service.NewUserService(userRepo, groupRepo, mail)
-	userController := controller.NewUserController(userService)
+	userController := core.NewUserController(userService)
 
 	// Setup basic modules with new implementation
 	moduleMap := webapi.SetupBasicModules(basicModulesToSetup, client)

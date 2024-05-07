@@ -41,7 +41,7 @@ type controllerTestModule struct {
 type userModule struct {
 	repo repository.UserRepository
 	serv service.UserService
-	cont controller.UserController
+	cont core.UserController
 }
 type authModule struct {
 	repo repository.AuthPolicyRepository
@@ -128,7 +128,7 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 	// Users
 	t.users.repo = repository.NewUserRepository(client)
 	t.users.serv = service.NewUserService(t.users.repo, t.auth.repo, mail)
-	t.users.cont = controller.NewUserController(t.users.serv)
+	t.users.cont = core.NewUserController(t.users.serv)
 	// Posts
 	t.posts.repo = repository.NewPostRepository(client)
 	t.posts.serv = service.NewPostService(t.posts.repo)

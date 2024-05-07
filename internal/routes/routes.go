@@ -36,12 +36,12 @@ type Api interface {
 // Api that contains all controllers for route creation
 type api struct {
 	Admin  adminpanel.AdminController
-	User   controller.UserController
-	Post   controller.PostController
+	User   core.UserController
 	Policy core.AuthPolicyController
+	Post   controller.PostController
 }
 
-func NewApi(admin adminpanel.AdminController, user controller.UserController, policy core.AuthPolicyController, post controller.PostController) Api {
+func NewApi(admin adminpanel.AdminController, user core.UserController, policy core.AuthPolicyController, post controller.PostController) Api {
 	return &api{Admin: admin, User: user, Policy: policy, Post: post}
 }
 
