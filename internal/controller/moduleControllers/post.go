@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
-	"github.com/dmawardi/Go-Template/internal/models"
+	schemamodels "github.com/dmawardi/Go-Template/internal/models/schemaModels"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
 )
@@ -129,7 +129,7 @@ func (c postController) Find(w http.ResponseWriter, r *http.Request) {
 // @Tags         Post
 // @Accept       json
 // @Produce      plain
-// @Param        post body models.CreatePost true "New Post"
+// @Param        post body schemamodels.CreatePost true "New Post"
 // @Failure      400 {object} models.ValidationError "Validation Errors"
 // @Success      201 {string} string "Post creation successful!"
 // @Failure      400 {string} string "Post creation failed."
@@ -137,7 +137,7 @@ func (c postController) Find(w http.ResponseWriter, r *http.Request) {
 // @Security BearerToken
 func (c postController) Create(w http.ResponseWriter, r *http.Request) {
 	// Init
-	var toCreate models.CreatePost
+	var toCreate schemamodels.CreatePost
 	// Decode request body as JSON and store in login
 	err := json.NewDecoder(r.Body).Decode(&toCreate)
 	if err != nil {
@@ -174,7 +174,7 @@ func (c postController) Create(w http.ResponseWriter, r *http.Request) {
 // @Tags         Post
 // @Accept       json
 // @Produce      json
-// @Param        post body models.UpdatePost true "Update Post"
+// @Param        post body schemamodels.UpdatePost true "Update Post"
 // @Param        id   path      int  true  "Post ID"
 // @Success      200 {object} db.Post
 // @Failure      400 {object} models.ValidationError "Validation Errors"
@@ -184,7 +184,7 @@ func (c postController) Create(w http.ResponseWriter, r *http.Request) {
 // @Security BearerToken
 func (c postController) Update(w http.ResponseWriter, r *http.Request) {
 	// grab id parameter
-	var toUpdate models.UpdatePost
+	var toUpdate schemamodels.UpdatePost
 	// Decode request body as JSON and store in login
 	err := json.NewDecoder(r.Body).Decode(&toUpdate)
 	if err != nil {

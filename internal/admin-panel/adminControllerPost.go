@@ -11,6 +11,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/db"
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	data "github.com/dmawardi/Go-Template/internal/helpers/data"
+	schemamodels "github.com/dmawardi/Go-Template/internal/models/schemaModels"
 
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
@@ -155,7 +156,7 @@ func (c adminPostController) Create(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
 		}
-		toValidate := models.CreatePost{
+		toValidate := schemamodels.CreatePost{
 			Title: formFieldMap["title"],
 			Body:  formFieldMap["body"],
 			User:  db.User{ID: uint(userId)},
@@ -245,7 +246,7 @@ func (c adminPostController) Edit(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
 		}
-		toValidate := models.UpdatePost{
+		toValidate := schemamodels.UpdatePost{
 			Title: formFieldMap["title"],
 			Body:  formFieldMap["body"],
 			User:  db.User{ID: uint(userId)},

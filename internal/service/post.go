@@ -6,14 +6,15 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/models"
+	schemamodels "github.com/dmawardi/Go-Template/internal/models/schemaModels"
 	"github.com/dmawardi/Go-Template/internal/repository"
 )
 
 type PostService interface {
-	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.PaginatedPosts, error)
+	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*schemamodels.PaginatedPosts, error)
 	FindById(int) (*db.Post, error)
-	Create(post *models.CreatePost) (*db.Post, error)
-	Update(int, *models.UpdatePost) (*db.Post, error)
+	Create(post *schemamodels.CreatePost) (*db.Post, error)
+	Update(int, *schemamodels.UpdatePost) (*db.Post, error)
 	Delete(int) error
 	BulkDelete([]int) error
 }
@@ -27,7 +28,7 @@ func NewPostService(repo repository.PostRepository) PostService {
 }
 
 // Creates a post in the database
-func (s *postService) Create(post *models.CreatePost) (*db.Post, error) {
+func (s *postService) Create(post *schemamodels.CreatePost) (*db.Post, error) {
 	// Create a new user of type db User
 	toCreate := db.Post{
 		Title: post.Title,
@@ -45,7 +46,7 @@ func (s *postService) Create(post *models.CreatePost) (*db.Post, error) {
 }
 
 // Find a list of posts in the database
-func (s *postService) FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.PaginatedPosts, error) {
+func (s *postService) FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*schemamodels.PaginatedPosts, error) {
 	posts, err := s.repo.FindAll(limit, offset, order, conditions)
 	if err != nil {
 		return nil, err
@@ -103,7 +104,7 @@ func (s *postService) BulkDelete(ids []int) error {
 }
 
 // Updates post in database
-func (s *postService) Update(id int, post *models.UpdatePost) (*db.Post, error) {
+func (s *postService) Update(id int, post *schemamodels.UpdatePost) (*db.Post, error) {
 	// Create db Post type from incoming DTO
 	toUpdate := &db.Post{
 		Title: post.Title,

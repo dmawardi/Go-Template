@@ -1,6 +1,9 @@
-package models
+package schemamodels
 
-import "github.com/dmawardi/Go-Template/internal/db"
+import (
+	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/dmawardi/Go-Template/internal/models"
+)
 
 type CreatePost struct {
 	Title string  `json:"title,omitempty" valid:"length(3|36),required"`
@@ -15,6 +18,6 @@ type UpdatePost struct {
 }
 
 type PaginatedPosts struct {
-	Data *[]db.Post     `json:"data"`
-	Meta SchemaMetaData `json:"meta"`
+	Data *[]db.Post            `json:"data"`
+	Meta models.SchemaMetaData `json:"meta"`
 }
