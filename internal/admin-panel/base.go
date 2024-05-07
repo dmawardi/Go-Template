@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/dmawardi/Go-Template/internal/auth"
-	"github.com/dmawardi/Go-Template/internal/helpers"
+	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
@@ -71,7 +71,7 @@ func (c adminBaseController) Login(w http.ResponseWriter, r *http.Request) {
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Extract form data
-		loginMap, err := helpers.ParseFormToMap(r)
+		loginMap, err := adminpanel.ParseFormToMap(r)
 		if err != nil {
 			fmt.Println(err.Error())
 			return
@@ -107,7 +107,7 @@ func (c adminBaseController) Login(w http.ResponseWriter, r *http.Request) {
 		SetValidationErrorsInForm(loginForm, *valErrors)
 
 		// Extract form submission from request and build into map[string]string
-		formFieldMap, err := helpers.ParseFormToMap(r)
+		formFieldMap, err := adminpanel.ParseFormToMap(r)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
@@ -164,7 +164,7 @@ func (c adminBaseController) ChangePassword(w http.ResponseWriter, r *http.Reque
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Extract form data
-		form, err := helpers.ParseFormToMap(r)
+		form, err := adminpanel.ParseFormToMap(r)
 		if err != nil {
 			fmt.Println(err.Error())
 			return

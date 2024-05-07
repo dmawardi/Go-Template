@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/dmawardi/Go-Template/internal/helpers"
+	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/repository"
 )
@@ -51,7 +51,7 @@ func (s *authPolicyService) FindAll(searchQuery string) ([]models.PolicyRuleComb
 
 	if searchQuery != "" {
 		// Filter policies []map[string]interface{} by search query
-		groupsSlice = helpers.SearchPoliciesByResource(groupsSlice, searchQuery)
+		groupsSlice = adminpanel.SearchPoliciesByResource(groupsSlice, searchQuery)
 	}
 
 	// Sort by resource alphabetically
@@ -70,7 +70,7 @@ func (s *authPolicyService) FindByResource(policyResource string) ([]models.Poli
 	// Transform data for easier consumption
 	organizedData := transformDataToResponse(data)
 	// Filter by search query
-	resourceMatchRecords := helpers.SearchPoliciesForExactResouceMatch(organizedData, policyResource)
+	resourceMatchRecords := adminpanel.SearchPoliciesForExactResouceMatch(organizedData, policyResource)
 
 	return resourceMatchRecords, nil
 }

@@ -53,7 +53,7 @@ func TestAuthController_FindByResource(t *testing.T) {
 		t.Error(err)
 	}
 	// Build slug
-	slug := helpers.SlugifyResourceName(policy1.Resource)
+	slug := helpers.Slugify(policy1.Resource)
 	requestUrl := fmt.Sprintf("auth/%s", slug)
 
 	req, err := buildApiRequest("GET", requestUrl, nil, true, testModule.accounts.admin.token)

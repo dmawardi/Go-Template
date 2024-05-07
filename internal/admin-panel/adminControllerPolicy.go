@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
@@ -134,7 +135,7 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 	// Grab slug from URL
 	policySlug := chi.URLParam(r, "id")
 	// Unslug
-	policyUnslug := helpers.UnslugifyResourceName(policySlug)
+	policyUnslug := helpers.Unslugify(policySlug)
 	// Detect request method
 	method := r.Method
 
@@ -232,7 +233,7 @@ func (c adminAuthPolicyController) Create(w http.ResponseWriter, r *http.Request
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Extract form submission
-		formFieldMap, err := helpers.ParseFormToMap(r)
+		formFieldMap, err := adminpanel.ParseFormToMap(r)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
@@ -365,7 +366,7 @@ func (c adminAuthPolicyController) FindAllRoles(w http.ResponseWriter, r *http.R
 func (c adminAuthPolicyController) CreateRole(w http.ResponseWriter, r *http.Request) {
 	// Init new form
 	createForm := c.generateCreateRoleForm()
-	formFieldMap, err := helpers.ParseFormToMap(r)
+	formFieldMap, err := adminpanel.ParseFormToMap(r)
 	if err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return
@@ -503,7 +504,7 @@ func (c adminAuthPolicyController) CreateInheritance(w http.ResponseWriter, r *h
 	// Init new form
 	createForm := c.generateCreateInheritanceForm()
 	// Extract user form submission
-	formFieldMap, err := helpers.ParseFormToMap(r)
+	formFieldMap, err := adminpanel.ParseFormToMap(r)
 	if err != nil {
 		http.Error(w, "Error parsing form", http.StatusBadRequest)
 		return

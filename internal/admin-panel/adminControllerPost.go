@@ -10,6 +10,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/controller"
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
@@ -142,7 +143,7 @@ func (c adminPostController) Create(w http.ResponseWriter, r *http.Request) {
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Extract form submission
-		formFieldMap, err := helpers.ParseFormToMap(r)
+		formFieldMap, err := adminpanel.ParseFormToMap(r)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
@@ -232,7 +233,7 @@ func (c adminPostController) Edit(w http.ResponseWriter, r *http.Request) {
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Extract form submission
-		formFieldMap, err := helpers.ParseFormToMap(r)
+		formFieldMap, err := adminpanel.ParseFormToMap(r)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return

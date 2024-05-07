@@ -81,7 +81,7 @@ func (c authPolicyController) FindByResource(w http.ResponseWriter, r *http.Requ
 	policyResource := chi.URLParam(r, "policy-slug")
 
 	// Unslugify
-	policyResource = helpers.UnslugifyResourceName(policyResource)
+	policyResource = helpers.Unslugify(policyResource)
 
 	// Find all
 	policies, err := c.service.FindByResource(policyResource)

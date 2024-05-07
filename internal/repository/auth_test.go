@@ -7,6 +7,7 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
@@ -305,7 +306,7 @@ func TestAuthPolicyRepository_CreateInheritance(t *testing.T) {
 
 	// Cleanup
 	// Apply naming convention to new role record
-	helpers.ApplyNamingConventionToRoleInheritanceRecord(&inheritanceToCreate)
+	adminpanel.ApplyNamingConventionToRoleInheritanceRecord(&inheritanceToCreate)
 	// Remove policy from enforcer
 	removed, err := app.Auth.Enforcer.RemoveGroupingPolicy(inheritanceToCreate.Role, inheritanceToCreate.InheritsFrom)
 	if err != nil {
@@ -341,7 +342,7 @@ func TestAuthPolicyRepository_DeleteInheritance(t *testing.T) {
 	// Apply naming convention to new role record
 	conventionalInheritanceToCreate := *inheritanceToCreate
 	// Apply naming convention to new role record
-	helpers.ApplyNamingConventionToRoleInheritanceRecord(&conventionalInheritanceToCreate)
+	adminpanel.ApplyNamingConventionToRoleInheritanceRecord(&conventionalInheritanceToCreate)
 	// Add role inheritance
 	success, err := app.Auth.Enforcer.AddGroupingPolicy(conventionalInheritanceToCreate.Role, conventionalInheritanceToCreate.InheritsFrom)
 	if err != nil {
