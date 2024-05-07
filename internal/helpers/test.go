@@ -1,8 +1,13 @@
 package helpers
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
 	"reflect"
 	"strconv"
 	"testing"
@@ -170,4 +175,29 @@ type EmailMock struct {
 
 func (e *EmailMock) SendEmail(recipient, subject, body string) error {
 	return nil
+}
+
+// A helper function to build an API request that starts with url of '/api/'
+func BuildApiRequest(method string, urlSuffix string, body io.Reader, authHeaderRequired bool, token string) (request *http.Request, err error) {
+	req, err := http.NewRequest(method, fmt.Sprintf("/api/%v", urlSuffix), body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %v", err)
+	}
+	// If authorization header required
+	if authHeaderRequired {
+		req.Header.Set("Authorization", fmt.Sprintf("bearer %v", token))
+	}
+	return req, nil
+}
+
+// Build a struct object to a type of bytes.reader to fulfill io.reader interface
+func BuildReqBody(data interface{}) *bytes.Reader {
+	// Marshal to JSON
+	marshalled, err := json.Marshal(data)
+	if err != nil {
+		log.Fatal("Failed to marshal JSON")
+	}
+	// Make into reader
+	readerReqBody := bytes.NewReader(marshalled)
+	return readerReqBody
 }

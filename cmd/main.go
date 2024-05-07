@@ -15,6 +15,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/controller"
+	"github.com/dmawardi/Go-Template/internal/controller/core"
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/email"
 	"github.com/dmawardi/Go-Template/internal/helpers"
@@ -182,7 +183,7 @@ func ApiSetup(client *gorm.DB, emailMock bool) routes.Api {
 	// Authorization
 	groupRepo := repository.NewAuthPolicyRepository(client)
 	groupService := service.NewAuthPolicyService(groupRepo)
-	groupController := controller.NewAuthPolicyController(groupService)
+	groupController := core.NewAuthPolicyController(groupService)
 	// user
 	userRepo := repository.NewUserRepository(client)
 	userService := service.NewUserService(userRepo, groupRepo, mail)

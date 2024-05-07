@@ -1,17 +1,14 @@
 package controller_test
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
 	"os"
 	"testing"
 
 	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
 	"github.com/dmawardi/Go-Template/internal/auth"
+	"github.com/dmawardi/Go-Template/internal/controller/core"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
@@ -49,7 +46,7 @@ type userModule struct {
 type authModule struct {
 	repo repository.AuthPolicyRepository
 	serv service.AuthPolicyService
-	cont controller.AuthPolicyController
+	cont core.AuthPolicyController
 }
 
 type postModule struct {
@@ -127,7 +124,7 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 	// Auth
 	t.auth.repo = repository.NewAuthPolicyRepository(client)
 	t.auth.serv = service.NewAuthPolicyService(t.auth.repo)
-	t.auth.cont = controller.NewAuthPolicyController(t.auth.serv)
+	t.auth.cont = core.NewAuthPolicyController(t.auth.serv)
 	// Users
 	t.users.repo = repository.NewUserRepository(client)
 	t.users.serv = service.NewUserService(t.users.repo, t.auth.repo, mail)
@@ -217,29 +214,4 @@ func SetAppWideState(appConfig config.AppConfig) {
 	service.SetAppConfig(&appConfig)
 	repository.SetAppConfig(&appConfig)
 	routes.BuildRouteState(&appConfig)
-}
-
-// A helper function to build an API request that starts with url of '/api/'
-func buildApiRequest(method string, urlSuffix string, body io.Reader, authHeaderRequired bool, token string) (request *http.Request, err error) {
-	req, err := http.NewRequest(method, fmt.Sprintf("/api/%v", urlSuffix), body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %v", err)
-	}
-	// If authorization header required
-	if authHeaderRequired {
-		req.Header.Set("Authorization", fmt.Sprintf("bearer %v", token))
-	}
-	return req, nil
-}
-
-// Build a struct object to a type of bytes.reader to fulfill io.reader interface
-func buildReqBody(data interface{}) *bytes.Reader {
-	// Marshal to JSON
-	marshalled, err := json.Marshal(data)
-	if err != nil {
-		log.Fatal("Failed to marshal JSON")
-	}
-	// Make into reader
-	readerReqBody := bytes.NewReader(marshalled)
-	return readerReqBody
 }

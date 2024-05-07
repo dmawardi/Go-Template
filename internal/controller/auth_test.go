@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/dmawardi/Go-Template/internal/helpers"
 	data "github.com/dmawardi/Go-Template/internal/helpers/data"
 	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
@@ -17,7 +18,7 @@ import (
 func TestAuthController_FindAll(t *testing.T) {
 	testName := "Auth Find all"
 	expectedStatusResponse := http.StatusOK
-	req, err := buildApiRequest("GET", "auth", nil, true, testModule.accounts.admin.token)
+	req, err := helpers.BuildApiRequest("GET", "auth", nil, true, testModule.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -58,7 +59,7 @@ func TestAuthController_FindByResource(t *testing.T) {
 	slug := webapi.Slugify(policy1.Resource)
 	requestUrl := fmt.Sprintf("auth/%s", slug)
 
-	req, err := buildApiRequest("GET", requestUrl, nil, true, testModule.accounts.admin.token)
+	req, err := helpers.BuildApiRequest("GET", requestUrl, nil, true, testModule.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -102,7 +103,7 @@ func TestAuthController_Delete(t *testing.T) {
 	// Build slug
 	requestUrl := "auth"
 
-	req, err := buildApiRequest("DELETE", requestUrl, buildReqBody(policy1), true, testModule.accounts.admin.token)
+	req, err := helpers.BuildApiRequest("DELETE", requestUrl, helpers.BuildReqBody(policy1), true, testModule.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -138,7 +139,7 @@ func TestAuthController_Create(t *testing.T) {
 	// Build slug
 	requestUrl := "auth"
 
-	req, err := buildApiRequest("POST", requestUrl, buildReqBody(policy1), true, testModule.accounts.admin.token)
+	req, err := helpers.BuildApiRequest("POST", requestUrl, helpers.BuildReqBody(policy1), true, testModule.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -194,7 +195,7 @@ func TestAuthController_Update(t *testing.T) {
 	// Build slug
 	requestUrl := "auth"
 
-	req, err := buildApiRequest("PUT", requestUrl, buildReqBody(models.UpdateCasbinRule{OldPolicy: policy1, NewPolicy: policy2}), true, testModule.accounts.admin.token)
+	req, err := helpers.BuildApiRequest("PUT", requestUrl, helpers.BuildReqBody(models.UpdateCasbinRule{OldPolicy: policy1, NewPolicy: policy2}), true, testModule.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -233,7 +234,7 @@ func TestAuthController_Update(t *testing.T) {
 // // Role
 func TestAuthController_FindAllRoles(t *testing.T) {
 	numberOfDetaultRoles := 3
-	req, err := buildApiRequest("GET", "auth/roles", nil, true, testModule.accounts.admin.token)
+	req, err := helpers.BuildApiRequest("GET", "auth/roles", nil, true, testModule.accounts.admin.token)
 	if err != nil {
 		t.Error(err)
 	}
@@ -272,7 +273,7 @@ func TestAuthController_AssignUserRole(t *testing.T) {
 
 	for _, v := range tests {
 		// Build API request
-		req, err := buildApiRequest("PUT", requestUrl, buildReqBody(models.CasbinRoleAssignment{
+		req, err := helpers.BuildApiRequest("PUT", requestUrl, helpers.BuildReqBody(models.CasbinRoleAssignment{
 			UserId: fmt.Sprint(testModule.accounts.user.details.ID),
 			Role:   v.role}), true, testModule.accounts.admin.token)
 		if err != nil {
@@ -329,7 +330,7 @@ func TestAuthController_CreateRole(t *testing.T) {
 
 	for _, v := range tests {
 		// Build API request
-		req, err := buildApiRequest("POST", requestUrl, buildReqBody(models.CasbinRoleAssignment{
+		req, err := helpers.BuildApiRequest("POST", requestUrl, helpers.BuildReqBody(models.CasbinRoleAssignment{
 			UserId: fmt.Sprint(testModule.accounts.user.details.ID),
 			Role:   v.role}), true, testModule.accounts.admin.token)
 		if err != nil {
@@ -396,7 +397,7 @@ func TestAuthController_FindAllRoleInheritance(t *testing.T) {
 
 	for _, v := range tests {
 		// Build request
-		req, err := buildApiRequest("GET", "auth/inheritance", nil, true, v.tokenToUse)
+		req, err := helpers.BuildApiRequest("GET", "auth/inheritance", nil, true, v.tokenToUse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -470,7 +471,7 @@ func TestAuthController_CreateInheritance(t *testing.T) {
 
 	for _, v := range tests {
 		// Build request
-		req, err := buildApiRequest("POST", requestUrl, buildReqBody(v.policy), true, v.tokenToUse)
+		req, err := helpers.BuildApiRequest("POST", requestUrl, helpers.BuildReqBody(v.policy), true, v.tokenToUse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -558,7 +559,7 @@ func TestAuthController_DeleteInheritance(t *testing.T) {
 		}
 
 		// Build request
-		req, err := buildApiRequest("DELETE", requestUrl, buildReqBody(policy), true, v.tokenToUse)
+		req, err := helpers.BuildApiRequest("DELETE", requestUrl, helpers.BuildReqBody(policy), true, v.tokenToUse)
 		if err != nil {
 			t.Error(err)
 		}

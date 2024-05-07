@@ -24,7 +24,7 @@ func TestUserController_Find(t *testing.T) {
 	}
 
 	// Create a request with an "id" URL parameter
-	req, err := buildApiRequest("GET", fmt.Sprintf("users/%v", createdUser.ID), nil, true, testModule.accounts.admin.token)
+	req, err := helpers.BuildApiRequest("GET", fmt.Sprintf("users/%v", createdUser.ID), nil, true, testModule.accounts.admin.token)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +57,7 @@ func TestUserController_Find(t *testing.T) {
 func TestUserController_FindAll(t *testing.T) {
 	// Test finding two already created users for authentication mocking
 	// Create a new request
-	req, err := buildApiRequest("GET", "users?limit=10&offset=0&order=id_desc", nil, true, testModule.accounts.admin.token)
+	req, err := helpers.BuildApiRequest("GET", "users?limit=10&offset=0&order=id_desc", nil, true, testModule.accounts.admin.token)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -111,7 +111,7 @@ func TestUserController_FindAll(t *testing.T) {
 		{test_name: "Normal test", limit: "20", offset: "1", order: "id_desc", expectedResponseStatus: http.StatusOK},
 	}
 	for _, v := range failParameterTests {
-		req, err := buildApiRequest("GET", fmt.Sprintf("users?limit=%v&offset=%v&order=%v", v.limit, v.offset, v.order), nil, true, testModule.accounts.admin.token)
+		req, err := helpers.BuildApiRequest("GET", fmt.Sprintf("users?limit=%v&offset=%v&order=%v", v.limit, v.offset, v.order), nil, true, testModule.accounts.admin.token)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -155,7 +155,7 @@ func TestUserController_Delete(t *testing.T) {
 
 	for _, v := range tests {
 		// Create a request
-		req, err := buildApiRequest("DELETE", fmt.Sprintf("users/%v", createdUser.ID), nil, true, v.tokenToUse)
+		req, err := helpers.BuildApiRequest("DELETE", fmt.Sprintf("users/%v", createdUser.ID), nil, true, v.tokenToUse)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -226,7 +226,7 @@ func TestUserController_Update(t *testing.T) {
 	}
 
 	for _, v := range updateTests {
-		req, err := buildApiRequest("PUT", fmt.Sprintf("users/%v", createdUser.ID), buildReqBody(v.data), true, v.tokenToUse)
+		req, err := helpers.BuildApiRequest("PUT", fmt.Sprintf("users/%v", createdUser.ID), helpers.BuildReqBody(v.data), true, v.tokenToUse)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -300,7 +300,7 @@ func TestUserController_Create(t *testing.T) {
 	}
 
 	for _, v := range tests {
-		req, err := buildApiRequest("POST", "users", buildReqBody(v.data), false, "")
+		req, err := helpers.BuildApiRequest("POST", "users", helpers.BuildReqBody(v.data), false, "")
 
 		// Make new request with user update in body
 		if err != nil {
@@ -350,7 +350,7 @@ func TestUserController_GetMyUserDetails(t *testing.T) {
 	}
 
 	for _, v := range tests {
-		req, err := buildApiRequest("GET", requestUrl, nil, v.useToken, v.tokenToUse)
+		req, err := helpers.BuildApiRequest("GET", requestUrl, nil, v.useToken, v.tokenToUse)
 		// Make new request with user update in body
 		if err != nil {
 			t.Fatal(err)
@@ -424,7 +424,7 @@ func TestUserController_UpdateMyProfile(t *testing.T) {
 
 	for _, v := range tests {
 		// Make new request with user update in body
-		req, err := buildApiRequest("PUT", requestUrl, buildReqBody(v.data), v.useToken, v.tokenToUse)
+		req, err := helpers.BuildApiRequest("PUT", requestUrl, helpers.BuildReqBody(v.data), v.useToken, v.tokenToUse)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -511,7 +511,7 @@ func TestUserController_Login(t *testing.T) {
 	}
 
 	for _, v := range tests {
-		req, err := buildApiRequest("POST", requestUrl, buildReqBody(v.data), false, "")
+		req, err := helpers.BuildApiRequest("POST", requestUrl, helpers.BuildReqBody(v.data), false, "")
 		// Make request with update in body
 		if err != nil {
 			t.Fatal(err)
@@ -567,7 +567,7 @@ func TestUserController_ResetPassword(t *testing.T) {
 
 	for _, v := range tests {
 
-		req, err := buildApiRequest("POST", requestUrl, buildReqBody(v.data), false, "")
+		req, err := helpers.BuildApiRequest("POST", requestUrl, helpers.BuildReqBody(v.data), false, "")
 		// Make request with update in body
 		if err != nil {
 			t.Fatal(err)
@@ -621,14 +621,14 @@ func TestUserController_ResendVerificationEmail(t *testing.T) {
 
 		// If using token
 		if v.useToken {
-			req, err = buildApiRequest("POST", requestUrl, nil, v.useToken, v.tokenToUse)
+			req, err = helpers.BuildApiRequest("POST", requestUrl, nil, v.useToken, v.tokenToUse)
 			// Make request with update in body
 			if err != nil {
 				t.Fatal(err)
 			}
 			// Else build without token
 		} else {
-			req, err = buildApiRequest("POST", requestUrl, nil, false, "")
+			req, err = helpers.BuildApiRequest("POST", requestUrl, nil, false, "")
 			if err != nil {
 				t.Fatal(err)
 			}

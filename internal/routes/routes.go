@@ -8,6 +8,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/controller"
+	"github.com/dmawardi/Go-Template/internal/controller/core"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -37,10 +38,10 @@ type api struct {
 	Admin  adminpanel.AdminController
 	User   controller.UserController
 	Post   controller.PostController
-	Policy controller.AuthPolicyController
+	Policy core.AuthPolicyController
 }
 
-func NewApi(admin adminpanel.AdminController, user controller.UserController, policy controller.AuthPolicyController, post controller.PostController) Api {
+func NewApi(admin adminpanel.AdminController, user controller.UserController, policy core.AuthPolicyController, post controller.PostController) Api {
 	return &api{Admin: admin, User: user, Policy: policy, Post: post}
 }
 
