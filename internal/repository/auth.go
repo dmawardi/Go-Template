@@ -8,6 +8,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"gorm.io/gorm"
 )
@@ -83,8 +84,8 @@ func (r *authPolicyRepository) CreateInheritance(inherit models.GRecord) error {
 		return err
 	}
 
-	roleFound1 := helpers.ArrayContainsString(roles, inherit.Role)
-	roleFound2 := helpers.ArrayContainsString(roles, inherit.InheritsFrom)
+	roleFound1 := utility.ArrayContainsString(roles, inherit.Role)
+	roleFound2 := utility.ArrayContainsString(roles, inherit.InheritsFrom)
 	if !roleFound1 || !roleFound2 {
 		return fmt.Errorf("inheritance roles not found. Roles: %v + %v not found in: %+v\n", inherit.Role, inherit.InheritsFrom, roles)
 	}
@@ -168,7 +169,7 @@ func (r *authPolicyRepository) AssignUserRole(userId, roleToApply string) (*bool
 	}
 
 	// Check if role exists
-	roleFound := helpers.ArrayContainsString(roles, roleToApply)
+	roleFound := utility.ArrayContainsString(roles, roleToApply)
 	// Check if role found
 	if !roleFound {
 		fmt.Printf("Role not found: %v\nCurrent roles: %v\n", roleToApply, roles)
@@ -209,7 +210,7 @@ func (r *authPolicyRepository) CreateRole(userId, roleToApply string) (*bool, er
 	}
 
 	// Check if role exists
-	roleFound := helpers.ArrayContainsString(roles, roleToApply)
+	roleFound := utility.ArrayContainsString(roles, roleToApply)
 	if roleFound {
 		return nil, fmt.Errorf("error creating role: Role already exists")
 	}

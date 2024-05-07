@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
@@ -12,7 +13,7 @@ import (
 func GenerateVerificationCodeAndSetExpiry() (*db.User, error) {
 	userUpdate := &db.User{}
 	// Generate token for verification
-	tokenCode, err := GenerateRandomString(25)
+	tokenCode, err := utility.GenerateRandomString(25)
 	if err != nil {
 		return nil, err
 	}
@@ -62,14 +63,14 @@ func FilterOnlyRolesToList(rolesAndAssignments [][]string) []string {
 	for _, policy := range rolesAndAssignments {
 		if strings.HasPrefix(policy[0], "role:") {
 			// If not already contained within the slice, add it
-			if !ArrayContainsString(roles, policy[0]) {
+			if !utility.ArrayContainsString(roles, policy[0]) {
 				roles = append(roles, policy[0])
 			}
 		}
 		// If inherits from is a role, add it to the slice
 		if strings.HasPrefix(policy[1], "role:") {
 			// If not already contained within the slice, add it
-			if !ArrayContainsString(roles, policy[1]) {
+			if !utility.ArrayContainsString(roles, policy[1]) {
 				roles = append(roles, policy[1])
 			}
 		}
@@ -82,10 +83,10 @@ func ConvertInheritanceGRecordsToRoleList(roles []models.GRecord) []string {
 	var roleList []string
 	// Iterate through inheritance policies and add to roles slice
 	for _, role := range roles {
-		if !ArrayContainsString(roleList, role.Role) {
+		if !utility.ArrayContainsString(roleList, role.Role) {
 			roleList = append(roleList, role.Role)
 		}
-		if !ArrayContainsString(roleList, role.InheritsFrom) {
+		if !utility.ArrayContainsString(roleList, role.InheritsFrom) {
 			roleList = append(roleList, role.InheritsFrom)
 		}
 	}

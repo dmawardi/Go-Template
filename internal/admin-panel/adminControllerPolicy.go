@@ -10,6 +10,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
+	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
@@ -323,7 +324,7 @@ func (c adminAuthPolicyController) FindAllRoles(w http.ResponseWriter, r *http.R
 	filteredSlice := []string{}
 	// Iterate through roles slice and remove items that do not match search query
 	for _, role := range rolesSlice {
-		if helpers.ContainsString(role, searchQuery) {
+		if utility.ContainsString(role, searchQuery) {
 			filteredSlice = append(filteredSlice, role)
 		}
 	}
@@ -667,7 +668,7 @@ func buildEditPolicyTable(m []models.PolicyRuleCombinedActions) []PolicyEditData
 			}
 
 			// Check if array contains a string
-			if helpers.ArrayContainsString(policy.Action, action) {
+			if utility.ArrayContainsString(policy.Action, action) {
 				actionToAdd.Granted = true
 			}
 

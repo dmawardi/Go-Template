@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
@@ -356,7 +357,7 @@ func TestAuthPolicyService_CreateRole(t *testing.T) {
 			if err != nil {
 				t.Errorf("Error finding roles: %v", err)
 			}
-			if !helpers.ArrayContainsString(roles, v.roleToApply) {
+			if !utility.ArrayContainsString(roles, v.roleToApply) {
 				t.Errorf("Expected role %s to be created, got %v", v.roleToApply, roles)
 			}
 
@@ -527,7 +528,7 @@ func checkPolicyMatch(t *testing.T, created models.PolicyRule, found models.Poli
 	if found.Role != created.Role {
 		t.Errorf("Expected role %s, got %s", created.Role, found.Role)
 	}
-	containsPolicy := helpers.ArrayContainsString(found.Action, created.Action)
+	containsPolicy := utility.ArrayContainsString(found.Action, created.Action)
 	if !containsPolicy {
 		t.Errorf("Expected action %s, got %s", created.Action, found.Action)
 	}

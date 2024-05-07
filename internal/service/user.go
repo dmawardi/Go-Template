@@ -11,6 +11,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/email"
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	"golang.org/x/crypto/bcrypt"
@@ -56,7 +57,7 @@ func (s *userService) Create(user *models.CreateUser) (*models.UserWithRole, err
 			return nil, fmt.Errorf("failed creating user: %w", err)
 		}
 		// If role not found, return error
-		if !helpers.ArrayContainsString(roles, user.Role) {
+		if !utility.ArrayContainsString(roles, user.Role) {
 			return nil, errors.New("role not found")
 		}
 	} else {
@@ -278,7 +279,7 @@ func (s *userService) ResetPasswordAndSendEmail(userEmail string) error {
 	}
 	// Else
 	// Generate random password
-	randomPassword, err := helpers.GenerateRandomString(10)
+	randomPassword, err := utility.GenerateRandomString(10)
 	if err != nil {
 		return err
 	}

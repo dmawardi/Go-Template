@@ -1,4 +1,4 @@
-package helpers
+package utility
 
 // Function to sort permissions data from enforcer
 func SortMapStringInterfaceAlphabetically(a, b map[string]interface{}, key string) bool {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dmawardi/Go-Template/internal/db"
-	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"gorm.io/gorm"
 )
@@ -45,7 +45,7 @@ func (c selectorService) RoleSelection() []FormFieldSelector {
 	var roleSelector []FormFieldSelector
 	// Build []FormFieldSelector from []string
 	for _, r := range roles {
-		roleSelector = append(roleSelector, FormFieldSelector{Value: r, Label: helpers.CapitalizeFirstLetter(r)})
+		roleSelector = append(roleSelector, FormFieldSelector{Value: r, Label: utility.CapitalizeFirstLetter(r)})
 	}
 
 	// Set basic default as user
@@ -67,7 +67,7 @@ func (c selectorService) UserSelection() []FormFieldSelector {
 	var selector []FormFieldSelector
 	// Build []FormFieldSelector from []string DB output
 	for _, user := range users {
-		selector = append(selector, FormFieldSelector{Value: fmt.Sprint(user.ID), Label: helpers.CapitalizeFirstLetter(user.Username)})
+		selector = append(selector, FormFieldSelector{Value: fmt.Sprint(user.ID), Label: utility.CapitalizeFirstLetter(user.Username)})
 	}
 
 	return selector

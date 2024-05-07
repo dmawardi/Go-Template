@@ -8,6 +8,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
+	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
@@ -201,7 +202,7 @@ func TestAuthPolicyRepository_CreateRole(t *testing.T) {
 		t.Errorf("Error finding roles: %v", err)
 	}
 
-	rolesContains := helpers.ArrayContainsString(roles, roleToCreate)
+	rolesContains := utility.ArrayContainsString(roles, roleToCreate)
 
 	if !rolesContains {
 		t.Errorf("Did not find %v contained in %v", role, roles)

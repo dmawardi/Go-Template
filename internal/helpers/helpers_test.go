@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
+	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
@@ -112,7 +112,7 @@ func TestGenerateRandomString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := helpers.GenerateRandomString(tt.length)
+			got, err := utility.GenerateRandomString(tt.length)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateRandomString() error = %v, wantErr %v", err, tt.wantErr)
 				return

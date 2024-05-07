@@ -10,6 +10,7 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	data "github.com/dmawardi/Go-Template/internal/helpers/data"
+	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
@@ -621,7 +622,7 @@ func checkPolicyDetails(t *testing.T, body models.PolicyRuleCombinedActions, pol
 		t.Errorf("Expected %v, got %v", policy.Role, body.Role)
 	}
 	// Check if array of strings contains the created record
-	if helpers.ArrayContainsString(body.Action, policy.Action) == false {
+	if utility.ArrayContainsString(body.Action, policy.Action) == false {
 		t.Errorf("Expected %v, got %v", policy.Action, body.Action)
 	}
 }

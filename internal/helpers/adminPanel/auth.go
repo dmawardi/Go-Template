@@ -1,7 +1,7 @@
 package adminpanel
 
 import (
-	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
@@ -14,7 +14,7 @@ func SearchPoliciesByResource(maps []models.PolicyRuleCombinedActions, searchTer
 	for _, m := range maps {
 
 		// If success and resource contains search term
-		if helpers.ContainsString(m.Resource, searchTerm) {
+		if utility.ContainsString(m.Resource, searchTerm) {
 			result = append(result, m)
 		}
 	}
@@ -37,7 +37,7 @@ func SearchMapKeysFor(maps []map[string]string, mapKeysToSearch []string, search
 			// Grab value
 			value, ok := m[keyToSearch]
 			// If success, and the record hasn't been added already and value contains search term
-			if ok && helpers.ContainsString(value, searchTerm) && !addedToResult {
+			if ok && utility.ContainsString(value, searchTerm) && !addedToResult {
 				// Append
 				result = append(result, m)
 				// Set added to true
