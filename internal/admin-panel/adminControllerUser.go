@@ -8,8 +8,9 @@ import (
 	"time"
 
 	"github.com/dmawardi/Go-Template/internal/controller"
-	"github.com/dmawardi/Go-Template/internal/helpers"
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
+	data "github.com/dmawardi/Go-Template/internal/helpers/data"
+
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
@@ -397,7 +398,7 @@ func (c adminUserController) BulkDelete(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Convert string slice to int slice
-	intIdList, err := helpers.ConvertStringSliceToIntSlice(listOfIds.SelectedItems)
+	intIdList, err := data.ConvertStringSliceToIntSlice(listOfIds.SelectedItems)
 	if err != nil {
 		bulkResponse.Errors = append(bulkResponse.Errors, err)
 		bulkResponse.Success = false

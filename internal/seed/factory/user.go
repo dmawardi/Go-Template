@@ -3,7 +3,7 @@ package factory
 import (
 	"github.com/bxcodec/faker/v3"
 	"github.com/dmawardi/Go-Template/internal/db"
-	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/helpers/data"
 	"github.com/dmawardi/Go-Template/internal/seed/schemas"
 	"gorm.io/gorm"
 )
@@ -37,5 +37,5 @@ func (f userFactory) Factory(count int) error {
 		users = append(users, user)
 	}
 	// Insert into the database
-	return helpers.InsertUniqueRecord(f.db, users)
+	return data.InsertUniqueRecord(f.db, users)
 }

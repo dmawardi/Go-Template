@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/helpers/data"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
@@ -90,7 +90,7 @@ func BuildTableData(listOfSchemaObjects []AdminPanelSchema, metaData models.Sche
 				// Attempt to extract foreign key representative value
 				fieldData := object.ObtainValue(header.Label)
 				// Convert string value to map[string]string
-				foreignKeyDataMap, err := helpers.StringToMap(fieldData)
+				foreignKeyDataMap, err := data.StringToMap(fieldData)
 				if err != nil {
 					fmt.Printf("Error converting struct to map: %v\n", err)
 				}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dmawardi/Go-Template/internal/db"
-	"github.com/dmawardi/Go-Template/internal/helpers"
+	data "github.com/dmawardi/Go-Template/internal/helpers/data"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"gorm.io/gorm"
 )
@@ -41,7 +41,7 @@ func (r *postRepository) Create(post *db.Post) (*db.Post, error) {
 // Find a list of posts in the database
 func (r *postRepository) FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.PaginatedPosts, error) {
 	// Build meta data for posts
-	metaData, err := helpers.BuildMetaData(r.DB, db.Post{}, limit, offset, order, conditions)
+	metaData, err := data.BuildMetaData(r.DB, db.Post{}, limit, offset, order, conditions)
 	if err != nil {
 		fmt.Printf("Error building meta data: %s", err)
 		return nil, err
@@ -49,7 +49,7 @@ func (r *postRepository) FindAll(limit int, offset int, order string, conditions
 
 	// Query all posts based on the received parameters
 	var posts []db.Post
-	err = helpers.QueryAll(r.DB, &posts, limit, offset, order, conditions, []string{"User"})
+	err = data.QueryAll(r.DB, &posts, limit, offset, order, conditions, []string{"User"})
 	if err != nil {
 		fmt.Printf("Error querying db for list of posts: %s", err)
 		return nil, err
@@ -94,7 +94,7 @@ func (r *postRepository) Delete(id int) error {
 // Bulk delete posts in database
 func (r *postRepository) BulkDelete(ids []int) error {
 	// Delete users with specified IDs
-	err := helpers.BulkDeleteByIds(db.Post{}, ids, r.DB)
+	err := data.BulkDeleteByIds(db.Post{}, ids, r.DB)
 	if err != nil {
 		fmt.Println("error in deleting posts: ", err)
 		return err

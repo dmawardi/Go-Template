@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	data "github.com/dmawardi/Go-Template/internal/helpers/data"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
 
@@ -36,7 +37,7 @@ func TestAuthController_FindAll(t *testing.T) {
 	json.Unmarshal(rr.Body.Bytes(), &body)
 
 	// Check if type matches
-	match := helpers.CheckSliceType(body, reflect.TypeOf(models.PolicyRuleCombinedActions{}))
+	match := data.CheckSliceType(body, reflect.TypeOf(models.PolicyRuleCombinedActions{}))
 	if match == false {
 		t.Errorf("Expected %v, got %v", reflect.TypeOf(models.PolicyRuleCombinedActions{}), reflect.TypeOf(body))
 	}
@@ -421,7 +422,7 @@ func TestAuthController_FindAllRoleInheritance(t *testing.T) {
 				t.Errorf("Expected %v, got %v", numberOfDetaultInheritances, len(body))
 			}
 			// Checks if the type of the records are correct
-			if helpers.CheckSliceType(body, reflect.TypeOf(models.GRecord{})) == false {
+			if data.CheckSliceType(body, reflect.TypeOf(models.GRecord{})) == false {
 				t.Errorf("Expected %v, got %v", reflect.TypeOf(models.GRecord{}), reflect.TypeOf(body[0]))
 			}
 		}

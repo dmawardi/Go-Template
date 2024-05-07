@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dmawardi/Go-Template/internal/db"
-	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/helpers/data"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"gorm.io/gorm"
 )
@@ -45,7 +45,7 @@ func (r *userRepository) Create(user *db.User) (*db.User, error) {
 // Find a list of users in the database
 func (r *userRepository) FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.PaginatedUsers, error) {
 	// Build meta data for users
-	metaData, err := helpers.BuildMetaData(r.DB, db.User{}, limit, offset, order, conditions)
+	metaData, err := data.BuildMetaData(r.DB, db.User{}, limit, offset, order, conditions)
 	if err != nil {
 		fmt.Printf("Error building meta data: %s", err)
 		return nil, err
@@ -53,7 +53,7 @@ func (r *userRepository) FindAll(limit int, offset int, order string, conditions
 
 	// Query all users based on the received parameters
 	var users []db.User
-	err = helpers.QueryAll(r.DB, &users, limit, offset, order, conditions, []string{})
+	err = data.QueryAll(r.DB, &users, limit, offset, order, conditions, []string{})
 	if err != nil {
 		fmt.Printf("Error querying db for list of users: %s", err)
 		return nil, err
@@ -99,7 +99,7 @@ func (r *userRepository) Delete(id int) error {
 // Bulk delete users in database
 func (r *userRepository) BulkDelete(ids []int) error {
 	// Delete users with specified IDs
-	err := helpers.BulkDeleteByIds(db.User{}, ids, r.DB)
+	err := data.BulkDeleteByIds(db.User{}, ids, r.DB)
 	if err != nil {
 		fmt.Println("error in deleting users: ", err)
 		return err
