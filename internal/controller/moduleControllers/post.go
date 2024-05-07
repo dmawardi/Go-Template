@@ -1,4 +1,4 @@
-package controller
+package modulecontrollers
 
 import (
 	"encoding/json"

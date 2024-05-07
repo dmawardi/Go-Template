@@ -9,6 +9,7 @@ import (
 	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/controller/core"
+	modulecontrollers "github.com/dmawardi/Go-Template/internal/controller/moduleControllers"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
@@ -52,7 +53,7 @@ type authModule struct {
 type postModule struct {
 	repo repository.PostRepository
 	serv service.PostService
-	cont controller.PostController
+	cont modulecontrollers.PostController
 }
 
 // Account structures
@@ -132,7 +133,7 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 	// Posts
 	t.posts.repo = repository.NewPostRepository(client)
 	t.posts.serv = service.NewPostService(t.posts.repo)
-	t.posts.cont = controller.NewPostController(t.posts.serv)
+	t.posts.cont = modulecontrollers.NewPostController(t.posts.serv)
 
 	// Admin panel
 	selectorService := adminpanel.NewSelectorService(client, t.auth.serv)

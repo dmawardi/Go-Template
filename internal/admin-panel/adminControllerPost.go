@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dmawardi/Go-Template/internal/controller"
+	modulecontrollers "github.com/dmawardi/Go-Template/internal/controller/moduleControllers"
 	"github.com/dmawardi/Go-Template/internal/db"
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	data "github.com/dmawardi/Go-Template/internal/helpers/data"
@@ -78,7 +78,7 @@ func (c adminPostController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate query params to extract
-	queryParamsToExtract := controller.PostConditionQueryParams()
+	queryParamsToExtract := modulecontrollers.PostConditionQueryParams()
 	// Extract query params
 	extractedConditionParams, err := request.ExtractSearchAndConditionParams(r, queryParamsToExtract)
 	if err != nil {

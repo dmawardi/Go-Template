@@ -16,6 +16,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/controller"
 	"github.com/dmawardi/Go-Template/internal/controller/core"
+	modulecontrollers "github.com/dmawardi/Go-Template/internal/controller/moduleControllers"
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/email"
 	"github.com/dmawardi/Go-Template/internal/helpers"
@@ -68,7 +69,7 @@ var basicModulesToSetup = []models.EntityConfig{
 				// Handle the error when the assertion fails
 				panic("Incorrect service type")
 			}
-			return controller.NewPostController(service)
+			return modulecontrollers.NewPostController(service)
 		},
 	},
 	// ADD ADDITIONAL BASIC MODULES HERE
@@ -209,7 +210,7 @@ func ApiSetup(client *gorm.DB, emailMock bool) routes.Api {
 	// Build API using controllers
 	api := routes.NewApi(adminController, userController, groupController,
 		// ADD BASIC MODULES HERE
-		moduleMap["Post"].Controller.(controller.PostController),
+		moduleMap["Post"].Controller.(modulecontrollers.PostController),
 	)
 	return api
 }
