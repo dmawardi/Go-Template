@@ -7,7 +7,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/models"
 	schemamodels "github.com/dmawardi/Go-Template/internal/models/schemaModels"
-	"github.com/dmawardi/Go-Template/internal/repository"
+	modulerepositories "github.com/dmawardi/Go-Template/internal/repository/module"
 )
 
 type PostService interface {
@@ -20,10 +20,10 @@ type PostService interface {
 }
 
 type postService struct {
-	repo repository.PostRepository
+	repo modulerepositories.PostRepository
 }
 
-func NewPostService(repo repository.PostRepository) PostService {
+func NewPostService(repo modulerepositories.PostRepository) PostService {
 	return &postService{repo: repo}
 }
 

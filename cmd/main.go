@@ -24,6 +24,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
+	modulerepositories "github.com/dmawardi/Go-Template/internal/repository/module"
 	"github.com/dmawardi/Go-Template/internal/routes"
 	"github.com/dmawardi/Go-Template/internal/seed"
 	"github.com/dmawardi/Go-Template/internal/service"
@@ -52,11 +53,11 @@ var basicModulesToSetup = []models.EntityConfig{
 	{
 		Name: "Post",
 		NewRepo: func(db *gorm.DB) interface{} {
-			return repository.NewPostRepository(db)
+			return modulerepositories.NewPostRepository(db)
 		},
 		NewService: func(repoInterface interface{}) interface{} {
 			// Perform a type assertion to convert repoInterface back to the expected repository type
-			repo, ok := repoInterface.(repository.PostRepository)
+			repo, ok := repoInterface.(modulerepositories.PostRepository)
 			if !ok {
 				// Handle the error when the assertion fails
 				panic("Incorrect repository type")

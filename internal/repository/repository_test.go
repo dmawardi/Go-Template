@@ -11,6 +11,7 @@ import (
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
+	modulerepositories "github.com/dmawardi/Go-Template/internal/repository/module"
 	"gorm.io/gorm"
 )
 
@@ -34,7 +35,7 @@ type authModule struct {
 }
 
 type postModule struct {
-	repo repository.PostRepository
+	repo modulerepositories.PostRepository
 }
 
 // Initial setup before running tests in package
@@ -87,5 +88,5 @@ func (t *repositoryTestModule) TestRepoSetup(client *gorm.DB) {
 	// Users
 	t.users.repo = corerepositories.NewUserRepository(client)
 	// Posts
-	t.posts.repo = repository.NewPostRepository(client)
+	t.posts.repo = modulerepositories.NewPostRepository(client)
 }
