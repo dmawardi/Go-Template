@@ -27,7 +27,7 @@ type repositoryTestModule struct {
 
 // Module structures
 type userModule struct {
-	repo repository.UserRepository
+	repo corerepositories.UserRepository
 }
 type authModule struct {
 	repo corerepositories.AuthPolicyRepository
@@ -85,7 +85,7 @@ func (t *repositoryTestModule) TestRepoSetup(client *gorm.DB) {
 	// Auth
 	t.auth.repo = corerepositories.NewAuthPolicyRepository(client)
 	// Users
-	t.users.repo = repository.NewUserRepository(client)
+	t.users.repo = corerepositories.NewUserRepository(client)
 	// Posts
 	t.posts.repo = repository.NewPostRepository(client)
 }

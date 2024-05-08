@@ -8,7 +8,7 @@ import (
 var app *config.AppConfig
 
 func SetAppConfig(appConfig *config.AppConfig) {
-	// Set app config in repository
-	corerepositories.SetAppConfig(appConfig)
 	app = appConfig
+	// Set app config in repository
+	corerepositories.SetAppConfig(app)
 }

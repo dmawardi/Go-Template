@@ -14,7 +14,6 @@ import (
 	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
-	"github.com/dmawardi/Go-Template/internal/repository"
 	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -39,13 +38,13 @@ type UserService interface {
 }
 
 type userService struct {
-	repo repository.UserRepository
+	repo corerepositories.UserRepository
 	auth corerepositories.AuthPolicyRepository
 	mail email.Email
 }
 
 // Builds a new service with injected repository. Includes email service
-func NewUserService(repo repository.UserRepository, auth corerepositories.AuthPolicyRepository, mail email.Email) UserService {
+func NewUserService(repo corerepositories.UserRepository, auth corerepositories.AuthPolicyRepository, mail email.Email) UserService {
 	return &userService{repo: repo, auth: auth, mail: mail}
 }
 

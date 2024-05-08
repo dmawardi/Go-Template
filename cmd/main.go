@@ -187,7 +187,7 @@ func ApiSetup(client *gorm.DB, emailMock bool) routes.Api {
 	groupService := service.NewAuthPolicyService(groupRepo)
 	groupController := core.NewAuthPolicyController(groupService)
 	// user
-	userRepo := repository.NewUserRepository(client)
+	userRepo := corerepositories.NewUserRepository(client)
 	userService := service.NewUserService(userRepo, groupRepo, mail)
 	userController := core.NewUserController(userService)
 
