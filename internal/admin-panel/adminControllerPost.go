@@ -12,10 +12,10 @@ import (
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	data "github.com/dmawardi/Go-Template/internal/helpers/data"
 	schemamodels "github.com/dmawardi/Go-Template/internal/models/schemaModels"
+	moduleservices "github.com/dmawardi/Go-Template/internal/service/module"
 
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
-	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
 )
 
@@ -27,7 +27,7 @@ var postTableHeaders = []TableHeader{
 	{Label: "User", ColumnSortLabel: "user", Pointer: false, DataType: "foreign", ForeignKeyRepKeyName: "Username"},
 }
 
-func NewAdminPostController(service service.PostService, selectorService SelectorService) AdminPostController {
+func NewAdminPostController(service moduleservices.PostService, selectorService SelectorService) AdminPostController {
 	return &adminPostController{
 		service: service,
 		// Use values from above
@@ -40,7 +40,7 @@ func NewAdminPostController(service service.PostService, selectorService Selecto
 }
 
 type adminPostController struct {
-	service service.PostService
+	service moduleservices.PostService
 	// For links
 	adminHomeUrl string
 	// For HTML text rendering

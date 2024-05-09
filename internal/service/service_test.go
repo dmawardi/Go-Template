@@ -14,6 +14,7 @@ import (
 	modulerepositories "github.com/dmawardi/Go-Template/internal/repository/module"
 	"github.com/dmawardi/Go-Template/internal/service"
 	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
+	moduleservices "github.com/dmawardi/Go-Template/internal/service/module"
 	"gorm.io/gorm"
 )
 
@@ -40,7 +41,7 @@ type authModule struct {
 
 type postModule struct {
 	repo modulerepositories.PostRepository
-	serv service.PostService
+	serv moduleservices.PostService
 }
 
 // Initial setup before running tests in package
@@ -98,6 +99,6 @@ func (t *repositoryTestModule) TestServSetup(client *gorm.DB) {
 	t.users.serv = coreservices.NewUserService(t.users.repo, t.auth.repo, mail)
 	// Posts
 	t.posts.repo = modulerepositories.NewPostRepository(client)
-	t.posts.serv = service.NewPostService(t.posts.repo)
+	t.posts.serv = moduleservices.NewPostService(t.posts.repo)
 
 }

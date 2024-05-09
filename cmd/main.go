@@ -29,6 +29,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/seed"
 	"github.com/dmawardi/Go-Template/internal/service"
 	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
+	moduleservices "github.com/dmawardi/Go-Template/internal/service/module"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -63,11 +64,11 @@ var basicModulesToSetup = []models.EntityConfig{
 				// Handle the error when the assertion fails
 				panic("Incorrect repository type")
 			}
-			return service.NewPostService(repo)
+			return moduleservices.NewPostService(repo)
 		},
 		NewController: func(serviceInterface interface{}) interface{} {
 			// Perform a type assertion to convert serviceInterface back to the expected service type
-			service, ok := serviceInterface.(service.PostService)
+			service, ok := serviceInterface.(moduleservices.PostService)
 			if !ok {
 				// Handle the error when the assertion fails
 				panic("Incorrect service type")
@@ -203,7 +204,7 @@ func ApiSetup(client *gorm.DB, emailMock bool) routes.Api {
 		adminpanel.NewAdminUserController(userService, selectorService),
 		adminpanel.NewAdminAuthPolicyController(groupService, selectorService),
 		// Basic modules
-		adminpanel.NewAdminPostController(moduleMap["Post"].Service.(service.PostService), selectorService),
+		adminpanel.NewAdminPostController(moduleMap["Post"].Service.(moduleservices.PostService), selectorService),
 		// ADD ADDITIONAL BASIC MODULES HERE
 	)
 

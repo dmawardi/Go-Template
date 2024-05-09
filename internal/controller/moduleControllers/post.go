@@ -8,7 +8,7 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	schemamodels "github.com/dmawardi/Go-Template/internal/models/schemaModels"
-	"github.com/dmawardi/Go-Template/internal/service"
+	moduleservices "github.com/dmawardi/Go-Template/internal/service/module"
 	"github.com/go-chi/chi"
 )
 
@@ -21,10 +21,10 @@ type PostController interface {
 }
 
 type postController struct {
-	service service.PostService
+	service moduleservices.PostService
 }
 
-func NewPostController(service service.PostService) PostController {
+func NewPostController(service moduleservices.PostService) PostController {
 	return &postController{service}
 }
 
