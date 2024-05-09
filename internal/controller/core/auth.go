@@ -8,7 +8,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
-	"github.com/dmawardi/Go-Template/internal/service"
+	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
 	"github.com/go-chi/chi"
 )
 
@@ -30,10 +30,10 @@ type AuthPolicyController interface {
 }
 
 type authPolicyController struct {
-	service service.AuthPolicyService
+	service coreservices.AuthPolicyService
 }
 
-func NewAuthPolicyController(service service.AuthPolicyService) AuthPolicyController {
+func NewAuthPolicyController(service coreservices.AuthPolicyService) AuthPolicyController {
 	return &authPolicyController{service}
 }
 

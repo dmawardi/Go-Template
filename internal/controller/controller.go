@@ -13,6 +13,7 @@ var app *config.AppConfig
 
 // Function called in main.go to connect app state to current file
 func SetStateInHandlers(a *config.AppConfig) {
+	// Set app state in controller
 	app = a
 }
 

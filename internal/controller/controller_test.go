@@ -16,6 +16,7 @@ import (
 	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
 	modulerepositories "github.com/dmawardi/Go-Template/internal/repository/module"
 	"github.com/dmawardi/Go-Template/internal/routes"
+	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
 
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/controller"
@@ -43,12 +44,12 @@ type controllerTestModule struct {
 // Module structures
 type userModule struct {
 	repo corerepositories.UserRepository
-	serv service.UserService
+	serv coreservices.UserService
 	cont core.UserController
 }
 type authModule struct {
 	repo corerepositories.AuthPolicyRepository
-	serv service.AuthPolicyService
+	serv coreservices.AuthPolicyService
 	cont core.AuthPolicyController
 }
 
@@ -126,11 +127,11 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 	// Setup module stack
 	// Auth
 	t.auth.repo = corerepositories.NewAuthPolicyRepository(client)
-	t.auth.serv = service.NewAuthPolicyService(t.auth.repo)
+	t.auth.serv = coreservices.NewAuthPolicyService(t.auth.repo)
 	t.auth.cont = core.NewAuthPolicyController(t.auth.serv)
 	// Users
 	t.users.repo = corerepositories.NewUserRepository(client)
-	t.users.serv = service.NewUserService(t.users.repo, t.auth.repo, mail)
+	t.users.serv = coreservices.NewUserService(t.users.repo, t.auth.repo, mail)
 	t.users.cont = core.NewUserController(t.users.serv)
 	// Posts
 	t.posts.repo = modulerepositories.NewPostRepository(client)

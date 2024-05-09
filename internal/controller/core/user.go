@@ -9,7 +9,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
-	"github.com/dmawardi/Go-Template/internal/service"
+	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
 	"github.com/go-chi/chi"
 )
 
@@ -32,10 +32,10 @@ type UserController interface {
 }
 
 type userController struct {
-	service service.UserService
+	service coreservices.UserService
 }
 
-func NewUserController(service service.UserService) UserController {
+func NewUserController(service coreservices.UserService) UserController {
 	return &userController{service}
 }
 

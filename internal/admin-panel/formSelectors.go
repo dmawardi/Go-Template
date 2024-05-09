@@ -5,7 +5,7 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers/utility"
-	"github.com/dmawardi/Go-Template/internal/service"
+	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
 	"gorm.io/gorm"
 )
 
@@ -16,11 +16,11 @@ type SelectorService interface {
 }
 type selectorService struct {
 	DB   *gorm.DB
-	Auth service.AuthPolicyService
+	Auth coreservices.AuthPolicyService
 }
 
 // Constructor
-func NewSelectorService(db *gorm.DB, auth service.AuthPolicyService) SelectorService {
+func NewSelectorService(db *gorm.DB, auth coreservices.AuthPolicyService) SelectorService {
 	return &selectorService{DB: db, Auth: auth}
 }
 

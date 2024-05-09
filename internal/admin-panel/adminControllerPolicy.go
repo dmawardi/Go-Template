@@ -13,7 +13,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
-	"github.com/dmawardi/Go-Template/internal/service"
+	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
 	"github.com/go-chi/chi"
 )
 
@@ -34,7 +34,7 @@ var roleTableHeaders = []TableHeader{
 }
 
 // Constructor
-func NewAdminAuthPolicyController(service service.AuthPolicyService, selectorService SelectorService) AdminAuthPolicyController {
+func NewAdminAuthPolicyController(service coreservices.AuthPolicyService, selectorService SelectorService) AdminAuthPolicyController {
 	return &adminAuthPolicyController{
 		service: service,
 		// Use values from above
@@ -69,7 +69,7 @@ type AdminAuthPolicyController interface {
 	ObtainFields() BasicAdminController
 }
 type adminAuthPolicyController struct {
-	service service.AuthPolicyService
+	service coreservices.AuthPolicyService
 	// For link generation
 	adminHomeUrl string
 	// For HTML text rendering

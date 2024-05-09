@@ -12,7 +12,7 @@ import (
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
-	"github.com/dmawardi/Go-Template/internal/service"
+	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
 )
 
 // Admin base controller (non-schema related routes)
@@ -32,11 +32,11 @@ type AdminBaseController interface {
 }
 
 type adminBaseController struct {
-	service service.UserService
+	service coreservices.UserService
 }
 
 // Constructor
-func NewAdminBaseController(userService service.UserService) AdminBaseController {
+func NewAdminBaseController(userService coreservices.UserService) AdminBaseController {
 	return &adminBaseController{userService}
 }
 
