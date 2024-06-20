@@ -10,9 +10,9 @@ This repository will serve as a base web application in Go.
 - Uses [Swaggo](https://github.com/swaggo/swag) to generate API documentation
 - Uses [Go-Validator](https://github.com/asaskevich/govalidator) for validating incoming data
 
-### Environment
+### Environment Setup
 
-You will be required to setup a .env file in the root of the project folder. This will need to contain the database details, and the encryption (HMAC) / JSON web token session secrets.
+Create a .env file in the root of the project folder with the following content:
 
 ```
 # Database Settings
@@ -36,11 +36,11 @@ SMTP_PASSWORD=
 
 ### Security / Authentication / Authorization
 
-- Uses [bcrypt](https://golang.org/x/crypto) for password hashing/decrypting
-- Uses [Golang-jwt](https://github.com/golang-jwt/jwt) for JSON Web Token authentication
-- Uses [casbin](https://github.com/casbin/casbin/v2) for Role based access control authorization
+- Password hashing with [bcrypt](https://golang.org/x/crypto)
+- JWT authentication with [Golang-jwt](https://github.com/golang-jwt/jwt)
+- Role-based access control with [casbin](https://github.com/casbin/casbin/v2)
 
-## To run Go server
+## Running the Server
 
 ```
 go run ./cmd
@@ -48,37 +48,37 @@ go run ./cmd
 
 ---
 
-## How to use
+## Adding a Feature
 
-Follow these steps to add a feature to the API. This template uses the clean architecture pattern
+1. Schema: Define schema in ./internal/db according to ORM instructions below with required receiver functions for admin panel (getID() and ObtainValue()).
+2. Repository: Create a repository in ./internal/repository.
+3. DTO Models: Build DTO models in ./internal/models.
+4. Service: Develop the service in ./internal/service.
+5. Controller: Implement the controller in ./internal/controller that accepts the request, performs data validation, then sends to the service to interact with database.
+6. Validation: Add validation using govalidator in DTO definitions. This is done by adding `valid:""` key-value pairs to struct DTO definitions (/internal/models) that are being passed into the ValidateStruct function (used in controllers).
+7. Routes: Update ./internal/routes/routes.go with new routes. Add the new controller to the API struct, this allows it to be used within the Routes function in the same file. Build routes to use the handlers that have been created in step 5 using the api struct using the AddBasicCrudApiRoutes function in the routes.go file.
+8. Modules Setup: Update BasicModulesToSetup and ApiSetup in ./cmd/main.go with new repo, service, and controller, then proceed to add in the ApiSetup function in the ./cmd/main.go file to build the new repository, service, and controller.
+9. RBAC Policy: Add routes to the RBAC policy file (./internal/auth/rbac_policy.go).
 
-1. Build schema and place in models array in ./internal/db using ORM instructions below. (Be sure to build the receiver functions getID() and ObtainValue() for the admin panel)
-2. Build repository in ./internal/repository which is the interaction between the DB and the application. This should use a struct with receiver functions.
-3. Build incoming DTO models for Create and Update JSON requests in ./internal/models
-4. Build service in ./internal/service that uses the repository and applies business logic.
-5. Build the controller (handler) in ./internal/controller that accepts the request, performs data validation, then sends to the service to interact with database.
-6. Add validation to handler using govalidator. This is done by adding `valid:""` key-value pairs to struct DTO definitions (/internal/models) that are being passed into the ValidateStruct function (used in controllers).
-7. Add the new controller to the API struct in the ./internal/routes/routes.go file. This allows it to be used within the Routes function in the same file. Build routes to use the handlers that have been created in step 4 using the api struct.
-8. Update the BasicModulesToSetup variable with new repo, service, and controller, then proceed to add in the ApiSetup function in the ./cmd/main.go file to build the new repository, service, and controller.
-9. Add the route to the RBAC authorization policy file (./internal/auth/rbac_policy.go)
-   ADMIN
-10. Add a new file in ./internal/admin-panel with the title of the schema being built. Inside will need to contain:
-11. The db schema will need to fit the specs of the db.AdminPanelSchema, so add two receiver functions to your schema struct.
+### ADMIN PANEL
 
-- The first will be a funciton that returns the ID of the schema (GetId())
+10. Admin Panel: Add schema file in ./internal/admin-panel (adminController<u>SchemaName</u>.go) This file will contain all the controller handlers required for the admin panel functionality.
+11. Admin Route Preparation: Update AddAdminRoutes in ./internal/routes/routes.go. The db schema will need to fit the specs of the db.AdminPanelSchema, so add two receiver functions to your schema struct as below.
+
+- The first will be a function that returns the ID of the schema (GetId())
 - The second will be a function that returns the value of the field given a key (ObtainValue())
   These functions will be used in the admin panel to display the data.
 
-11. Add the routes in the AddAdminRoutes function in ./internal/routes/routes.go
-12. Add the route to the RBAC authorization policy file (./internal/auth/rbac_policy.go)
+12. Admin Routes: Add the routes in the Routes function in ./internal/routes/routes.go using the AddAdminRouteSet function. This function will add the routes to the router for the admin panel.
+13. Admin RBAC Policy: Add the admin routes to the RBAC authorization policy file (./internal/auth/rbac_policy.go)
 
-13. (Testing) For e2e testing, you will need to update the controllers_test.go file in ./internal/controller. Updates are required in the controllerTestModule struct, TestApiSetup, & setupTestDatabase functions. You will need to create a new module to add to the Test Module struct. This module will contain the repository, service, and controller for the new feature. You will also need to add the new module to the controllerTestModule struct in the setupTestDatabase function.
+14. Tests: For e2e testing, you will need to update the controllers_test.go file in ./internal/controller. Updates are required in the controllerTestModule struct, TestApiSetup, & setupTestDatabase functions. You will need to create a new module to add to the Test Module struct. This module will contain the repository, service, and controller for the new feature. You will also need to add the new module to the controllerTestModule struct in the setupTestDatabase function.
 
 ---
 
 ## Testing
 
-To run all tests use below command.
+Run all tests:
 
 ```
 go test ./...
@@ -86,16 +86,20 @@ go test ./...
 
 This will run all files that match the testing file naming convention (\*\_test.go).
 
-Tests for repositories, services, and controllers should be in their respsective directories. The controllers folder consists of E2E tests.  
+For detailed results and coverage report:
+
+```
+go test ./... -V -cover
+```
+
+- "-V" prints more detailed results
+- "-cover" will provide a test coverage report
+
+Tests for repositories, services, and controllers should be in their respective directories. The controllers folder consists of E2E tests.  
 The setup for these tests is in the controllers_test.go file.
 
 Upon adding a new module:
 -Make sure to build a DB struct that contains the modules of: repo, service, & controller. This object should then be added to the testDbRepo which serves as the test connection that will be serving the requests for the DB and API.
-
-#### Additional flags
-
-- "-V" prints more detailed results
-- "-cover" will provide a test coverage report
 
 ---
 
@@ -109,6 +113,8 @@ The below commands must be used upon making changes to the API in order to regen
 - "-g" flag allows direct pointing to the main.go file for generation of swagger annotations from files that are imported (ie. controllers, services, repositories, etc.)
 - "--pd" flag parses dependecies as well
 - "--parseInternal" flag parses internal packages
+
+Generate and update API docs using Swag:
 
 ```
 <!-- Generate docs from home folder -->
@@ -183,7 +189,7 @@ or admin, /api/v1/users/\*\* _/, GET
 
 Request -> Authorization (does user have permission through role?) -> Validation (does user own record?) -> Service (perform CRUD operation)
 
-## To run using Docker
+## Running with Docker
 
 To run the application within a Docker container, you will need to build the image and run the container.
 
@@ -191,18 +197,28 @@ When running Docker on a Mac with an ARM processor, you will need to use the bui
 
 "container-name" is typically the github address of your project. (ie. dmawardi/go-template)
 
+Build Docker container:
+
 ```
-<!-- Builds docker image -->
 docker build -t container-name .
-<!-- Builds Docker image for amd64 (if on arm64) -->
+```
+
+For ARM processors:
+
+```
 docker buildx build --platform linux/amd64 -t container-name .
+```
 
+Runs docker image and matches port
 
-<!-- runs docker image and matches port -->
+```
 docker run --publish 8080:8080 container-name
+```
 
-<!-- The below command can be used to combine the build and to run with database in unison -->
-<!-- runs Docker compose to build the server and database and run together in a docker container -->
+The below command can be used to combine the build and to run with database in unison.
+Runs Docker compose to build the server and database and run together in a docker container.
+
+```
 docker-compose up --build
 ```
 
@@ -217,15 +233,11 @@ First, ensure that Docker is installed on the server.
 Then, pull the Docker image on the server using the container name (dmawardi/go-template:latest) and the docker pull command:
 
 ```
-
 docker pull container-name:version
-
 ```
 
 Then, run the Docker image on the server using the following command:
 
 ```
-
 docker run -d -p 8080:8080 container-name:version
-
 ```
