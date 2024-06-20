@@ -67,16 +67,16 @@ func (a api) Routes() http.Handler {
 
 	// // Add basic admin routes
 	mux = a.AddBasicAdminRoutes(mux, a.Admin.Base)
-	// mux = a.AddAdminCrudRoutes(mux, true, "users", a.Admin.User)
+
 	mux = a.AddAdminRouteSet(mux, false, "users", a.Admin.User)
 	mux = a.AddAdminRouteSet(mux, false, "posts", a.Admin.Post)
 	mux = a.AddAdminPolicySet(mux, true, "policy", a.Admin.Auth)
 
 	// Serve API Swagger docs at built URL from config state
-	fmt.Printf("Serving Swagger docs at http://%s/swagger/index.html\n", app.BaseURL)
 	mux.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL(fmt.Sprintf("http://%s/static/docs/swagger.json", app.BaseURL)), //The url pointing to API definition
 	))
+	fmt.Printf("Serving Swagger docs at http://%s/swagger/index.html\n", app.BaseURL)
 
 	// Build fileserver using static directory
 	fileServer := http.FileServer(http.Dir("./static"))
