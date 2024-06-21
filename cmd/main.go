@@ -153,7 +153,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Database seeded\n")
 
 	// Create api
 	api := ApiSetup(client, connectEmailService)
