@@ -64,12 +64,14 @@ func (a api) Routes() http.Handler {
 	// Other schemas
 	mux = a.AddBasicCrudApiRoutes(mux, "posts", a.Post)
 
-	// Add basic admin routes
+	// Add basic admin routes (home, login, etc)
 	mux = a.AddBasicAdminRoutes(mux, a.Admin.Base)
+	// Add admin policy routes
+	mux = a.AddAdminPolicySet(mux, true, "policy", a.Admin.Auth)
 
+	// Add admin panel schema route sets
 	mux = a.AddAdminRouteSet(mux, false, "users", a.Admin.User)
 	mux = a.AddAdminRouteSet(mux, false, "posts", a.Admin.Post)
-	mux = a.AddAdminPolicySet(mux, true, "policy", a.Admin.Auth)
 
 	// Serve API Swagger docs at built URL from config state
 	mux.Get("/swagger/*", httpSwagger.Handler(
