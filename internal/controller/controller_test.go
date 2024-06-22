@@ -96,7 +96,7 @@ func TestMain(m *testing.M) {
 
 	// build API for serving requests
 	testModule.api = testModule.TestApiSetup(testModule.dbClient)
-	testModule.router = testModule.api.Routes()
+	testModule.router = testModule.api.Routes(routes.CRUDRouteSet{}, routes.AdminRouteSet{})
 	fmt.Printf("API setup complete\n")
 
 	// Setup accounts for mocking authentication
