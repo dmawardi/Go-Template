@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/dmawardi/Go-Template/internal/config"
-	"github.com/dmawardi/Go-Template/internal/controller"
+	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -15,12 +15,12 @@ import (
 var app *config.AppConfig
 
 type CRUDRouteSet struct {
-	Controller controller.BasicController
+	Controller models.BasicController
 	Name       string
 }
 
 type AdminRouteSet struct {
-	Controller controller.BasicAdminController
+	Controller models.BasicAdminController
 	Name       string
 }
 

@@ -5,12 +5,12 @@ import (
 
 	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
 	"github.com/dmawardi/Go-Template/internal/auth"
-	"github.com/dmawardi/Go-Template/internal/controller"
+	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/go-chi/chi"
 )
 
 // Adds a basic Admin CRUD route set to a Chi mux router
-func AddAdminRouteSet(router *chi.Mux, protected bool, urlExtension string, controller controller.BasicAdminController) *chi.Mux {
+func AddAdminRouteSet(router *chi.Mux, protected bool, urlExtension string, controller models.BasicAdminController) *chi.Mux {
 	// Reassign for consistency
 	r := router
 	r.Group(func(mux chi.Router) {

@@ -35,25 +35,3 @@ func GetJobs(w http.ResponseWriter, r *http.Request) {
 func HealthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Welcome!"))
 }
-
-type BasicController interface {
-	FindAll(w http.ResponseWriter, r *http.Request)
-	Find(w http.ResponseWriter, r *http.Request)
-	Create(w http.ResponseWriter, r *http.Request)
-	Update(w http.ResponseWriter, r *http.Request)
-	Delete(w http.ResponseWriter, r *http.Request)
-}
-
-type BasicAdminController interface {
-	FindAll(w http.ResponseWriter, r *http.Request)
-	Create(w http.ResponseWriter, r *http.Request)
-	// Edit is also used to view the record details
-	Edit(w http.ResponseWriter, r *http.Request)
-	Delete(w http.ResponseWriter, r *http.Request)
-	// Bulk delete (from table)
-	BulkDelete(w http.ResponseWriter, r *http.Request)
-	// Success pages
-	CreateSuccess(w http.ResponseWriter, r *http.Request)
-	EditSuccess(w http.ResponseWriter, r *http.Request)
-	DeleteSuccess(w http.ResponseWriter, r *http.Request)
-}
