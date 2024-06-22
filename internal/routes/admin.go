@@ -10,7 +10,7 @@ import (
 )
 
 // Adds a basic Admin CRUD route set to a Chi mux router
-func (a api) AddAdminRouteSet(router *chi.Mux, protected bool, urlExtension string, controller controller.BasicAdminController) *chi.Mux {
+func AddAdminRouteSet(router *chi.Mux, protected bool, urlExtension string, controller controller.BasicAdminController) *chi.Mux {
 	// Reassign for consistency
 	r := router
 	r.Group(func(mux chi.Router) {
@@ -40,7 +40,7 @@ func (a api) AddAdminRouteSet(router *chi.Mux, protected bool, urlExtension stri
 }
 
 // Adds routess for editing and creating admin auth policies for the admin panel
-func (a api) AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension string, controller adminpanel.AdminAuthPolicyController) *chi.Mux {
+func AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension string, controller adminpanel.AdminAuthPolicyController) *chi.Mux {
 	// Reassign for consistency
 	r := router
 	r.Group(func(mux chi.Router) {
@@ -78,7 +78,7 @@ func (a api) AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension str
 }
 
 // Function to adds the base admin panel routes to an existing Chi mux router (eg. login, logout, home)
-func (a api) AddBasicAdminRoutes(router *chi.Mux, controller adminpanel.AdminBaseController) *chi.Mux {
+func AddBasicAdminRoutes(router *chi.Mux, controller adminpanel.AdminBaseController) *chi.Mux {
 	// Public routes
 	router.Group(func(mux chi.Router) {
 		// @tag.name Public Routes

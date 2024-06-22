@@ -9,7 +9,7 @@ import (
 )
 
 // Adds a basic fully authorized CRUD route set to a Chi mux router
-func (a api) AddBasicCrudApiRoutes(router *chi.Mux, urlExtension string, controller controller.BasicController) *chi.Mux {
+func AddBasicCrudApiRoutes(router *chi.Mux, urlExtension string, controller controller.BasicController) *chi.Mux {
 	// Public routes
 	router.Group(func(mux chi.Router) {
 		// Private routes

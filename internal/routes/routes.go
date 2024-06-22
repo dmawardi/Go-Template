@@ -34,20 +34,20 @@ func (a api) Routes(crudRouteSet CRUDRouteSet, adminRouteSet AdminRouteSet) http
 	mux.Use(corsMiddleware)
 
 	// Add user and group API routes
-	mux = a.AddUserApiRoutes(mux)
-	mux = a.AddAuthRBACApiRoutes(mux)
+	mux = AddUserApiRoutes(mux, a.User)
+	mux = AddAuthRBACApiRoutes(mux, a.Policy)
 
 	// Add basic admin panel routes (home, login, etc)
-	mux = a.AddBasicAdminRoutes(mux, a.Admin.Base)
+	mux = AddBasicAdminRoutes(mux, a.Admin.Base)
 	// Add admin user routes
-	mux = a.AddAdminRouteSet(mux, false, "users", a.Admin.User)
+	mux = AddAdminRouteSet(mux, false, "users", a.Admin.User)
 	// Add admin policy routes
-	mux = a.AddAdminPolicySet(mux, true, "policy", a.Admin.Auth)
+	mux = AddAdminPolicySet(mux, true, "policy", a.Admin.Auth)
 
 	// Other schemas
-	mux = a.AddBasicCrudApiRoutes(mux, "posts", a.Post)
+	mux = AddBasicCrudApiRoutes(mux, "posts", a.Post)
 	// Add admin panel schema route sets
-	mux = a.AddAdminRouteSet(mux, false, "posts", a.Admin.Post)
+	mux = AddAdminRouteSet(mux, false, "posts", a.Admin.Post)
 
 	// Serve API Swagger docs at built URL from config state
 	mux.Get("/swagger/*", httpSwagger.Handler(
