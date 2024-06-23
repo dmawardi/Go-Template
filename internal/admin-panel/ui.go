@@ -158,15 +158,32 @@ func GenerateAndSetAdminSidebar(adminCont AdminController) {
 	// Get the reflect.Value of the struct.
 	valueOfCont := reflect.ValueOf(adminCont)
 
-	// Iterate through the struct fields.
+	// Iterate through the struct fields to build sidebar list for base admin controllers
 	for i := 0; i < valueOfCont.NumField(); i++ {
 		// Get the field name and value.
 		fieldName := valueOfCont.Type().Field(i).Name
 		fieldValue := valueOfCont.Field(i).Interface()
 
 		// If not base controller, add to sidebar list
-		if fieldName != "Base" && fieldName != "Auth" {
+		if fieldName != "Base" && fieldName != "Auth" && fieldName != "ModuleMap" {
 			currentController := ObtainFieldsForAnyType(fieldValue)
+			// Create sidebar item
+			item := sidebarItem{
+				Name:        currentController.PluralSchemaName,
+				AddLink:     fmt.Sprintf("%s/create", currentController.AdminHomeUrl),
+				FindAllLink: currentController.AdminHomeUrl,
+			}
+
+			// append to sidebar list
+			sidebar.Main = append(sidebar.Main, item)
+		}
+	}
+
+	// Iterate through module map of created modules and add to sidebar list
+	for _, moduleSet := range adminCont.ModuleMap {
+		// Check if admin controller is not nil
+		if moduleSet.AdminController != nil {
+			currentController := ObtainFieldsForAnyType(moduleSet.AdminController)
 			// Create sidebar item
 			item := sidebarItem{
 				Name:        currentController.PluralSchemaName,
