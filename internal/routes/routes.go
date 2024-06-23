@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
 	"github.com/dmawardi/Go-Template/internal/config"
-	modulecontrollers "github.com/dmawardi/Go-Template/internal/controller/moduleControllers"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -47,9 +45,12 @@ func (a api) Routes(crudRouteSet CRUDRouteSet, adminRouteSet AdminRouteSet) http
 	mux = AddAdminPolicySet(mux, true, "policy", a.Admin.Auth)
 
 	// Other schemas
-	mux = AddBasicCrudApiRoutes(mux, "posts", a.ModuleMap["Post"].Controller.(modulecontrollers.PostController))
-	// Add admin panel schema route sets
-	mux = AddAdminRouteSet(mux, false, "posts", a.Admin.ModuleMap["Post"].AdminController.(adminpanel.AdminPostController))
+	for _, module := range a.ModuleMap {
+		// Add basic CRUD API routes
+		mux = AddBasicCrudApiRoutes(mux, module.RouteName, module.Controller.(models.BasicController))
+		// Add admin panel schema route sets
+		mux = AddAdminRouteSet(mux, false, module.RouteName, module.AdminController.(models.BasicAdminController))
+	}
 
 	// Serve API Swagger docs at built URL from config state
 	mux.Get("/swagger/*", httpSwagger.Handler(

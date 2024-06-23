@@ -7,6 +7,7 @@ package models
 
 // Module set is used within SetupBasicModules to store the different modules
 type ModuleSet = struct {
+	RouteName       string
 	Repo            interface{}
 	Service         interface{}
 	Controller      interface{}

@@ -13,6 +13,7 @@ var ModulesToSetup = []EntityConfig{
 	{
 		// Used for module name in module map
 		Name:               "Post",
+		RouteName:          "posts",
 		NewRepo:            webapi.NewRepository(modulerepositories.NewPostRepository),
 		NewService:         webapi.NewService(moduleservices.NewPostService),
 		NewController:      webapi.NewController(modulecontrollers.NewPostController),

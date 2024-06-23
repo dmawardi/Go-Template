@@ -27,6 +27,7 @@ func SetupModules(modulesToSetup []EntityConfig, client *gorm.DB, selectorServic
 
 			// Add module set including admin controller to the map
 			moduleMap[module.Name] = models.ModuleSet{
+				RouteName:       module.RouteName,
 				Repo:            repo,
 				Service:         service,
 				Controller:      controller,
@@ -35,6 +36,7 @@ func SetupModules(modulesToSetup []EntityConfig, client *gorm.DB, selectorServic
 		} else {
 			// Add module set without admin controller to the map
 			moduleMap[module.Name] = models.ModuleSet{
+				RouteName:       module.RouteName,
 				Repo:            repo,
 				Service:         service,
 				Controller:      controller,
@@ -48,6 +50,7 @@ func SetupModules(modulesToSetup []EntityConfig, client *gorm.DB, selectorServic
 // Used in API setup to standardize the array of setup configurations
 type EntityConfig struct {
 	Name               string
+	RouteName          string
 	NewRepo            func(*gorm.DB) interface{}
 	NewService         func(interface{}) interface{}
 	NewController      func(interface{}) interface{}
