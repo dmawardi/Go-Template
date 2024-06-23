@@ -19,7 +19,6 @@ import (
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/email"
 	"github.com/dmawardi/Go-Template/internal/helpers"
-	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/modules"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
@@ -27,7 +26,6 @@ import (
 	"github.com/dmawardi/Go-Template/internal/seed"
 	"github.com/dmawardi/Go-Template/internal/service"
 	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
-	moduleservices "github.com/dmawardi/Go-Template/internal/service/module"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -152,18 +150,22 @@ func ApiSetup(client *gorm.DB, emailMock bool) routes.Api {
 	userService := coreservices.NewUserService(userRepo, groupRepo, mail)
 	userController := core.NewUserController(userService)
 
-	// Setup basic modules with new implementation
-	moduleMap := webapi.SetupModules(modules.ModulesToSetup, client)
+	// Build selector service is used for selector boxes in Admin panel
+	selectorService := adminpanel.NewSelectorService(client, groupService)
+
+	// Setup basic modules with new implementation (including admin controllers if available)
+	moduleMap := modules.SetupModules(modules.ModulesToSetup, client, selectorService)
 
 	// Admin panel
-	selectorService := adminpanel.NewSelectorService(client, groupService)
+	//
+	// Create admin controller
 	adminController := adminpanel.NewAdminController(
+		// Basic ADMIN modules
 		adminpanel.NewAdminBaseController(userService),
 		adminpanel.NewAdminUserController(userService, selectorService),
 		adminpanel.NewAdminAuthPolicyController(groupService, selectorService),
-		// Basic modules
-		adminpanel.NewAdminPostController(moduleMap["Post"].Service.(moduleservices.PostService), selectorService),
-		// ADD ADDITIONAL BASIC MODULES HERE
+		// ADD ADDITIONAL MODULES HERE
+		moduleMap,
 	)
 
 	// Generate admin sidebar list from admin controller

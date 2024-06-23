@@ -136,16 +136,17 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 	t.users.serv = coreservices.NewUserService(t.users.repo, t.auth.repo, mail)
 	t.users.cont = core.NewUserController(t.users.serv)
 
+	selectorService := adminpanel.NewSelectorService(client, t.auth.serv)
 	// Setup basic modules with new implementation
-	moduleMap := webapi.SetupModules(modules.ModulesToSetup, client)
+	moduleMap := modules.SetupModules(modules.ModulesToSetup, client, selectorService)
 
 	// Admin panel
-	selectorService := adminpanel.NewSelectorService(client, t.auth.serv)
 	t.admin = adminpanel.NewAdminController(
 		adminpanel.NewAdminBaseController(t.users.serv),
 		adminpanel.NewAdminUserController(t.users.serv, selectorService),
 		adminpanel.NewAdminAuthPolicyController(t.auth.serv, selectorService),
-		adminpanel.NewAdminPostController(t.posts.serv, selectorService),
+		// Additional modules
+		moduleMap,
 	)
 
 	// Generate admin sidebar list from admin controller

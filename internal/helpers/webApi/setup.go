@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"html/template"
 
-	"github.com/dmawardi/Go-Template/internal/models"
 	"gorm.io/gorm"
 )
 
@@ -40,20 +39,19 @@ func NewController[T any, C any](controllerFunc func(T) C) func(interface{}) int
 	}
 }
 
-// Returns module map that contains structs with modules (controller, service, & repo) using module name as key
-func SetupModules(modulesToSetup []models.EntityConfig, client *gorm.DB) models.ModuleMap {
-	moduleMap := make(map[string]models.ModuleSet)
-
-	for _, module := range modulesToSetup {
-		repo := module.NewRepo(client)
-		service := module.NewService(repo)
-		controller := module.NewController(service)
-
-		// Add controllers to a map for later use (e.g., in building the API)
-		// Use name as a key
-		moduleMap[module.Name] = models.ModuleSet{Repo: repo, Service: service, Controller: controller}
+// Helper function to create a new admin controller. Takes an admin controller creation function and returns a function that takes an interface and returns an interface
+func NewAdminController[T any, S any, C any](controllerFunc func(T, S) C) func(interface{}, interface{}) interface{} {
+	return func(serviceInterface interface{}, selectorService interface{}) interface{} {
+		service, ok := serviceInterface.(T)
+		if !ok {
+			panic("Incorrect service type")
+		}
+		selector, ok := selectorService.(S)
+		if !ok {
+			panic("Incorrect selector service type")
+		}
+		return controllerFunc(service, selector)
 	}
-	return moduleMap
 }
 
 // LoadTemplate parses an HTML template, executes it with the provided data, and returns the result as a string.

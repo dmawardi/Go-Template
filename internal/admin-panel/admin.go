@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/dmawardi/Go-Template/internal/config"
+	"github.com/dmawardi/Go-Template/internal/models"
 )
 
 // init state for db access
@@ -34,13 +35,13 @@ type AdminController struct {
 	Base AdminBaseController
 	User AdminUserController
 	Auth AdminAuthPolicyController
-	// ADD BASIC MODULES HERE
-	Post AdminPostController
+	// Additional modules contained in module map
+	ModuleMap models.ModuleMap
 }
 
 // Constructor
-func NewAdminController(base AdminBaseController, users AdminUserController, authPolicies AdminAuthPolicyController, posts AdminPostController) AdminController {
-	return AdminController{base, users, authPolicies, posts}
+func NewAdminController(base AdminBaseController, users AdminUserController, authPolicies AdminAuthPolicyController, moduleMap models.ModuleMap) AdminController {
+	return AdminController{base, users, authPolicies, moduleMap}
 }
 
 // Interface for all basic admin controllers (used for Admin panel to dynamically generate sidebar)
