@@ -16,15 +16,13 @@ import (
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/controller"
 	"github.com/dmawardi/Go-Template/internal/controller/core"
-	modulecontrollers "github.com/dmawardi/Go-Template/internal/controller/moduleControllers"
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/email"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
-	"github.com/dmawardi/Go-Template/internal/models"
+	"github.com/dmawardi/Go-Template/internal/modules"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
-	modulerepositories "github.com/dmawardi/Go-Template/internal/repository/module"
 	"github.com/dmawardi/Go-Template/internal/routes"
 	"github.com/dmawardi/Go-Template/internal/seed"
 	"github.com/dmawardi/Go-Template/internal/service"
@@ -39,27 +37,6 @@ var app config.AppConfig
 
 // Connect email service used in API setup to connect email services (forgot password, etc.)
 var connectEmailService = true
-
-// Slice of state setters for each module
-var stateFuncs = []StateFunc{
-	controller.SetStateInHandlers,
-	auth.SetStateInAuth,
-	adminpanel.SetStateInAdminPanel,
-	service.SetAppConfig,
-	repository.SetAppConfig,
-	routes.BuildRouteState,
-}
-
-// Define setup configurations (to use in setupModules within API setup function)
-var modulesToSetup = []models.EntityConfig{
-	{
-		Name:          "Post",
-		NewRepo:       webapi.NewRepository(modulerepositories.NewPostRepository),
-		NewService:    webapi.NewService(moduleservices.NewPostService),
-		NewController: webapi.NewController(modulecontrollers.NewPostController),
-	},
-	// ADD ADDITIONAL BASIC MODULES HERE
-}
 
 // API Details
 // @title           Go Template
@@ -176,7 +153,7 @@ func ApiSetup(client *gorm.DB, emailMock bool) routes.Api {
 	userController := core.NewUserController(userService)
 
 	// Setup basic modules with new implementation
-	moduleMap := webapi.SetupModules(modulesToSetup, client)
+	moduleMap := webapi.SetupModules(modules.ModulesToSetup, client)
 
 	// Admin panel
 	selectorService := adminpanel.NewSelectorService(client, groupService)
@@ -212,4 +189,14 @@ func setAppState(app *config.AppConfig, funcs []StateFunc) {
 	for _, fn := range funcs {
 		fn(app)
 	}
+}
+
+// Slice of state setters for each module
+var stateFuncs = []StateFunc{
+	controller.SetStateInHandlers,
+	auth.SetStateInAuth,
+	adminpanel.SetStateInAdminPanel,
+	service.SetAppConfig,
+	repository.SetAppConfig,
+	routes.BuildRouteState,
 }
