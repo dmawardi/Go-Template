@@ -13,6 +13,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
+	"github.com/dmawardi/Go-Template/internal/modules"
 	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
 	modulerepositories "github.com/dmawardi/Go-Template/internal/repository/module"
 	"github.com/dmawardi/Go-Template/internal/routes"
@@ -134,10 +135,9 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 	t.users.repo = corerepositories.NewUserRepository(client)
 	t.users.serv = coreservices.NewUserService(t.users.repo, t.auth.repo, mail)
 	t.users.cont = core.NewUserController(t.users.serv)
-	// Posts
-	t.posts.repo = modulerepositories.NewPostRepository(client)
-	t.posts.serv = moduleservices.NewPostService(t.posts.repo)
-	t.posts.cont = modulecontrollers.NewPostController(t.posts.serv)
+
+	// Setup basic modules with new implementation
+	moduleMap := webapi.SetupModules(modules.ModulesToSetup, client)
 
 	// Admin panel
 	selectorService := adminpanel.NewSelectorService(client, t.auth.serv)
@@ -156,7 +156,7 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 		t.admin,
 		t.users.cont,
 		t.auth.cont,
-		t.posts.cont,
+		moduleMap,
 	)
 
 	return api
