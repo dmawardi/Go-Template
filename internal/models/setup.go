@@ -5,9 +5,9 @@ import "gorm.io/gorm"
 // Used in API setup to standardize the array of setup configurations
 type EntityConfig struct {
 	Name          string
-	NewRepo       RepoFactory
-	NewService    ServiceFactory
-	NewController ControllerFactory
+	NewRepo       func(*gorm.DB) interface{}
+	NewService    func(interface{}) interface{}
+	NewController func(interface{}) interface{}
 }
 
 // Wrappers used for API setup function to ensure different repositories are standardized

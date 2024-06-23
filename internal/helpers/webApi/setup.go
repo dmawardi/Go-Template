@@ -11,11 +11,40 @@ import (
 // MODULE STANDARDIZATION
 //
 
+// Helper function to create a new repository. Takes a repository creation function and returns a function that takes a database connection and returns an interface
+func NewRepository[T any](repoFunc func(*gorm.DB) T) func(*gorm.DB) interface{} {
+	return func(db *gorm.DB) interface{} {
+		return repoFunc(db)
+	}
+}
+
+// Helper function to create a new service. Takes a service creation function and returns a function that takes an interface and returns an interface
+func NewService[T any, S any](serviceFunc func(T) S) func(interface{}) interface{} {
+	return func(repoInterface interface{}) interface{} {
+		repo, ok := repoInterface.(T)
+		if !ok {
+			panic("Incorrect repository type")
+		}
+		return serviceFunc(repo)
+	}
+}
+
+// Helper function to create a new controller. Takes a controller creation function and returns a function that takes an interface and returns an interface
+func NewController[T any, C any](controllerFunc func(T) C) func(interface{}) interface{} {
+	return func(serviceInterface interface{}) interface{} {
+		service, ok := serviceInterface.(T)
+		if !ok {
+			panic("Incorrect service type")
+		}
+		return controllerFunc(service)
+	}
+}
+
 // Returns module set (controller, service, & repo) to be set up with key as module name
-func SetupBasicModules(basicModulesToSetup []models.EntityConfig, client *gorm.DB) map[string]models.ModuleSet {
+func SetupModules(modulesToSetup []models.EntityConfig, client *gorm.DB) map[string]models.ModuleSet {
 	moduleMap := make(map[string]models.ModuleSet)
 
-	for _, module := range basicModulesToSetup {
+	for _, module := range modulesToSetup {
 		repo := module.NewRepo(client)
 		service := module.NewService(repo)
 		controller := module.NewController(service)

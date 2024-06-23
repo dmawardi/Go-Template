@@ -50,31 +50,13 @@ var stateFuncs = []StateFunc{
 	routes.BuildRouteState,
 }
 
-// Define setup configurations (to use in setupBasicModules within API setup function)
-var basicModulesToSetup = []models.EntityConfig{
+// Define setup configurations (to use in setupModules within API setup function)
+var modulesToSetup = []models.EntityConfig{
 	{
-		Name: "Post",
-		NewRepo: func(db *gorm.DB) interface{} {
-			return modulerepositories.NewPostRepository(db)
-		},
-		NewService: func(repoInterface interface{}) interface{} {
-			// Perform a type assertion to convert repoInterface back to the expected repository type
-			repo, ok := repoInterface.(modulerepositories.PostRepository)
-			if !ok {
-				// Handle the error when the assertion fails
-				panic("Incorrect repository type")
-			}
-			return moduleservices.NewPostService(repo)
-		},
-		NewController: func(serviceInterface interface{}) interface{} {
-			// Perform a type assertion to convert serviceInterface back to the expected service type
-			service, ok := serviceInterface.(moduleservices.PostService)
-			if !ok {
-				// Handle the error when the assertion fails
-				panic("Incorrect service type")
-			}
-			return modulecontrollers.NewPostController(service)
-		},
+		Name:          "Post",
+		NewRepo:       webapi.NewRepository(modulerepositories.NewPostRepository),
+		NewService:    webapi.NewService(moduleservices.NewPostService),
+		NewController: webapi.NewController(modulecontrollers.NewPostController),
 	},
 	// ADD ADDITIONAL BASIC MODULES HERE
 }
@@ -194,7 +176,7 @@ func ApiSetup(client *gorm.DB, emailMock bool) routes.Api {
 	userController := core.NewUserController(userService)
 
 	// Setup basic modules with new implementation
-	moduleMap := webapi.SetupBasicModules(basicModulesToSetup, client)
+	moduleMap := webapi.SetupModules(modulesToSetup, client)
 
 	// Admin panel
 	selectorService := adminpanel.NewSelectorService(client, groupService)
