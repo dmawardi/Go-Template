@@ -40,8 +40,8 @@ func NewController[T any, C any](controllerFunc func(T) C) func(interface{}) int
 	}
 }
 
-// Returns module set (controller, service, & repo) to be set up with key as module name
-func SetupModules(modulesToSetup []models.EntityConfig, client *gorm.DB) map[string]models.ModuleSet {
+// Returns module map that contains structs with modules (controller, service, & repo) using module name as key
+func SetupModules(modulesToSetup []models.EntityConfig, client *gorm.DB) models.ModuleMap {
 	moduleMap := make(map[string]models.ModuleSet)
 
 	for _, module := range modulesToSetup {

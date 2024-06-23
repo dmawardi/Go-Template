@@ -30,12 +30,12 @@ func SetStateInAdminPanel(a *config.AppConfig) {
 
 // Admin controller (used in API)
 type AdminController struct {
+	// Basic modules
 	Base AdminBaseController
 	User AdminUserController
 	Auth AdminAuthPolicyController
-	// Basic modules
-	Post AdminPostController
 	// ADD BASIC MODULES HERE
+	Post AdminPostController
 }
 
 // Constructor

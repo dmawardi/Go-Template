@@ -21,3 +21,7 @@ type ModuleSet = struct {
 	Service    interface{}
 	Controller interface{}
 }
+
+// ModuleMap is used to store the different modules in a map for dynamic usage
+// Outputted by SetupModules() in webApi/setup.go
+type ModuleMap = map[string]ModuleSet
