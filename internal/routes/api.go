@@ -6,7 +6,7 @@ import (
 	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/controller/core"
-	modulecontrollers "github.com/dmawardi/Go-Template/internal/controller/moduleControllers"
+	"github.com/dmawardi/Go-Template/internal/models"
 )
 
 // Create new service repository
@@ -21,16 +21,21 @@ type Api interface {
 
 // Api that contains all controllers for route creation
 type api struct {
-	Admin  adminpanel.AdminController
+	// Basic Controllers
 	User   core.UserController
 	Policy core.AuthPolicyController
-	Post   modulecontrollers.PostController
+	// Admin Controller
+	Admin adminpanel.AdminController
+	// Module Controllers
+	ModuleMap models.ModuleMap
+	// Post   modulecontrollers.PostController
+
 }
 
 func NewApi(
 	admin adminpanel.AdminController,
 	user core.UserController,
 	policy core.AuthPolicyController,
-	post modulecontrollers.PostController) Api {
-	return &api{Admin: admin, User: user, Policy: policy, Post: post}
+	moduleMap models.ModuleMap) Api {
+	return &api{Admin: admin, User: user, Policy: policy, ModuleMap: moduleMap}
 }

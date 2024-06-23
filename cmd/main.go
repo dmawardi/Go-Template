@@ -194,8 +194,8 @@ func ApiSetup(client *gorm.DB, emailMock bool) routes.Api {
 
 	// Build API using controllers
 	api := routes.NewApi(adminController, userController, groupController,
-		// ADD BASIC MODULES HERE
-		moduleMap["Post"].Controller.(modulecontrollers.PostController),
+		// Created modules contained in moduleMap
+		moduleMap,
 	)
 	return api
 }

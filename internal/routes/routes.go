@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/dmawardi/Go-Template/internal/config"
+	modulecontrollers "github.com/dmawardi/Go-Template/internal/controller/moduleControllers"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -45,7 +46,7 @@ func (a api) Routes(crudRouteSet CRUDRouteSet, adminRouteSet AdminRouteSet) http
 	mux = AddAdminPolicySet(mux, true, "policy", a.Admin.Auth)
 
 	// Other schemas
-	mux = AddBasicCrudApiRoutes(mux, "posts", a.Post)
+	mux = AddBasicCrudApiRoutes(mux, "posts", a.ModuleMap["Post"].Controller.(modulecontrollers.PostController))
 	// Add admin panel schema route sets
 	mux = AddAdminRouteSet(mux, false, "posts", a.Admin.Post)
 
