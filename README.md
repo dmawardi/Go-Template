@@ -56,21 +56,20 @@ go run ./cmd
 4. Service: Develop the service in ./internal/service.
 5. Controller: Implement the controller in ./internal/controller that accepts the request, performs data validation, then sends to the service to interact with database.
 6. Validation: Add validation using govalidator in DTO definitions. This is done by adding `valid:""` key-value pairs to struct DTO definitions (/internal/models) that are being passed into the ValidateStruct function (used in controllers).
-7. Routes: Update ./internal/routes/routes.go with new routes. Add the new controller to the API struct, this allows it to be used within the Routes function in the same file. Build routes to use the handlers that have been created in step 5 using the api struct using the AddBasicCrudApiRoutes function in the routes.go file.
-8. Modules Setup: Update BasicModulesToSetup and ApiSetup in ./cmd/main.go with new repo, service, and controller, then proceed to add in the ApiSetup function in the ./cmd/main.go file to build the new repository, service, and controller.
-9. RBAC Policy: Add routes to the RBAC policy file (./internal/auth/rbac_policy.go).
+7. Routes: Update the modulesToSetup variable in the ./internal/modules/modules.go file with the created repo, service, and controller. This is used within the Routes function (./internal/routes/routes.go) automatically upon server run through the modules.SetupModules function where a modulemap is created and fed into API struct creation. 
+8. RBAC Policy: Add routes to the RBAC policy file (./internal/auth/rbac_policy.go).
 
 ### ADMIN PANEL
 
-10. Admin Panel: Add schema file in ./internal/admin-panel (adminController<u>SchemaName</u>.go) This file will contain all the controller handlers required for the admin panel functionality.
-11. Admin Route Preparation: Update AddAdminRoutes in ./internal/routes/routes.go. The db schema will need to fit the specs of the db.AdminPanelSchema, so add two receiver functions to your schema struct as below.
+1. Admin Panel: Add admin panel file for created schema in ./internal/admin-panel folder as adminController<u>SchemaName</u>.go This file will contain all the controller handlers required for the admin panel functionality.
+2. Admin Route Preparation:  The db schema will need to fit the specs of the db.AdminPanelSchema, so add two receiver functions to your schema struct (in ./internal/db/<u>SchemaName</u>.go) as below.
 
 - The first will be a function that returns the ID of the schema (GetId())
 - The second will be a function that returns the value of the field given a key (ObtainValue())
   These functions will be used in the admin panel to display the data.
 
-12. Admin Routes: Add the routes in the Routes function in ./internal/routes/routes.go using the AddAdminRouteSet function. This function will add the routes to the router for the admin panel.
-13. Admin RBAC Policy: Add the admin routes to the RBAC authorization policy file (./internal/auth/rbac_policy.go)
+3. Admin Route Creation: Update the modulesToSetup in ./internal/modules/modules.go to include the new Admin panel controller.
+4. Admin RBAC Policy: Add the admin routes to the RBAC authorization policy file (./internal/auth/rbac_policy.go)
 
 14. Tests: For e2e testing, you will need to update the controllers_test.go file in ./internal/controller. Updates are required in the controllerTestModule struct, TestApiSetup, & setupTestDatabase functions. You will need to create a new module to add to the Test Module struct. This module will contain the repository, service, and controller for the new feature. You will also need to add the new module to the controllerTestModule struct in the setupTestDatabase function.
 

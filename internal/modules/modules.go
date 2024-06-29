@@ -12,8 +12,10 @@ import (
 var ModulesToSetup = []EntityConfig{
 	{
 		// Used for module name in module map
-		Name:               "Post",
-		RouteName:          "posts",
+		Name: "Post",
+		// Route name for API
+		RouteName: "posts",
+		// Uses webapi to create new generic repository, service, controller, and admin controller
 		NewRepo:            webapi.NewRepository(modulerepositories.NewPostRepository),
 		NewService:         webapi.NewService(moduleservices.NewPostService),
 		NewController:      webapi.NewController(modulecontrollers.NewPostController),

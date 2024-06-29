@@ -9,16 +9,13 @@ import (
 	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/controller/core"
-	modulecontrollers "github.com/dmawardi/Go-Template/internal/controller/moduleControllers"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/modules"
 	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
-	modulerepositories "github.com/dmawardi/Go-Template/internal/repository/module"
 	"github.com/dmawardi/Go-Template/internal/routes"
 	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
-	moduleservices "github.com/dmawardi/Go-Template/internal/service/module"
 
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/controller"
@@ -36,7 +33,6 @@ type controllerTestModule struct {
 	users    userModule
 	admin    adminpanel.AdminController
 	auth     authModule
-	posts    postModule
 	router   http.Handler
 	api      routes.Api
 	// For authentication mocking
@@ -53,12 +49,6 @@ type authModule struct {
 	repo corerepositories.AuthPolicyRepository
 	serv coreservices.AuthPolicyService
 	cont core.AuthPolicyController
-}
-
-type postModule struct {
-	repo modulerepositories.PostRepository
-	serv moduleservices.PostService
-	cont modulecontrollers.PostController
 }
 
 // Account structures
@@ -112,10 +102,6 @@ func TestMain(m *testing.M) {
 		Password: "password",
 		Name:     "Bamba",
 	})
-
-	// Get g records
-	gRecords := app.Auth.Enforcer.GetGroupingPolicy()
-	fmt.Println("G records: ", gRecords)
 
 	// Run the rest of the tests
 	exitCode := m.Run()
@@ -210,8 +196,6 @@ func (t *controllerTestModule) generateUserWithRoleAndToken(user *models.CreateU
 
 }
 
-// Helper functions
-//
 // Sets app config state to all packages for usage
 func SetAppWideState(appConfig config.AppConfig) {
 	controller.SetStateInHandlers(&appConfig)
