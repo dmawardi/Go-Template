@@ -16,7 +16,7 @@ func BuildRouteState(a *config.AppConfig) {
 
 type Api interface {
 	// Total route builder for API
-	Routes(crudRouteSet CRUDRouteSet, adminRouteSet AdminRouteSet) http.Handler
+	Routes() http.Handler
 }
 
 // Api that contains all controllers for route creation

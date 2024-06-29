@@ -119,7 +119,7 @@ func main() {
 	// Server settings
 	srv := &http.Server{
 		Addr:    portNumber,
-		Handler: api.Routes(routes.CRUDRouteSet{}, routes.AdminRouteSet{}),
+		Handler: api.Routes(),
 	}
 
 	// Listen and serve using server settings above

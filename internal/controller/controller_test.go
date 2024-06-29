@@ -87,8 +87,7 @@ func TestMain(m *testing.M) {
 
 	// build API for serving requests
 	testModule.api = testModule.TestApiSetup(testModule.dbClient)
-	testModule.router = testModule.api.Routes(routes.CRUDRouteSet{}, routes.AdminRouteSet{})
-	fmt.Printf("API setup complete\n")
+	testModule.router = testModule.api.Routes()
 
 	// Setup accounts for mocking authentication
 	testModule.setupDummyAccounts(&models.CreateUser{
@@ -193,7 +192,6 @@ func (t *controllerTestModule) generateUserWithRoleAndToken(user *models.CreateU
 	createdUser.Password = user.Password
 	// Send to user in body
 	return createdUser, tokenString
-
 }
 
 // Sets app config state to all packages for usage

@@ -14,18 +14,8 @@ import (
 
 var app *config.AppConfig
 
-type CRUDRouteSet struct {
-	Controller models.BasicController
-	Name       string
-}
-
-type AdminRouteSet struct {
-	Controller models.BasicAdminController
-	Name       string
-}
-
 // Overall Routes builder for server
-func (a api) Routes(crudRouteSet CRUDRouteSet, adminRouteSet AdminRouteSet) http.Handler {
+func (a api) Routes() http.Handler {
 	// Create new router
 	mux := chi.NewRouter()
 	// Use built in Chi middleware
