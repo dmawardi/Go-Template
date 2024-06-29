@@ -83,7 +83,7 @@ func TestMain(m *testing.M) {
 	app.Auth.Adapter = enforcer.Adapter
 
 	// Sync app in authentication package for usage in authentication functions
-	SetAppWideState(app)
+	SetAppWideState(&app)
 
 	// build API for serving requests
 	testModule.api = testModule.TestApiSetup(testModule.dbClient)
@@ -195,11 +195,11 @@ func (t *controllerTestModule) generateUserWithRoleAndToken(user *models.CreateU
 }
 
 // Sets app config state to all packages for usage
-func SetAppWideState(appConfig config.AppConfig) {
-	controller.SetStateInHandlers(&appConfig)
-	auth.SetStateInAuth(&appConfig)
-	adminpanel.SetStateInAdminPanel(&appConfig)
-	service.SetAppConfig(&appConfig)
-	repository.SetAppConfig(&appConfig)
-	routes.BuildRouteState(&appConfig)
+func SetAppWideState(appConfig *config.AppConfig) {
+	controller.SetStateInHandlers(appConfig)
+	auth.SetStateInAuth(appConfig)
+	adminpanel.SetStateInAdminPanel(appConfig)
+	service.SetAppConfig(appConfig)
+	repository.SetAppConfig(appConfig)
+	routes.BuildRouteState(appConfig)
 }
