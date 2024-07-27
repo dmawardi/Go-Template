@@ -7,6 +7,7 @@ import (
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/dmawardi/Go-Template/internal/cache"
+	"github.com/dmawardi/Go-Template/internal/queue"
 	"github.com/gorilla/sessions"
 	"gorm.io/gorm"
 )
@@ -24,6 +25,8 @@ type AppConfig struct {
 	BaseURL string
 	// Cache
 	Cache cache.CacheMap
+	// JobQueue
+	JobQueue queue.Queue
 }
 
 type AuthEnforcer struct {

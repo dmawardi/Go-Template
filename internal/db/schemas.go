@@ -7,11 +7,14 @@ import (
 )
 
 var Models = []interface{}{
-	&User{},
+	// Base Schemas
+	&Job{},  // Used for job queuing
+	&User{}, // Used for user management
+	// Additional Schemas
 	&Post{},
 }
 
-// Schemas
+// Base Schemas
 type User struct {
 	// gorm.Model `json:"-"`
 	ID        uint           `json:"id" gorm:"primaryKey"`
@@ -30,6 +33,7 @@ type User struct {
 	Posts []Post `json:"posts,omitempty" gorm:"foreignKey:UserID"`
 }
 
+// Additional Schemas
 type Post struct {
 	ID        uint           `json:"id" gorm:"primaryKey"`
 	CreatedAt time.Time      `swaggertype:"string" json:"created_at,omitempty"`
