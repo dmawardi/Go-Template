@@ -24,9 +24,9 @@ type AppConfig struct {
 	// Should be set to the base url of the app upon server start
 	BaseURL string
 	// Cache
-	Cache cache.CacheMap
+	Cache *cache.CacheMap
 	// JobQueue
-	JobQueue queue.Queue
+	JobQueue *queue.Queue
 }
 
 type AuthEnforcer struct {
