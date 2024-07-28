@@ -6,22 +6,25 @@ import (
 	"time"
 
 	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/dmawardi/Go-Template/internal/email"
 	"gorm.io/gorm"
 )
 
 // Queue represents a job queue backed by a SQL database.
 type Queue struct {
-	db   *gorm.DB   // Database connection
-	mu   sync.Mutex // Mutex for synchronizing access
-	cond *sync.Cond // Condition variable for signaling
+	db          *gorm.DB   // Database connection
+	mu          sync.Mutex // Mutex for synchronizing access
+	cond        *sync.Cond // Condition variable for signaling
+	mailService email.Email
 }
 
 // Class method for creating a new job queue
 // Backed by the given database (uses the job table).
-func NewQueue(db *gorm.DB) *Queue {
+func NewQueue(db *gorm.DB, mailService email.Email) *Queue {
 	// Create the queue
 	q := &Queue{
-		db: db,
+		db:          db,
+		mailService: mailService,
 	}
 	// Initialize the mutex and condition variable
 	q.cond = sync.NewCond(&q.mu)
@@ -29,7 +32,7 @@ func NewQueue(db *gorm.DB) *Queue {
 }
 
 // AddJob adds a new job to the queue.
-func (q *Queue) AddJob(payload string, process func(string) error) error {
+func (q *Queue) AddJob(jobType, payload string, process func(string) error) error {
 	// Lock the queue
 	q.mu.Lock()
 	// Unlock the queue when the function returns
@@ -37,6 +40,7 @@ func (q *Queue) AddJob(payload string, process func(string) error) error {
 
 	// Create a new job
 	job := db.Job{
+		JobType: jobType,
 		Payload: payload,
 		Process: process,
 	}
@@ -45,7 +49,7 @@ func (q *Queue) AddJob(payload string, process func(string) error) error {
 	if err := q.db.Create(&job).Error; err != nil {
 		return err
 	}
-	q.cond.Signal() // Signal any waiting workers
+	q.cond.Signal() // Signal any waiting workers that a job is available
 	return nil
 }
 
