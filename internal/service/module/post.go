@@ -2,7 +2,6 @@ package moduleservices
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/models"
@@ -74,7 +73,7 @@ func (s *postService) FindById(id int) (*db.Post, error) {
 	}
 
 	// Store post in cache
-	app.Cache.Store(cacheKey, post, 10*time.Minute)
+	app.Cache.Store(cacheKey, post)
 
 	return post, nil
 }
@@ -88,6 +87,8 @@ func (s *postService) Delete(id int) error {
 		return err
 	}
 	// else
+	cacheKey := fmt.Sprintf("post:%d", id)
+	app.Cache.Delete(cacheKey)
 	return nil
 }
 
@@ -100,6 +101,10 @@ func (s *postService) BulkDelete(ids []int) error {
 		return err
 	}
 	// else
+	for _, id := range ids {
+		cacheKey := fmt.Sprintf("post:%d", id)
+		app.Cache.Delete(cacheKey)
+	}
 	return nil
 }
 
@@ -120,7 +125,7 @@ func (s *postService) Update(id int, post *schemamodels.UpdatePost) (*db.Post, e
 
 	// Store updated post in cache
 	cacheKey := fmt.Sprintf("post:%d", id)
-	app.Cache.Store(cacheKey, updated, 10*time.Minute)
+	app.Cache.Store(cacheKey, updated)
 
 	return updated, nil
 }
