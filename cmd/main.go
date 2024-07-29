@@ -90,7 +90,7 @@ func main() {
 	app.AdminTemplates = tmpl
 
 	// Create client using DbConnect
-	client := db.DbConnect()
+	client := db.DbConnect(true)
 	// Set in state
 	app.DbClient = client
 
@@ -142,8 +142,10 @@ func ApiSetup(client *gorm.DB, connectEmail bool) routes.Api {
 		mail = &helpers.EmailMock{}
 	}
 
+	// Create a separate connection to the database for the job queue
+	queueClient := db.DbConnect(false)
 	// Create job queue
-	jobQueue := queue.NewQueue(client, mail)
+	jobQueue := queue.NewQueue(queueClient, mail)
 
 	// Establish async job processing
 	go jobQueue.Worker()

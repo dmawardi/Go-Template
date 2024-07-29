@@ -6,20 +6,30 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // Connects to database and returns client
-func DbConnect() *gorm.DB {
+func DbConnect(useVerboseLogger bool) *gorm.DB {
 	// Grab environment variables for connection
 	var DB_USER string = os.Getenv("DB_USER")
 	var DB_PASS string = os.Getenv("DB_PASS")
 	var DB_HOST string = os.Getenv("DB_HOST")
 	var DB_PORT string = os.Getenv("DB_PORT")
 	var DB_NAME string = os.Getenv("DB_NAME")
-
+	// Create connection string
 	dbUrl := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT)
 
-	db, err := gorm.Open(postgres.Open(dbUrl), &gorm.Config{})
+	// Build config based on verbose logger parameter
+	var config = &gorm.Config{}
+	if !useVerboseLogger {
+		config = &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Silent),
+		}
+	}
+
+	// Connect to database
+	db, err := gorm.Open(postgres.Open(dbUrl), config)
 	if err != nil {
 		panic("failed to connect database")
 	}
