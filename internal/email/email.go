@@ -53,6 +53,5 @@ func (e *email) SendEmail(recipient, subject, body string) error {
 	if err != nil {
 		return fmt.Errorf("smtp.SendMail() failed with: %s", err)
 	}
-	fmt.Printf("Email sent successfully to: %s\n", recipient)
 	return nil
 }
