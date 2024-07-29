@@ -154,7 +154,7 @@ func ApiSetup(client *gorm.DB, connectEmail bool) routes.Api {
 	groupController := core.NewAuthPolicyController(groupService)
 	// user
 	userRepo := corerepositories.NewUserRepository(client)
-	userService := coreservices.NewUserService(userRepo, groupRepo, mail, jobQueue)
+	userService := coreservices.NewUserService(userRepo, groupRepo, jobQueue)
 	userController := core.NewUserController(userService)
 
 	// Build selector service is used for selector boxes in Admin panel

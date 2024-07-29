@@ -100,7 +100,7 @@ func (t *repositoryTestModule) TestServSetup(client *gorm.DB) {
 	t.auth.serv = coreservices.NewAuthPolicyService(t.auth.repo)
 	// Users
 	t.users.repo = corerepositories.NewUserRepository(client)
-	t.users.serv = coreservices.NewUserService(t.users.repo, t.auth.repo, mail, jobQueue)
+	t.users.serv = coreservices.NewUserService(t.users.repo, t.auth.repo, jobQueue)
 	// Posts
 	t.posts.repo = modulerepositories.NewPostRepository(client)
 	t.posts.serv = moduleservices.NewPostService(t.posts.repo)

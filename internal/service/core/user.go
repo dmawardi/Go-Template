@@ -10,7 +10,6 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/db"
-	"github.com/dmawardi/Go-Template/internal/email"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
@@ -42,13 +41,12 @@ type UserService interface {
 type userService struct {
 	repo  corerepositories.UserRepository
 	auth  corerepositories.AuthPolicyRepository
-	mail  email.Email
 	queue *queue.Queue
 }
 
 // Builds a new service with injected repository. Includes email service
-func NewUserService(repo corerepositories.UserRepository, auth corerepositories.AuthPolicyRepository, mail email.Email, jobQueue *queue.Queue) UserService {
-	return &userService{repo: repo, auth: auth, mail: mail, queue: jobQueue}
+func NewUserService(repo corerepositories.UserRepository, auth corerepositories.AuthPolicyRepository, jobQueue *queue.Queue) UserService {
+	return &userService{repo: repo, auth: auth, queue: jobQueue}
 }
 
 // Creates a user in the database
