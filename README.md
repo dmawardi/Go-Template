@@ -101,7 +101,41 @@ Upon adding a new module:
 -Make sure to build a DB struct that contains the modules of: repo, service, & controller. This object should then be added to the testDbRepo which serves as the test connection that will be serving the requests for the DB and API.
 
 ---
+## Caching
+Caching is handled by the cache package. It is stored in the app state and can be used from within services to store and retrieve details.
 
+Convention:
+To retrieve, use prefix of table struct
+```Go
+// Define a key with a naming convention
+	cacheKey := fmt.Sprintf("user:%d", userId)
+	// Attempt to load the user from the cache first
+	cachedUser, found := app.Cache.Load(cacheKey)
+	if found {
+		// If found and not expired, return the cached user
+		return cachedUser.(*models.UserWithRole), nil
+	}
+```
+
+To store, use below convention
+```Go
+// Cache the full user with a TTL before returning
+	// Assuming you have defined a duration for the TTL
+	ttl := 10 * time.Minute // For example, cache for 10 minutes
+	app.Cache.Store(cacheKey, fullUser, ttl)
+```
+
+## Job Queue
+The queue is handled by the Queue package. 
+worker.go: Contains the job worker that will complete a job every 5 seconds
+email.go: Contains email associated job processing code
+queue.go: Contains code to init, add, process, and mark complete jobs.
+
+The queue struct is within the db package in the job.go file.
+
+A new queue is init within the API creation and an async worker is initialized at this point as well to handle jobs.
+
+---
 ## API documentation
 
 API documentation is auto generated using markdown within code. This is achieved using Swag.
