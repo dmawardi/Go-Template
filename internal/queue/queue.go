@@ -32,7 +32,6 @@ func NewQueue(db *gorm.DB, mailService email.Email) *Queue {
 // AddJob adds a new job to the queue.
 // The jobType is a string that identifies the type of job.
 // The payload is a string that contains the job data.
-// The process function is called to process the job.
 func (q *Queue) AddJob(jobType, payload string) error {
 	// Lock the queue
 	q.mu.Lock()
