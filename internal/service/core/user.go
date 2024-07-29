@@ -1,6 +1,7 @@
 package coreservices
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -14,6 +15,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
+	"github.com/dmawardi/Go-Template/internal/queue"
 	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -38,14 +40,15 @@ type UserService interface {
 }
 
 type userService struct {
-	repo corerepositories.UserRepository
-	auth corerepositories.AuthPolicyRepository
-	mail email.Email
+	repo  corerepositories.UserRepository
+	auth  corerepositories.AuthPolicyRepository
+	mail  email.Email
+	queue *queue.Queue
 }
 
 // Builds a new service with injected repository. Includes email service
-func NewUserService(repo corerepositories.UserRepository, auth corerepositories.AuthPolicyRepository, mail email.Email) UserService {
-	return &userService{repo: repo, auth: auth, mail: mail}
+func NewUserService(repo corerepositories.UserRepository, auth corerepositories.AuthPolicyRepository, mail email.Email, jobQueue *queue.Queue) UserService {
+	return &userService{repo: repo, auth: auth, mail: mail, queue: jobQueue}
 }
 
 // Creates a user in the database
@@ -303,8 +306,22 @@ func (s *userService) ResetPasswordAndSendEmail(userEmail string) error {
 		return err
 	}
 
-	// Send email with new password async (non-blocking)
-	go s.mail.SendEmail(userEmail, "Password Reset Request", emailString)
+	// Create payload containing details for email job
+	payload := queue.EmailJobPayload{
+		Recipient: foundUser.Email,
+		Subject:   "Password Reset Request",
+		Body:      emailString,
+	}
+	// Marshal payload
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	// Add job to queue
+	err = s.queue.AddJob("email", string(payloadBytes))
+	if err != nil {
+		return errors.New("error adding job to queue")
+	}
 
 	// Return no error found
 	return nil
@@ -426,8 +443,22 @@ func (s *userService) ResendVerificationEmail(id int) error {
 		return err
 	}
 
-	// Send email with verification async (non-blocking)
-	go s.mail.SendEmail(user.Email, "Please Verify your Email", emailString)
+	// Create payload containing details for email job
+	payload := queue.EmailJobPayload{
+		Recipient: user.Email,
+		Subject:   "Please Verify your Email",
+		Body:      emailString,
+	}
+	// Marshal payload
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	// Add job to queue
+	s.queue.AddJob("email", string(payloadBytes))
+	if err != nil {
+		return errors.New("error adding job to queue")
+	}
 
 	// Return no error found
 	return nil

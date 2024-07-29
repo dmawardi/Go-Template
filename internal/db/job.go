@@ -18,7 +18,6 @@ type Job struct {
 	// Payload
 	Payload   string `json:"payload,omitempty"`
 	Processed bool
-	Process   func(string) error `gorm:"-"`
 }
 
 // Used prior to job creation

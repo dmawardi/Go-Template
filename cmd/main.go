@@ -20,6 +20,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/email"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/modules"
+	"github.com/dmawardi/Go-Template/internal/queue"
 	"github.com/dmawardi/Go-Template/internal/repository"
 	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
 	"github.com/dmawardi/Go-Template/internal/routes"
@@ -131,15 +132,21 @@ func main() {
 
 // Edit this to use the entire appconfig instead of just the client
 // Build API and store the services and repos in the config
-func ApiSetup(client *gorm.DB, emailMock bool) routes.Api {
+func ApiSetup(client *gorm.DB, connectEmail bool) routes.Api {
 	var mail email.Email
-	// If emailMock is false, use SMTP email
-	if !emailMock {
+	// If connectEmail is true, use SMTP email
+	if connectEmail {
 		mail = email.NewSMTPEmail()
 	} else {
 		// Else, use email mock
 		mail = &helpers.EmailMock{}
 	}
+
+	// Create job queue
+	jobQueue := queue.NewQueue(client, mail)
+
+	// Establish async job processing
+	go jobQueue.Worker()
 
 	// Authorization
 	groupRepo := corerepositories.NewAuthPolicyRepository(client)
@@ -147,7 +154,7 @@ func ApiSetup(client *gorm.DB, emailMock bool) routes.Api {
 	groupController := core.NewAuthPolicyController(groupService)
 	// user
 	userRepo := corerepositories.NewUserRepository(client)
-	userService := coreservices.NewUserService(userRepo, groupRepo, mail)
+	userService := coreservices.NewUserService(userRepo, groupRepo, mail, jobQueue)
 	userController := core.NewUserController(userService)
 
 	// Build selector service is used for selector boxes in Admin panel

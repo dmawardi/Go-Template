@@ -548,5 +548,5 @@ func (c userController) ResendVerificationEmail(w http.ResponseWriter, r *http.R
 
 	// Write successful response
 	w.WriteHeader(http.StatusOK)
-	request.WriteAsJSON(w, "Email sent successfully")
+	request.WriteAsJSON(w, "Verification request sent successfully")
 }

@@ -13,6 +13,7 @@ import (
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/modules"
+	"github.com/dmawardi/Go-Template/internal/queue"
 	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
 	"github.com/dmawardi/Go-Template/internal/routes"
 	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
@@ -111,6 +112,9 @@ func TestMain(m *testing.M) {
 // Builds new API using routes package
 func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 	mail := &helpers.EmailMock{}
+
+	// Create job queue
+	jobQueue := queue.NewQueue(client, mail)
 	// Setup module stack
 	// Auth
 	t.auth.repo = corerepositories.NewAuthPolicyRepository(client)
@@ -118,7 +122,7 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 	t.auth.cont = core.NewAuthPolicyController(t.auth.serv)
 	// Users
 	t.users.repo = corerepositories.NewUserRepository(client)
-	t.users.serv = coreservices.NewUserService(t.users.repo, t.auth.repo, mail)
+	t.users.serv = coreservices.NewUserService(t.users.repo, t.auth.repo, mail, jobQueue)
 	t.users.cont = core.NewUserController(t.users.serv)
 
 	selectorService := adminpanel.NewSelectorService(client, t.auth.serv)

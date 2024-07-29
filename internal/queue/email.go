@@ -14,6 +14,7 @@ type EmailJobPayload struct {
 // ProcessEmailJob processes an email job
 func (q *Queue) ProcessEmailJob(payload string) error {
 	var emailPayload EmailJobPayload
+	// Unmarshal the payload into the email payload struct
 	if err := json.Unmarshal([]byte(payload), &emailPayload); err != nil {
 		return err
 	}

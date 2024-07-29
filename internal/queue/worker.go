@@ -1,36 +1,45 @@
 package queue
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"time"
 )
 
 // Worker processes jobs from the queue.
 func (q *Queue) Worker() {
-	// Loop indefinitely
 	for {
 		// Get the next job
 		job, err := q.GetJob()
-
-		// If there are no jobs available, wait for a signal
 		if err != nil {
-			log.Println("No jobs available, waiting...")
-			time.Sleep(1 * time.Second)
+			log.Printf("Error getting job: %v\n", err)
+			time.Sleep(5 * time.Second)
 			continue
 		}
-
-		// Process the job
-		err = job.Process(job.Payload)
-		if err != nil {
-			log.Printf("Failed to process job %d: %v", job.ID, err)
-		} else {
-			// Mark the job as processed
-			err := q.MarkJobAsProcessed(job)
-			if err != nil {
-				log.Printf("Failed to mark job %d as processed: %v", job.ID, err)
-			} else {
-				log.Printf("Successfully processed job %d", job.ID)
-			}
+		fmt.Printf("Processing job: %v\n", job.ID)
+		// Process the job using the Process function with the payload
+		if err := q.ProcessJob(job.JobType, job.Payload); err != nil {
+			log.Printf("Error processing job: %v\n", err)
+			time.Sleep(5 * time.Second)
+			continue
 		}
+		fmt.Printf("Job processed: %v\n", job.ID)
+		// Mark the job as processed
+		if err := q.MarkJobAsProcessed(job); err != nil {
+			log.Printf("Error marking job as processed: %v\n", err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		fmt.Printf("Job marked as processed: %v\n", job.ID)
+	}
+}
+
+func (q *Queue) ProcessJob(jobType, payload string) error {
+	switch jobType {
+	case "email":
+		return q.ProcessEmailJob(payload)
+	default:
+		return errors.New("unknown job type")
 	}
 }
