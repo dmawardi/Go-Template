@@ -104,6 +104,12 @@ Upon adding a new module:
 ## Caching
 Caching is handled by the cache package. It is stored in the app state and can be used from within services to store and retrieve details.
 
+The caching functions should be used in the service ideally in the below functions:
+Find by ID: Cache store, Cache Load
+Update: Cache store
+Delete, Bulk Delete: Cache Delete
+
+
 Convention:
 To retrieve, use prefix of table struct
 ```Go
