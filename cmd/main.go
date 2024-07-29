@@ -146,7 +146,6 @@ func ApiSetup(client *gorm.DB, connectEmail bool) routes.Api {
 	queueClient := db.DbConnect(false)
 	// Create job queue
 	jobQueue := queue.NewQueue(queueClient, mail)
-
 	// Establish async job processing
 	go jobQueue.Worker()
 

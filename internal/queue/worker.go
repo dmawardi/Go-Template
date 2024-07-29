@@ -2,9 +2,10 @@ package queue
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Worker processes jobs from the queue.
@@ -13,25 +14,28 @@ func (q *Queue) Worker() {
 		// Get the next job
 		job, err := q.GetJob()
 		if err != nil {
-			log.Printf("Error getting job: %v\n", err)
+			// If there are no jobs available
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Printf("Worker: No job available to complete: %v\n", err)
+			} else {
+				// else if there is an error getting the job
+				log.Printf("Worker: Error getting job: %v\n", err)
+			}
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		fmt.Printf("Processing job: %v\n", job.ID)
 		// Process the job using the Process function with the payload
 		if err := q.ProcessJob(job.JobType, job.Payload); err != nil {
-			log.Printf("Error processing job: %v\n", err)
+			log.Printf("Worker: Error processing job: %v\n", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		fmt.Printf("Job processed: %v\n", job.ID)
 		// Mark the job as processed
 		if err := q.MarkJobAsProcessed(job); err != nil {
-			log.Printf("Error marking job as processed: %v\n", err)
+			log.Printf("Worker: Error marking job as processed: %v\n", err)
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		fmt.Printf("Job marked as processed: %v\n", job.ID)
 	}
 }
 

@@ -73,6 +73,7 @@ func (q *Queue) MarkJobAsProcessed(job *db.Job) error {
 
 	// Mark the job as processed
 	job.Processed = true
+	job.Status = "processed"
 	// Update the job in the database, returning any error
 	return q.db.Save(job).Error
 }
