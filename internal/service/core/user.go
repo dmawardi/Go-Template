@@ -151,8 +151,7 @@ func (s *userService) FindById(userId int) (*models.UserWithRole, error) {
 
 	// Cache the full user with a TTL before returning
 	// Assuming you have defined a duration for the TTL
-	ttl := 10 * time.Minute // For example, cache for 10 minutes
-	app.Cache.Store(cacheKey, fullUser, ttl)
+	app.Cache.Store(cacheKey, fullUser)
 
 	return fullUser, nil
 }
@@ -194,6 +193,12 @@ func (s *userService) Delete(id int) error {
 		return err
 	}
 
+	// If all successful, delete user from cache
+	// Define a key with a naming convention
+	cacheKey := fmt.Sprintf("user:%d", id)
+	// Delete record in cache
+	app.Cache.Delete(cacheKey)
+
 	// else
 	return nil
 }
@@ -206,8 +211,13 @@ func (s *userService) BulkDelete(ids []int) error {
 		fmt.Println("error in bulk deleting users: ", err)
 		return err
 	}
-	// Iterate through ids and delete all user roles
+	// Iterate through ids and delete all user roles and cache records
 	for _, id := range ids {
+		// Define a key with a naming convention
+		cacheKey := fmt.Sprintf("user:%d", id)
+		// Delete record in cache
+		app.Cache.Delete(cacheKey)
+
 		// Delete all user roles
 		success, err := s.auth.DeleteRolesForUser(fmt.Sprint(id))
 		if err != nil {
