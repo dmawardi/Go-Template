@@ -13,6 +13,7 @@ import (
 
 	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
 	"github.com/dmawardi/Go-Template/internal/auth"
+	"github.com/dmawardi/Go-Template/internal/cache"
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/controller"
 	"github.com/dmawardi/Go-Template/internal/controller/core"
@@ -102,6 +103,9 @@ func main() {
 	// Set enforcer in state
 	app.Auth.Enforcer = e.Enforcer
 	app.Auth.Adapter = e.Adapter
+
+	// Setup new cache
+	app.Cache = &cache.CacheMap{}
 
 	// Set state in other packages
 	setAppState(&app, stateFuncs)

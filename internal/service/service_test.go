@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/dmawardi/Go-Template/internal/auth"
+	"github.com/dmawardi/Go-Template/internal/cache"
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
@@ -65,6 +66,9 @@ func TestMain(m *testing.M) {
 	// Set enforcer in state
 	app.Auth.Enforcer = enforcer.Enforcer
 	app.Auth.Adapter = enforcer.Adapter
+
+	// Setup new cache
+	app.Cache = &cache.CacheMap{}
 
 	// Set app config in repository
 	repository.SetAppConfig(&app)

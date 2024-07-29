@@ -27,8 +27,10 @@ func SetupTestDatabase() *gorm.DB {
 	}
 
 	// Migrate the database schema
-	if err := dbClient.AutoMigrate(&db.User{}, &db.Post{}); err != nil {
-		fmt.Printf("failed to migrate database schema: %v", err)
+	for _, table := range db.Models {
+		if err := dbClient.AutoMigrate(table); err != nil {
+			fmt.Printf("failed to migrate database schema: %v", err)
+		}
 	}
 
 	return dbClient
