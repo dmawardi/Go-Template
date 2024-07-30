@@ -1,3 +1,38 @@
+/* Login form */
+.login-container {
+  padding: 20px;
+  border-radius: 5px;
+  border: 3px solid #007bff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 50em;
+  margin: auto;
+  margin-top: 200px;
+}
+
+.login-form input[type="text"],
+.login-form input[type="password"] {
+  width: 80%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.login-form button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 40%;
+}
+
+.login-form button:hover {
+  background-color: #0056b3;
+}
+
 /* Custom form container */
 .admin-form {
   width: 80%;
