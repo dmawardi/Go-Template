@@ -14,13 +14,11 @@ func (q *Queue) Worker() {
 		// Get the next job
 		job, err := q.GetJob()
 		if err != nil {
-			// If there are no jobs available
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				log.Printf("Worker: No job available to complete: %v\n", err)
-			} else {
-				// else if there is an error getting the job
+			// If there's another error aside from "record not found", log it
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				log.Printf("Worker: Error getting job: %v\n", err)
 			}
+			// Wait for a signal that a job is available
 			time.Sleep(5 * time.Second)
 			continue
 		}
