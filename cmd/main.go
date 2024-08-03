@@ -173,7 +173,7 @@ func ApiSetup(client *gorm.DB, connectEmail bool) routes.Api {
 	// Create admin controller
 	adminController := adminpanel.NewAdminPanelController(
 		// Basic ADMIN modules
-		adminpanel.NewAdminBaseController(userService),
+		adminpanel.NewAdminCoreController(userService),
 		adminpanel.NewAdminUserController(userService, selectorService),
 		adminpanel.NewAdminAuthPolicyController(groupService, selectorService),
 		// ADD ADDITIONAL MODULES HERE

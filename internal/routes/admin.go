@@ -78,7 +78,7 @@ func AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension string, con
 }
 
 // Function to adds the base admin panel routes to an existing Chi mux router (eg. login, logout, home)
-func AddBasicAdminRoutes(router *chi.Mux, controller adminpanel.AdminBaseController) *chi.Mux {
+func AddBasicAdminRoutes(router *chi.Mux, controller adminpanel.AdminCoreController) *chi.Mux {
 	// Public routes
 	router.Group(func(mux chi.Router) {
 		// @tag.name Public Routes

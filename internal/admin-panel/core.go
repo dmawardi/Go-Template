@@ -15,8 +15,8 @@ import (
 	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
 )
 
-// Admin base controller (non-schema related routes)
-type AdminBaseController interface {
+// Admin core controller (non-schema related routes)
+type AdminCoreController interface {
 	// Admin home handler
 	Home(w http.ResponseWriter, r *http.Request)
 	// Admin login handler
@@ -31,18 +31,18 @@ type AdminBaseController interface {
 	AdminRedirectBasedOnLoginStatus(w http.ResponseWriter, r *http.Request)
 }
 
-type adminBaseController struct {
+type adminCoreController struct {
 	service coreservices.UserService
 }
 
 // Constructor
-func NewAdminBaseController(userService coreservices.UserService) AdminBaseController {
-	return &adminBaseController{userService}
+func NewAdminCoreController(userService coreservices.UserService) AdminCoreController {
+	return &adminCoreController{userService}
 }
 
 // RECEIVER FUNCTIONS
 // Admin home page
-func (c adminBaseController) Home(w http.ResponseWriter, r *http.Request) {
+func (c adminCoreController) Home(w http.ResponseWriter, r *http.Request) {
 	// Execute the template with data and write to response
 	err := app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", PageRenderData{
 		SidebarList: sidebar,
@@ -59,7 +59,7 @@ func (c adminBaseController) Home(w http.ResponseWriter, r *http.Request) {
 }
 
 // Admin login page
-func (c adminBaseController) Login(w http.ResponseWriter, r *http.Request) {
+func (c adminCoreController) Login(w http.ResponseWriter, r *http.Request) {
 	// Init token string
 	tokenString := ""
 	loginErrorMsg := ""
@@ -139,7 +139,7 @@ func (c adminBaseController) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // Admin logout page
-func (c adminBaseController) Logout(w http.ResponseWriter, r *http.Request) {
+func (c adminCoreController) Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "jwt_token", // Use the name of your auth cookie
 		Value:    "",
@@ -154,7 +154,7 @@ func (c adminBaseController) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 // Change Password
-func (c adminBaseController) ChangePassword(w http.ResponseWriter, r *http.Request) {
+func (c adminCoreController) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	// Init notification string
 	notification := ""
 	// Generate form
@@ -256,12 +256,12 @@ func (c adminBaseController) ChangePassword(w http.ResponseWriter, r *http.Reque
 		return
 	}
 }
-func (c adminBaseController) ChangePasswordSuccess(w http.ResponseWriter, r *http.Request) {
+func (c adminCoreController) ChangePasswordSuccess(w http.ResponseWriter, r *http.Request) {
 	serveAdminSuccess(w, "Change Password Success - Admin", "Change Password Success")
 }
 
 // Redirect
-func (c adminBaseController) AdminRedirectBasedOnLoginStatus(w http.ResponseWriter, r *http.Request) {
+func (c adminCoreController) AdminRedirectBasedOnLoginStatus(w http.ResponseWriter, r *http.Request) {
 	_, err := auth.ValidateAndParseToken(w, r)
 	if err != nil {
 		http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
@@ -273,13 +273,13 @@ func (c adminBaseController) AdminRedirectBasedOnLoginStatus(w http.ResponseWrit
 }
 
 // Form generators
-func (c adminBaseController) generateLoginForm() []FormField {
+func (c adminCoreController) generateLoginForm() []FormField {
 	return []FormField{
 		{DbLabel: "email", Label: "Email", Name: "email", Placeholder: "", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "password", Label: "Password", Name: "password", Placeholder: "", Value: "", Type: "password", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 	}
 }
-func (c adminBaseController) generateChangePasswordForm() []FormField {
+func (c adminCoreController) generateChangePasswordForm() []FormField {
 	return []FormField{
 		{DbLabel: "Password", Label: "Current Password", Name: "currentPassword", Placeholder: "", Value: "", Type: "password", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Password", Label: "New Password", Name: "newPassword", Placeholder: "", Value: "", Type: "password", Required: true, Disabled: false, Errors: []ErrorMessage{}},

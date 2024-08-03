@@ -32,7 +32,7 @@ func SetStateInAdminPanel(a *config.AppConfig) {
 // Admin controller (used in API)
 type AdminPanelController struct {
 	// Basic modules
-	Base AdminBaseController
+	Base AdminCoreController
 	User AdminUserController
 	Auth AdminAuthPolicyController
 	// Additional modules contained in module map
@@ -40,7 +40,7 @@ type AdminPanelController struct {
 }
 
 // Constructor
-func NewAdminPanelController(base AdminBaseController, users AdminUserController, authPolicies AdminAuthPolicyController, moduleMap models.ModuleMap) AdminPanelController {
+func NewAdminPanelController(base AdminCoreController, users AdminUserController, authPolicies AdminAuthPolicyController, moduleMap models.ModuleMap) AdminPanelController {
 	return AdminPanelController{base, users, authPolicies, moduleMap}
 }
 

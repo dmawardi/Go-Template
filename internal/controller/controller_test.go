@@ -135,7 +135,7 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 
 	// Admin panel
 	t.admin = adminpanel.NewAdminPanelController(
-		adminpanel.NewAdminBaseController(t.users.serv),
+		adminpanel.NewAdminCoreController(t.users.serv),
 		adminpanel.NewAdminUserController(t.users.serv, selectorService),
 		adminpanel.NewAdminAuthPolicyController(t.auth.serv, selectorService),
 		// Additional modules
