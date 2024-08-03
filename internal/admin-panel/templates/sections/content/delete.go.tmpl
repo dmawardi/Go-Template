@@ -5,12 +5,14 @@
         <h1>{{.SectionTitle}}</h1>
         <div class="delete-box">
           <form
-            class="delete-form"
+            class="form"
             action="{{.FormData.FormDetails.FormAction}}"
             method="{{.FormData.FormDetails.FormMethod}}"
           >
-            <a href="{{.SchemaHome}}" class="delete-cancel-button">Cancel</a>
-            <button type="submit" class="button-danger">Delete</button>
+            <div class="button-container">
+              <a href="{{.SchemaHome}}" class="delete-cancel-button">Cancel</a>
+              <button type="submit" class="button-danger">Delete</button>
+            </div>
           </form>
         </div>
       </div>

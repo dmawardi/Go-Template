@@ -23,26 +23,28 @@
   width: 40%;
 }
 
-/* Custom form container */
-.admin-form {
-  width: 80%;
+/* Standard form styles */
+.form {
+  width: 100%;
+  max-width: 800px;
   margin: 0 auto;
   padding: 30px;
   border: 1px solid #ccc;
   border-radius: 5px;
   background-color: #f7f7f7;
   color: black;
+  box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
 }
 
-/* Delete form */
+/* Admin form (inherits standard form styles) */
+.admin-form {
+  width: 80%; /* Customize width */
+}
+
+/* Delete form (inherits standard form styles) */
 .delete-form {
-  width: 40%;
-  padding: 30px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f7f7f7;
-  color: black;
-  display: flex;
+  width: 40%; /* Customize width */
+  display: flex; /* Additional unique styles */
   justify-content: space-between;
 }
 
@@ -97,6 +99,8 @@
 button {
   display: inline-block;
   padding: 10px 20px;
+  margin-left: 5px;
+  margin-right: 5px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
