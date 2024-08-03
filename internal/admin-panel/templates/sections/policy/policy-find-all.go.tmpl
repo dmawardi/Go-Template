@@ -1,7 +1,6 @@
 {{define "policy-find-all"}}
 {{if eq .PageType.PolicyMode "policy"}}
 <div class="content-container">
-  <div class="row">
     <div>
       <h1>{{.SectionTitle}}</h1>
       <!-- Data table (includes action box) -->
@@ -17,6 +16,5 @@
       <!-- Data table (includes action box) -->
       {{ template "inheritance-table" . }}
     </div>
-  </div>
   {{ end }}
 {{end}}
