@@ -166,7 +166,7 @@ func GenerateAndSetAdminSidebar(adminCont AdminPanelController) {
 
 		// If not base controller, add to sidebar list
 		if fieldName != "Base" && fieldName != "Auth" && fieldName != "ModuleMap" {
-			currentController := ObtainFieldsForAnyType(fieldValue)
+			currentController := ObtainUrlDetailsForBasicAdminController(fieldValue)
 			// Create sidebar item
 			item := sidebarItem{
 				Name:        currentController.PluralSchemaName,
@@ -183,7 +183,7 @@ func GenerateAndSetAdminSidebar(adminCont AdminPanelController) {
 	for _, moduleSet := range adminCont.ModuleMap {
 		// Check if admin controller is not nil
 		if moduleSet.AdminController != nil {
-			currentController := ObtainFieldsForAnyType(moduleSet.AdminController)
+			currentController := ObtainUrlDetailsForBasicAdminController(moduleSet.AdminController)
 			// Create sidebar item
 			item := sidebarItem{
 				Name:        currentController.PluralSchemaName,

@@ -64,7 +64,7 @@ type AdminPostController interface {
 	EditSuccess(w http.ResponseWriter, r *http.Request)
 	DeleteSuccess(w http.ResponseWriter, r *http.Request)
 	// For sidebar
-	ObtainFields() BasicAdminController
+	ObtainUrlDetails() BasicAdminController
 }
 
 // CRUD handlers
@@ -472,7 +472,7 @@ func (c adminPostController) getValuesUsingFieldMap(post db.Post) map[string]str
 }
 
 // Used to build standardize controller fields for admin panel sidebar generation
-func (c adminPostController) ObtainFields() BasicAdminController {
+func (c adminPostController) ObtainUrlDetails() BasicAdminController {
 	return basicAdminController{
 		AdminHomeUrl:     c.adminHomeUrl,
 		SchemaName:       c.schemaName,
