@@ -78,17 +78,6 @@
   margin-top: 5px;
 }
 
-/* Custom button styles */
-.submit-button {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
 /* Style required indicator */
 .required {
   color: #ff0000;
