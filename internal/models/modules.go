@@ -24,3 +24,10 @@ type ModulePolicySet = []RolePolicySet
 // RolePolicySet is used to store the different policies for the module
 // eg. policySet["admin"] = []string{"create", "read", "update", "delete}
 type RolePolicySet = map[string][]string
+
+
+// Basic Paginated Response
+type BasicPaginatedResponse struct {
+	Data *[]struct{}            `json:"data"`
+	Meta SchemaMetaData `json:"meta"`
+}
