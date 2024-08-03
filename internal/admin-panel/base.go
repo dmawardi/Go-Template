@@ -49,8 +49,7 @@ func (c adminBaseController) Home(w http.ResponseWriter, r *http.Request) {
 		PageType: PageType{
 			HomePage: true,
 		},
-		// The section title is used on this page, to display login errors
-		SectionTitle:  "Welcome to the admin panel",
+		SectionTitle:  "Welcome to the Admin Panel",
 		HeaderSection: header,
 	})
 	if err != nil {
