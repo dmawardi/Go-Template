@@ -153,7 +153,7 @@ var sidebar = AdminSideBar{
 
 // Generate and set sidebar list
 // Accepts current Admin controller and generates sidebar list based on controllers
-func GenerateAndSetAdminSidebar(adminCont AdminController) {
+func GenerateAndSetAdminSidebar(adminCont AdminPanelController) {
 	// Iterate through all controllers and add to sidebar list
 	// Get the reflect.Value of the struct.
 	valueOfCont := reflect.ValueOf(adminCont)

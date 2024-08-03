@@ -33,7 +33,7 @@ var app config.AppConfig
 type controllerTestModule struct {
 	dbClient *gorm.DB
 	users    userModule
-	admin    adminpanel.AdminController
+	admin    adminpanel.AdminPanelController
 	auth     authModule
 	router   http.Handler
 	api      routes.Api
@@ -134,7 +134,7 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 	moduleMap := modules.SetupModules(modules.ModulesToSetup, client, selectorService)
 
 	// Admin panel
-	t.admin = adminpanel.NewAdminController(
+	t.admin = adminpanel.NewAdminPanelController(
 		adminpanel.NewAdminBaseController(t.users.serv),
 		adminpanel.NewAdminUserController(t.users.serv, selectorService),
 		adminpanel.NewAdminAuthPolicyController(t.auth.serv, selectorService),

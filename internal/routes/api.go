@@ -25,7 +25,7 @@ type api struct {
 	User   core.UserController
 	Policy core.AuthPolicyController
 	// Admin Controller
-	Admin adminpanel.AdminController
+	Admin adminpanel.AdminPanelController
 	// Module Controllers
 	ModuleMap models.ModuleMap
 	// Post   modulecontrollers.PostController
@@ -33,7 +33,7 @@ type api struct {
 }
 
 func NewApi(
-	admin adminpanel.AdminController,
+	admin adminpanel.AdminPanelController,
 	user core.UserController,
 	policy core.AuthPolicyController,
 	moduleMap models.ModuleMap) Api {
