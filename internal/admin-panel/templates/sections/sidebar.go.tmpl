@@ -5,40 +5,28 @@
     <li class="sidebar-item">
       <div class="sidebar-label">Authorization</div>
       <ul class="auth-menu">
-        {{
-          range.SidebarList.Auth
-        }}
+        {{ range.SidebarList.Auth }}
         <li class="auth-section-sidebar-item">
           <div class="auth-section-subtitle">
-            <a href="{{.FindAllLink}}">
-              {{.Name}}
-            </a>
+            <a href="{{.FindAllLink}}"> {{.Name}} </a>
           </div>
           <a class="add-link" href="{{.AddLink}}">
             <div class="plus-sign">+</div>
           </a>
         </li>
-        {{
-          end
-        }}
+        {{ end }}
       </ul>
     </li>
-    {{
-      range.SidebarList.Main
-    }}
+    {{ range.SidebarList.Main }}
     <li class="sidebar-item">
       <div class="sidebar-label">
-        <a href="{{.FindAllLink}}">
-          {{.Name}}
-        </a>
+        <a href="{{.FindAllLink}}"> {{.Name}} </a>
       </div>
       <a class="add-link" href="{{.AddLink}}">
         <div class="plus-sign">+</div>
       </a>
     </li>
-    {{
-      end
-    }}
+    {{ end }}
   </ul>
   <!-- Add more sidebar items as needed -->
 </div>

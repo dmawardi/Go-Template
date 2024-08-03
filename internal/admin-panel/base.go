@@ -44,7 +44,7 @@ func NewAdminBaseController(userService coreservices.UserService) AdminBaseContr
 // Admin home page
 func (c adminBaseController) Home(w http.ResponseWriter, r *http.Request) {
 	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", PageRenderData{
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", PageRenderData{
 		SidebarList: sidebar,
 		PageType: PageType{
 			HomePage: true,
@@ -121,7 +121,7 @@ func (c adminBaseController) Login(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "login.tmpl", PageRenderData{
+	err := app.AdminTemplates.ExecuteTemplate(w, "login.go.tmpl", PageRenderData{
 		// The section title is used on this page, to display login errors
 		SectionTitle: loginErrorMsg,
 		FormData: FormData{
@@ -234,7 +234,7 @@ func (c adminBaseController) ChangePassword(w http.ResponseWriter, r *http.Reque
 		}
 	}
 	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", PageRenderData{
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", PageRenderData{
 		SectionTitle: "Change Password",
 		PageTitle:    "Change Password",
 		// The section detail is used on this page, to display login errors

@@ -65,7 +65,7 @@ type PageType struct {
 // Parses all the template files in the templates directory
 func ParseAdminTemplates() (*template.Template, error) {
 	// Parse the base template
-	tmpl := template.New("/internal/admin-panel/templates/layout.tmpl")
+	tmpl := template.New("/internal/admin-panel/templates/layout.go.tmpl")
 
 	// Walk through all files in the templates directory
 	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
@@ -108,7 +108,7 @@ func serveAdminError(w http.ResponseWriter, sectionTitle string) {
 	}
 
 	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -134,7 +134,7 @@ func serveAdminSuccess(w http.ResponseWriter, pageTitle string, sectionTitle str
 	}
 
 	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return

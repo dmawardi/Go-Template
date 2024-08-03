@@ -132,7 +132,7 @@ func (c adminPostController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Execute the template with data and write to response
-	err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -213,7 +213,7 @@ func (c adminPostController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Execute the template with data and write to response
-	err := app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -321,7 +321,7 @@ func (c adminPostController) Edit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Execute the template with data and write to response
-	err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -372,7 +372,7 @@ func (c adminPostController) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Execute the template with data and write to response
-	err = app.AdminTemplates.ExecuteTemplate(w, "layout.tmpl", data)
+	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
