@@ -44,8 +44,6 @@
 /* Delete form (inherits standard form styles) */
 .delete-form {
   width: 40%; /* Customize width */
-  display: flex; /* Additional unique styles */
-  justify-content: space-between;
 }
 
 .delete-form a {

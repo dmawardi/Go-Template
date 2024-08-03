@@ -2,9 +2,8 @@
 <div class="content-container">
     <div>
         <h1>{{.SectionTitle}}</h1>
-        <div class="delete-box">
           <form
-            class="form"
+            class="form delete-form"
             action="{{.FormData.FormDetails.FormAction}}"
             method="{{.FormData.FormDetails.FormMethod}}"
           >
@@ -13,7 +12,6 @@
               <button type="submit" class="button-danger">Delete</button>
             </div>
           </form>
-        </div>
     </div>
   </div>
 {{end}}
