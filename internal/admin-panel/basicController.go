@@ -1,22 +1,34 @@
 package adminpanel
 
-import "reflect"
+import (
+	"reflect"
+
+	"github.com/dmawardi/Go-Template/internal/service"
+)
 
 // Interface for all basic admin controllers (used for Admin panel to dynamically generate sidebar)
 type BasicAdminController interface {
 	ObtainUrlDetails() URLDetails
 }
 type basicAdminController struct {
+	service service.BasicModuleService
 	// For links
 	AdminHomeUrl string
 	// For HTML text rendering
 	SchemaName       string
 	PluralSchemaName string
+	// Custom table headers
+	tableHeaders  []TableHeader
+	formSelectors SelectorService
 }
 
 // RECEIVER FUNCTIONS
 func (b basicAdminController) ObtainUrlDetails() URLDetails {
-	return URLDetails{b.AdminHomeUrl, b.SchemaName, b.PluralSchemaName}
+	return URLDetails{
+		AdminHomeUrl:     b.AdminHomeUrl,
+		SchemaName:       b.SchemaName,
+		PluralSchemaName: b.PluralSchemaName,
+	}
 }
 
 // ADMIN SIDEBAR CREATION
