@@ -2,7 +2,9 @@ package adminpanel
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
+	"time"
 
 	"github.com/dmawardi/Go-Template/internal/helpers/data"
 	"github.com/dmawardi/Go-Template/internal/models"
@@ -120,6 +122,44 @@ func BuildTableData(listOfSchemaObjects []models.AdminPanelSchema, metaData mode
 	}
 
 	return tableData
+}
+
+// getValuesUsingFieldMap returns a map of field names to string representations of their values for a given struct
+func getValuesUsingFieldMap(entity interface{}) map[string]string {
+	fieldMap := make(map[string]string) // Initialize the map to store field names and their string values
+
+	val := reflect.ValueOf(entity) // Get the reflect value of the entity
+	typ := reflect.TypeOf(entity)  // Get the reflect type of the entity
+
+	// Iterate over the fields of the struct
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)       // Get the field value
+		fieldType := typ.Field(i)   // Get the field type
+		var fieldValue string       // Variable to store the string representation of the field value
+
+		// Handle different field types
+		switch field.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			// Handle integer types
+			fieldValue = fmt.Sprint(field.Int())
+		case reflect.String:
+			// Handle string types
+			fieldValue = field.String()
+		case reflect.Struct:
+			// Special handling for struct types, specifically time.Time
+			if fieldType.Type == reflect.TypeOf(time.Time{}) {
+				fieldValue = field.Interface().(time.Time).Format("January 2, 2006 at 3:04pm")
+			}
+		default:
+			// Default case for other types
+			fieldValue = fmt.Sprint(field.Interface())
+		}
+
+		// Add the field name and its string value to the map
+		fieldMap[fieldType.Name] = fieldValue
+	}
+
+	return fieldMap // Return the populated field map
 }
 
 // POLICY TABLE

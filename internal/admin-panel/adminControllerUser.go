@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/dmawardi/Go-Template/internal/controller/core"
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
@@ -253,7 +252,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 	found.Password = ""
 
 	// Convert db struct to map for placeholder population
-	currentData := c.getValuesUsingFieldMap(*found)
+	currentData := getValuesUsingFieldMap(*found)
 	// Populate form field placeholders with data from database
 	err = populatePlaceholdersWithDBData(&editForm, currentData)
 	if err != nil {
@@ -382,26 +381,6 @@ func (c adminUserController) generateEditForm() []FormField {
 		{DbLabel: "CreatedAt", Label: "Created At", Name: "created_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 		{DbLabel: "UpdatedAt", Label: "Updated At", Name: "updated_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 	}
-}
-
-// Extract forms
-
-// For dynamic data iteration: takes a user and returns a map for easier dynamic access
-func (c adminUserController) getValuesUsingFieldMap(user models.UserWithRole) map[string]string {
-	// Map of user fields
-	fieldMap := map[string]string{
-		"ID":                     fmt.Sprint(user.ID),
-		"CreatedAt":              user.CreatedAt.Format(time.RFC3339),
-		"UpdatedAt":              user.UpdatedAt.Format(time.RFC3339),
-		"Name":                   user.Name,
-		"Username":               user.Username,
-		"Email":                  user.Email,
-		"Verified":               fmt.Sprint(user.Verified),
-		"VerificationCode":       user.VerificationCode,
-		"VerificationCodeExpiry": user.VerificationCodeExpiry.Format(time.RFC3339),
-		"Role":                   user.Role,
-	}
-	return fieldMap
 }
 
 // Used to build standardize controller fields for admin panel sidebar generation

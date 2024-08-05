@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	modulecontrollers "github.com/dmawardi/Go-Template/internal/controller/moduleControllers"
 	"github.com/dmawardi/Go-Template/internal/db"
@@ -250,7 +249,7 @@ func (c adminPostController) Edit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Populate form field placeholders with data from database
-	currentData := c.getValuesUsingFieldMap(*found)
+	currentData := getValuesUsingFieldMap(*found)
 	// Populate form field placeholders with data from database
 	err = populatePlaceholdersWithDBData(&editForm, currentData)
 	if err != nil {
@@ -374,24 +373,6 @@ func (c adminPostController) generateEditForm() []FormField {
 // Extract forms
 
 // Basic helper functions
-// For dynamic data iteration: takes a db struct and returns a map for easier dynamic access
-// Used prior to populating form placeholders
-func (c adminPostController) getValuesUsingFieldMap(post db.Post) map[string]string {
-	// Map of user fields
-	fieldMap := map[string]string{
-		"ID":        fmt.Sprint(post.ID),
-		"CreatedAt": post.CreatedAt.Format(time.RFC3339),
-		"UpdatedAt": post.UpdatedAt.Format(time.RFC3339),
-		"Title":     post.Title,
-		"Body":      post.Body,
-		// Foreign key: Return ID as string
-		"User": fmt.Sprint(post.UserID),
-	}
-	return fieldMap
-}
-
-
-
 // Used to build standardize controller fields for admin panel sidebar generation
 func (c adminPostController) ObtainUrlDetails() URLDetails {
 	return URLDetails{

@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strconv"
 
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
+	"github.com/go-chi/chi"
 )
 
 // Interface for all basic admin controllers (used for Admin panel to dynamically generate sidebar)
@@ -197,6 +199,90 @@ func (c basicAdminController) Create(w http.ResponseWriter, r *http.Request) {
 
 	// Execute the template with data and write to response
 	err := app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+func (c basicAdminController) Edit(w http.ResponseWriter, r *http.Request) {
+	// Init new form
+	editForm := c.generateEditForm()
+
+	// Grab URL parameter
+	stringParameter := chi.URLParam(r, "id")
+	// Convert to int
+	idParameter, err := strconv.Atoi(stringParameter)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	// If form is being submitted (method = POST)
+	if r.Method == "POST" {
+		// Extract form submission
+		formFieldMap, err := adminpanel.ParseFormToMap(r)
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+		// Prepare submitted form for creation
+		toValidate, err := c.prepareSubmittedFormForCreation(formFieldMap)
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+
+		// Validate struct
+		pass, valErrors := request.GoValidateStruct(toValidate)
+		// If failure detected
+		// If validation passes
+		if pass {
+			// Update
+			_, err = c.service.Update(idParameter, &toValidate)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Error updating %s", c.SchemaName), http.StatusInternalServerError)
+				return
+			}
+			// Redirect or render a success message
+			http.Redirect(w, r, fmt.Sprintf("%s/edit/success", c.AdminHomeUrl), http.StatusSeeOther)
+			return
+		}
+
+		// If validation fails
+		// Populate form field errors
+		SetValidationErrorsInForm(editForm, *valErrors)
+
+		// Populate previously entered values (Avoids password)
+		err = populateFormValuesWithSubmittedFormMap(&editForm, formFieldMap)
+		if err != nil {
+			fmt.Printf("Error populating form: %v\n", err)
+			http.Error(w, "Error populating form", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// If not POST, ie. GET
+	// Find current details to use as placeholder values
+	// Search for by ID and store in found
+	found, err := c.service.FindById(idParameter)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("%s not found", c.SchemaName), http.StatusNotFound)
+		return
+	}
+
+	// Populate form field placeholders with data from database
+	currentData := getValuesUsingFieldMap(*found)
+	// Populate form field placeholders with data from database
+	err = populatePlaceholdersWithDBData(&editForm, currentData)
+	if err != nil {
+		http.Error(w, "Error generating form", http.StatusInternalServerError)
+		return
+	}
+
+	data := GenerateEditRenderData(editForm, c.SchemaName, c.PluralSchemaName, c.AdminHomeUrl, stringParameter)	
+
+	// Execute the template with data and write to response
+	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
