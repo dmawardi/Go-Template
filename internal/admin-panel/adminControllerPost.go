@@ -168,27 +168,8 @@ func (c adminPostController) Create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Render preparation
-	// Data to be injected into template
-	data := PageRenderData{
-		PageTitle:    fmt.Sprintf("Create %s", c.schemaName),
-		SectionTitle: fmt.Sprintf("Create a new %s", c.schemaName),
-		SidebarList:  sidebar,
-		PageType: PageType{
-			EditPage:   false,
-			ReadPage:   false,
-			CreatePage: true,
-			DeletePage: false,
-		},
-		FormData: FormData{
-			FormDetails: FormDetails{
-				FormAction: fmt.Sprintf("%s/create", c.adminHomeUrl),
-				FormMethod: "post",
-			},
-			FormFields: createForm,
-		},
-		HeaderSection: header,
-	}
+	// Render page data
+	data := GenerateCreateRenderData(createForm, c.schemaName, c.pluralSchemaName, c.adminHomeUrl)
 
 	// Execute the template with data and write to response
 	err := app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
@@ -277,26 +258,7 @@ func (c adminPostController) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Data to be injected into template
-	data := PageRenderData{
-		PageTitle:    fmt.Sprintf("Edit %s: %s", c.schemaName, stringParameter),
-		SectionTitle: fmt.Sprintf("Edit %s: %s", c.schemaName, stringParameter),
-		SidebarList:  sidebar,
-		PageType: PageType{
-			EditPage:   true,
-			ReadPage:   false,
-			CreatePage: false,
-			DeletePage: false,
-		},
-		FormData: FormData{
-			FormDetails: FormDetails{
-				FormAction: fmt.Sprintf("%s/%s", c.adminHomeUrl, stringParameter),
-				FormMethod: "post",
-			},
-			FormFields: editForm,
-		},
-		HeaderSection: header,
-	}
+	data := GenerateEditRenderData(editForm, c.schemaName, c.pluralSchemaName, c.adminHomeUrl, stringParameter)	
 
 	// Execute the template with data and write to response
 	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)

@@ -218,6 +218,9 @@ func BuildAuthSidebarSection() []sidebarItem {
 	}
 }
 
+// Page Renders
+// 
+// Generate the render data for the FindAll page
 func GenerateFindAllRenderData(tableData TableData, SchemaName, PluralSchemaName, AdminHomeUrl, searchQuery string) PageRenderData {
 	return PageRenderData{
 		// Input data
@@ -241,7 +244,75 @@ func GenerateFindAllRenderData(tableData TableData, SchemaName, PluralSchemaName
 			ReadPage:   true,
 		},
 	}
+}
 
+// Generate the render data for the Create page
+func GenerateCreateRenderData(formFields []FormField, SchemaName, PluralSchemaName, AdminHomeUrl string) PageRenderData {
+	return PageRenderData{
+		// Input data
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: fmt.Sprintf("%s/create", AdminHomeUrl),
+				FormMethod: "post",
+			},
+			FormFields: formFields,
+		},
+		PageTitle:    "Create " + SchemaName,
+		SectionTitle: fmt.Sprintf("Create a new %s", SchemaName),
+		SchemaHome:   AdminHomeUrl,
+		// Admin panel standard variables
+		HeaderSection: header,
+		SidebarList:   sidebar,
+		PageType: PageType{
+			CreatePage: true,
+		},
+	}
+}
+
+// Generate the render data for the Edit page
+func GenerateEditRenderData(formFields []FormField, SchemaName, PluralSchemaName, AdminHomeUrl, idParameter string,) PageRenderData {
+	return PageRenderData{
+		// Input data
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: fmt.Sprintf("%s/%s", AdminHomeUrl, idParameter),
+				FormMethod: "post",
+			},
+			FormFields: formFields,
+		},
+		PageTitle:    fmt.Sprintf("Edit %s: %s", SchemaName, idParameter),
+		SectionTitle: fmt.Sprintf("Edit %s: %s", SchemaName, idParameter),
+		SchemaHome:   AdminHomeUrl,
+		// Admin panel standard variables
+		HeaderSection: header,
+		SidebarList:   sidebar,
+		PageType: PageType{
+			EditPage: true,
+		},
+	}
+}
+
+// Generate the render data for the Delete page
+func GenerateDeleteRenderData(SchemaName, PluralSchemaName, AdminHomeUrl, idParameter string) PageRenderData {
+	return PageRenderData{
+		// Input data
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: fmt.Sprintf("%s/delete/%s", AdminHomeUrl, idParameter),
+				FormMethod: "post",
+			},
+			FormFields: []FormField{},
+		},
+		PageTitle:    fmt.Sprintf("Delete %s", SchemaName),
+		SectionTitle: fmt.Sprintf("Are you sure you wish to delete %s: %s?", SchemaName, idParameter),
+		SchemaHome:   AdminHomeUrl,
+		// Admin panel standard variables
+		HeaderSection: header,
+		SidebarList:   sidebar,
+		PageType: PageType{
+			DeletePage: true,
+		},
+	}
 }
 
 // Used for rendering admin sidebar
