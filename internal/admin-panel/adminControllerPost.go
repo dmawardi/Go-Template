@@ -390,6 +390,8 @@ func (c adminPostController) getValuesUsingFieldMap(post db.Post) map[string]str
 	return fieldMap
 }
 
+
+
 // Used to build standardize controller fields for admin panel sidebar generation
 func (c adminPostController) ObtainUrlDetails() URLDetails {
 	return URLDetails{
@@ -397,4 +399,19 @@ func (c adminPostController) ObtainUrlDetails() URLDetails {
 		SchemaName:       c.schemaName,
 		PluralSchemaName: c.pluralSchemaName,
 	}
+}
+
+func PrepareSubmittedPostFormForCreation(formFieldMap map[string]string) (*schemamodels.CreatePost, error) {
+	// Convert relationsip to int
+	userId, err := strconv.Atoi(formFieldMap["user"])
+	if err != nil {
+		return nil, err
+	}
+	// Convert submitted form field map to struct for validation/creation
+	toValidate := schemamodels.CreatePost{
+		Title: formFieldMap["title"],
+		Body:  formFieldMap["body"],
+		User:  db.User{ID: uint(userId)},
+	}
+	return &toValidate, nil
 }

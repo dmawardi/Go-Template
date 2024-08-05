@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"reflect"
 
+	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
@@ -24,7 +25,7 @@ type BasicAdminController interface {
 	EditSuccess(w http.ResponseWriter, r *http.Request)
 	DeleteSuccess(w http.ResponseWriter, r *http.Request)
 	// Obtain URL details for sidebar
-	ObtainUrlDetails() URLDetails	
+	ObtainUrlDetails() URLDetails
 }
 type basicAdminController struct {
 	service service.BasicModuleService
@@ -38,6 +39,12 @@ type basicAdminController struct {
 	formSelectors SelectorService
 	// Conditional query params
 	ConditionQueryParams map[string]string
+
+	// Form creators
+	generateCreateForm func() []FormField 
+	generateEditForm   func() []FormField 
+	// Submission preparation
+	prepareSubmittedFormForCreation func(formFieldMap map[string]string) (struct{}, error)
 }
 
 // RECEIVER FUNCTIONS
@@ -131,6 +138,65 @@ func (c basicAdminController) FindAll(w http.ResponseWriter, r *http.Request) {
 
 	// Execute the template with data and write to response
 	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+
+func (c basicAdminController) Create(w http.ResponseWriter, r *http.Request) {
+	// Init new Create form
+	createForm := c.generateCreateForm()
+
+	// If form is being submitted (method = POST)
+	if r.Method == "POST" {
+		// Extract form submission
+		formFieldMap, err := adminpanel.ParseFormToMap(r)
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+
+		// Prepare submitted form for creation
+		toValidate, err := c.prepareSubmittedFormForCreation(formFieldMap)
+		if err != nil {
+			http.Error(w, "Error parsing form", http.StatusBadRequest)
+			return
+		}
+
+		// Validate struct
+		pass, valErrors := request.GoValidateStruct(toValidate)
+		// If failure detected
+		// If validation passes
+		if pass {
+			// Create
+			_, err = c.service.Create(&toValidate)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("Error creating %s", c.SchemaName), http.StatusInternalServerError)
+				return
+			}
+			// Redirect or render a success message
+			http.Redirect(w, r, fmt.Sprintf("%s/create/success", c.AdminHomeUrl), http.StatusSeeOther)
+			return
+		}
+
+		// If validation fails
+		// Populate form field errors
+		SetValidationErrorsInForm(createForm, *valErrors)
+
+		// Populate previously entered values (Avoids password inputs)
+		err = populateFormValuesWithSubmittedFormMap(&createForm, formFieldMap)
+		if err != nil {
+			http.Error(w, "Error populating form", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Render page data
+	data := GenerateCreateRenderData(createForm, c.SchemaName, c.PluralSchemaName, c.AdminHomeUrl)
+
+	// Execute the template with data and write to response
+	err := app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
