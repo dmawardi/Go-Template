@@ -63,7 +63,7 @@ type AdminUserController interface {
 	EditSuccess(w http.ResponseWriter, r *http.Request)
 	DeleteSuccess(w http.ResponseWriter, r *http.Request)
 	// For sidebar
-	ObtainUrlDetails() BasicAdminController
+	ObtainUrlDetails() URLDetails
 }
 
 func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
@@ -484,8 +484,8 @@ func (c adminUserController) getValuesUsingFieldMap(user models.UserWithRole) ma
 }
 
 // Used to build standardize controller fields for admin panel sidebar generation
-func (c adminUserController) ObtainUrlDetails() BasicAdminController {
-	return basicAdminController{
+func (c adminUserController) ObtainUrlDetails() URLDetails {
+	return URLDetails{
 		AdminHomeUrl:     c.adminHomeUrl,
 		SchemaName:       c.schemaName,
 		PluralSchemaName: c.pluralSchemaName,

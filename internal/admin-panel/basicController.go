@@ -4,7 +4,7 @@ import "reflect"
 
 // Interface for all basic admin controllers (used for Admin panel to dynamically generate sidebar)
 type BasicAdminController interface {
-	ObtainUrlDetails() basicAdminController
+	ObtainUrlDetails() URLDetails
 }
 type basicAdminController struct {
 	// For links
@@ -15,20 +15,20 @@ type basicAdminController struct {
 }
 
 // RECEIVER FUNCTIONS
-func (b basicAdminController) ObtainUrlDetails() basicAdminController {
-	return basicAdminController{b.AdminHomeUrl, b.SchemaName, b.PluralSchemaName}
+func (b basicAdminController) ObtainUrlDetails() URLDetails {
+	return URLDetails{b.AdminHomeUrl, b.SchemaName, b.PluralSchemaName}
 }
 
 // ADMIN SIDEBAR CREATION
 //
 // Uses the ObtainUrlDetails method to get the sidebar details of any Basic Admin Controller type
-func ObtainUrlDetailsForBasicAdminController(input interface{}) basicAdminController {
+func ObtainUrlDetailsForBasicAdminController(input interface{}) URLDetails {
 	// Use reflection to call ObtainUrlDetails method if it exists.
 	value := reflect.ValueOf(input)
 	// ObtainUrlDetails method
 	method := value.MethodByName("ObtainUrlDetails")
 	if !method.IsValid() {
-		return basicAdminController{}
+		return URLDetails{}
 	}
 
 	// Call ObtainUrlDetails method
@@ -40,13 +40,19 @@ func ObtainUrlDetailsForBasicAdminController(input interface{}) basicAdminContro
 		// Assign the result as an interface to resultFields
 		interfaceFields := result[0].Interface()
 		// Assign the fields of the resultFields to sidebarDetails
-		sidebarDetails := basicAdminController{
-			AdminHomeUrl:     interfaceFields.(basicAdminController).AdminHomeUrl,
-			SchemaName:       interfaceFields.(basicAdminController).SchemaName,
-			PluralSchemaName: interfaceFields.(basicAdminController).PluralSchemaName,
+		sidebarDetails := URLDetails{
+			AdminHomeUrl:     interfaceFields.(URLDetails).AdminHomeUrl,
+			SchemaName:       interfaceFields.(URLDetails).SchemaName,
+			PluralSchemaName: interfaceFields.(URLDetails).PluralSchemaName,
 		}
 		return sidebarDetails
 	}
 
-	return basicAdminController{}
+	return URLDetails{}
+}
+
+type URLDetails struct {
+	AdminHomeUrl string
+	SchemaName   string
+	PluralSchemaName string
 }
