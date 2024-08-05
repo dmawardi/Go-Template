@@ -106,30 +106,8 @@ func (c adminPostController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Build the table data
 	tableData := BuildTableData(adminSchemaSlice, found.Meta, c.adminHomeUrl, c.tableHeaders)
 
-	// Data to be injected into template
-	data := PageRenderData{
-		PageTitle:              "Admin: " + c.pluralSchemaName,
-		SectionTitle:           fmt.Sprintf("Select a %s to edit", c.schemaName),
-		SidebarList:            sidebar,
-		TableData:              tableData,
-		SchemaHome:             c.adminHomeUrl,
-		SearchTerm:             searchQuery,
-		RecordsPerPageSelector: recordsPerPage,
-		PageType: PageType{
-			EditPage:   false,
-			ReadPage:   true,
-			CreatePage: false,
-			DeletePage: false,
-		},
-		FormData: FormData{
-			FormDetails: FormDetails{
-				FormAction: c.adminHomeUrl,
-				FormMethod: "get",
-			},
-			FormFields: []FormField{},
-		},
-		HeaderSection: header,
-	}
+	// Generate FindAll page render data
+	data := GenerateFindAllRenderData(tableData, c.schemaName, c.pluralSchemaName, c.adminHomeUrl, searchQuery)
 
 	// Execute the template with data and write to response
 	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)

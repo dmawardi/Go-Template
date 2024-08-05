@@ -218,6 +218,32 @@ func BuildAuthSidebarSection() []sidebarItem {
 	}
 }
 
+func GenerateFindAllRenderData(tableData TableData, SchemaName, PluralSchemaName, AdminHomeUrl, searchQuery string) PageRenderData {
+	return PageRenderData{
+		// Input data
+		TableData:              tableData,
+		SchemaHome:             AdminHomeUrl,
+		SearchTerm:             searchQuery,
+		PageTitle:              "Admin: " + PluralSchemaName,
+		SectionTitle:           fmt.Sprintf("Select a %s to edit", SchemaName),
+		FormData: FormData{
+			FormDetails: FormDetails{
+				FormAction: AdminHomeUrl,
+				FormMethod: "get",
+			},
+			FormFields: []FormField{},
+		},
+		// Admin panel standard variables
+		HeaderSection: header,
+		SidebarList:            sidebar,
+		RecordsPerPageSelector: recordsPerPage,
+		PageType: PageType{
+			ReadPage:   true,
+		},
+	}
+
+}
+
 // Used for rendering admin sidebar
 type sidebarItem struct {
 	Name        string

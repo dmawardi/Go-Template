@@ -1,9 +1,12 @@
 package adminpanel
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
 
+	"github.com/dmawardi/Go-Template/internal/helpers/request"
+	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 )
 
@@ -85,73 +88,51 @@ type URLDetails struct {
 }
 
 
-// func (c basicAdminController) FindAll(w http.ResponseWriter, r *http.Request) {
-// 	// Grab query parameters
-// 	searchQuery := r.URL.Query().Get("search")
-// 	// Grab basic query params
-// 	baseQueryParams, err := request.ExtractBasicFindAllQueryParams(r)
-// 	if err != nil {
-// 		http.Error(w, "Error extracting query params", http.StatusBadRequest)
-// 		return
-// 	}
+func (c basicAdminController) FindAll(w http.ResponseWriter, r *http.Request) {
+	// Grab query parameters
+	searchQuery := r.URL.Query().Get("search")
+	// Grab basic query params
+	baseQueryParams, err := request.ExtractBasicFindAllQueryParams(r)
+	if err != nil {
+		http.Error(w, "Error extracting query params", http.StatusBadRequest)
+		return
+	}
 
-// 	// Generate query params to extract
-// 	queryParamsToExtract := c.ConditionQueryParams
-// 	// Extract query params
-// 	extractedConditionParams, err := request.ExtractSearchAndConditionParams(r, queryParamsToExtract)
-// 	if err != nil {
-// 		fmt.Println("Error extracting conditions: ", err)
-// 		http.Error(w, "Can't find conditions", http.StatusBadRequest)
-// 		return
-// 	}
+	// Generate query params to extract
+	queryParamsToExtract := c.ConditionQueryParams
+	// Extract query params
+	extractedConditionParams, err := request.ExtractSearchAndConditionParams(r, queryParamsToExtract)
+	if err != nil {
+		fmt.Println("Error extracting conditions: ", err)
+		http.Error(w, "Can't find conditions", http.StatusBadRequest)
+		return
+	}
 
-// 	// Find all with options from database
-// 	found, err := c.service.FindAll(baseQueryParams.Limit, baseQueryParams.Offset, baseQueryParams.Order, extractedConditionParams)
-// 	if err != nil {
-// 		http.Error(w, "Error finding data", http.StatusInternalServerError)
-// 		return
-// 	}
+	// Find all with options from database
+	found, err := c.service.FindAll(baseQueryParams.Limit, baseQueryParams.Offset, baseQueryParams.Order, extractedConditionParams)
+	if err != nil {
+		http.Error(w, "Error finding data", http.StatusInternalServerError)
+		return
+	}
 
-// 	// Convert data to AdminPanelSchema
-// 	schemaSlice := *found.Data
-// 	var adminSchemaSlice []models.AdminPanelSchema
-// 	for _, schema := range schemaSlice {
-// 		// Append to schemaSlice
-// 		adminSchemaSlice = append(adminSchemaSlice, schema)
-// 	}
+	// Convert data to AdminPanelSchema
+	schemaSlice := *found.Data
+	var adminSchemaSlice []models.AdminPanelSchema
+	for _, schema := range schemaSlice {
+		// Append to schemaSlice
+		adminSchemaSlice = append(adminSchemaSlice, schema)
+	}
 
-// 	// Build the table data
-// 	tableData := BuildTableData(adminSchemaSlice, found.Meta, c.adminHomeUrl, c.tableHeaders)
+	// Build the table data
+	tableData := BuildTableData(adminSchemaSlice, found.Meta, c.AdminHomeUrl, c.tableHeaders)
 
-// 	// Data to be injected into template
-// 	data := PageRenderData{
-// 		PageTitle:              "Admin: " + c.pluralSchemaName,
-// 		SectionTitle:           fmt.Sprintf("Select a %s to edit", c.schemaName),
-// 		SidebarList:            sidebar,
-// 		TableData:              tableData,
-// 		SchemaHome:             c.adminHomeUrl,
-// 		SearchTerm:             searchQuery,
-// 		RecordsPerPageSelector: recordsPerPage,
-// 		PageType: PageType{
-// 			EditPage:   false,
-// 			ReadPage:   true,
-// 			CreatePage: false,
-// 			DeletePage: false,
-// 		},
-// 		FormData: FormData{
-// 			FormDetails: FormDetails{
-// 				FormAction: c.adminHomeUrl,
-// 				FormMethod: "get",
-// 			},
-// 			FormFields: []FormField{},
-// 		},
-// 		HeaderSection: header,
-// 	}
+	// Generate Find All render data using input data
+	data := GenerateFindAllRenderData(tableData, c.SchemaName, c.PluralSchemaName, c.AdminHomeUrl, searchQuery)
 
-// 	// Execute the template with data and write to response
-// 	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
-// 	if err != nil {
-// 		fmt.Println(err.Error())
-// 		return
-// 	}
-// }
+	// Execute the template with data and write to response
+	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
