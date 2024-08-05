@@ -59,7 +59,7 @@ type BulkDeleteRequest struct {
 }
 
 // Function to build table data from slice of adminpanel schema objects, admin schema url (eg. /admin/users) and table headers
-func BuildTableData(listOfSchemaObjects []AdminPanelSchema, metaData models.SchemaMetaData, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
+func BuildTableData(listOfSchemaObjects []models.AdminPanelSchema, metaData models.SchemaMetaData, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
 	// Calculate currently showing records and total pages
 	currentlyShowing := metaData.CalculateCurrentlyShowingRecords()
 	// Init table data

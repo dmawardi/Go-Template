@@ -94,7 +94,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 	// Convert data to AdminPanelSchema
 	schemaSlice := *found.Data
-	var adminSchemaSlice []AdminPanelSchema
+	var adminSchemaSlice []models.AdminPanelSchema
 	for _, item := range schemaSlice {
 		// Append to schemaSlice
 		adminSchemaSlice = append(adminSchemaSlice, item)

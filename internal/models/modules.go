@@ -28,6 +28,6 @@ type RolePolicySet = map[string][]string
 
 // Basic Paginated Response
 type BasicPaginatedResponse struct {
-	Data *[]struct{}            `json:"data"`
-	Meta SchemaMetaData `json:"meta"`
+	Data *[]AdminPanelSchema	`json:"data"`
+	Meta SchemaMetaData 		`json:"meta"`
 }
