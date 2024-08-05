@@ -288,28 +288,7 @@ func (c adminPostController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// GET request
-	// Data to be injected into template
-	data := PageRenderData{
-		PageTitle:    fmt.Sprintf("Delete %s", c.schemaName),
-		SectionTitle: fmt.Sprintf("Are you sure you wish to delete %s: %s?", c.schemaName, stringParameter),
-		SidebarList:  sidebar,
-		SchemaHome:   c.adminHomeUrl,
-		PageType: PageType{
-			EditPage:   false,
-			ReadPage:   false,
-			CreatePage: false,
-			DeletePage: true,
-		},
-		FormData: FormData{
-			FormDetails: FormDetails{
-				FormAction: fmt.Sprintf("%s/delete/%s", c.adminHomeUrl, stringParameter),
-				FormMethod: "post",
-			},
-			FormFields: []FormField{},
-		},
-		HeaderSection: header,
-	}
+	data := GenerateDeleteRenderData(c.schemaName, c.adminHomeUrl, c.pluralSchemaName, stringParameter)
 
 	// Execute the template with data and write to response
 	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
