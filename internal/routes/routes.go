@@ -30,7 +30,7 @@ func (a api) Routes() http.Handler {
 	// Add basic admin panel routes (home, login, etc)
 	mux = AddBasicAdminRoutes(mux, a.Admin.Base)
 	// Add admin user routes
-	mux = AddAdminRouteSet(mux, false, "users", a.Admin.User)
+	mux = AddAdminRouteSet(mux, true, "users", a.Admin.User)
 	// Add admin policy routes
 	mux = AddAdminPolicySet(mux, true, "policy", a.Admin.Auth)
 
