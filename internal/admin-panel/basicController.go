@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"reflect"
 	"strconv"
 
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
@@ -44,6 +43,7 @@ type basicAdminController struct {
 	// Conditional query params
 	ConditionQueryParams map[string]string
 
+	// Input functions for forms
 	// Form creators
 	generateCreateForm func() []FormField 
 	generateEditForm   func() []FormField 
@@ -51,54 +51,17 @@ type basicAdminController struct {
 	prepareSubmittedFormForCreation func(formFieldMap map[string]string) (struct{}, error)
 }
 
-// RECEIVER FUNCTIONS
-func (b basicAdminController) ObtainUrlDetails() URLDetails {
+// Helper functions for sidebar url details
+func (c basicAdminController) ObtainUrlDetails() URLDetails {
 	return URLDetails{
-		AdminHomeUrl:     b.AdminHomeUrl,
-		SchemaName:       b.SchemaName,
-		PluralSchemaName: b.PluralSchemaName,
+		AdminHomeUrl:     c.AdminHomeUrl,
+		SchemaName:       c.SchemaName,
+		PluralSchemaName: c.PluralSchemaName,
 	}
 }
 
 // ADMIN SIDEBAR CREATION
 //
-// Uses the ObtainUrlDetails method to get the sidebar details of any Basic Admin Controller type
-func ObtainUrlDetailsForBasicAdminController(input interface{}) URLDetails {
-	// Use reflection to call ObtainUrlDetails method if it exists.
-	value := reflect.ValueOf(input)
-	// ObtainUrlDetails method
-	method := value.MethodByName("ObtainUrlDetails")
-	if !method.IsValid() {
-		return URLDetails{}
-	}
-
-	// Call ObtainUrlDetails method
-	result := method.Call(nil)
-
-	// Check if result is valid (if it is a BasicAdminController)
-	// If it has a result
-	if len(result) == 1 {
-		// Assign the result as an interface to resultFields
-		interfaceFields := result[0].Interface()
-		// Assign the fields of the resultFields to sidebarDetails
-		sidebarDetails := URLDetails{
-			AdminHomeUrl:     interfaceFields.(URLDetails).AdminHomeUrl,
-			SchemaName:       interfaceFields.(URLDetails).SchemaName,
-			PluralSchemaName: interfaceFields.(URLDetails).PluralSchemaName,
-		}
-		return sidebarDetails
-	}
-
-	return URLDetails{}
-}
-
-type URLDetails struct {
-	AdminHomeUrl string
-	SchemaName   string
-	PluralSchemaName string
-}
-
-
 func (c basicAdminController) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab query parameters
 	searchQuery := r.URL.Query().Get("search")
@@ -147,7 +110,6 @@ func (c basicAdminController) FindAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
 func (c basicAdminController) Create(w http.ResponseWriter, r *http.Request) {
 	// Init new Create form
 	createForm := c.generateCreateForm()
@@ -359,4 +321,18 @@ func (c basicAdminController) BulkDelete(w http.ResponseWriter, r *http.Request)
 	// else if successful
 	bulkResponse.Success = true
 	request.WriteAsJSON(w, bulkResponse)
+}
+
+// Success handlers
+func (c basicAdminController) CreateSuccess(w http.ResponseWriter, r *http.Request) {
+	// Serve admin success page
+	serveAdminSuccess(w, fmt.Sprintf("Create %s", c.SchemaName), fmt.Sprintf("%s Created Successfully!", c.SchemaName))
+}
+func (c basicAdminController) EditSuccess(w http.ResponseWriter, r *http.Request) {
+	// Serve admin success page
+	serveAdminSuccess(w, fmt.Sprintf("Edit %s", c.SchemaName), fmt.Sprintf("%s Updated Successfully!", c.SchemaName))
+}
+func (c basicAdminController) DeleteSuccess(w http.ResponseWriter, r *http.Request) {
+	// Serve admin success page
+	serveAdminSuccess(w, fmt.Sprintf("Delete %s", c.SchemaName), fmt.Sprintf("%s Deleted Successfully!", c.SchemaName))
 }
