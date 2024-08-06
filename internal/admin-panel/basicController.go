@@ -1,12 +1,14 @@
 package adminpanel
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
 
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
+	"github.com/dmawardi/Go-Template/internal/helpers/data"
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
@@ -287,4 +289,74 @@ func (c basicAdminController) Edit(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err.Error())
 		return
 	}
+}
+func (c basicAdminController) Delete(w http.ResponseWriter, r *http.Request) {
+	stringParameter := chi.URLParam(r, "id")
+	// Convert to int
+	idParameter, err := strconv.Atoi(stringParameter)
+	if err != nil {
+		serveAdminError(w, "Unable to interpret ID")
+		return
+	}
+	// If form is being submitted (method = POST)
+	if r.Method == "POST" {
+		// Delete user
+		err = c.service.Delete(idParameter)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error deleting %s", c.SchemaName), http.StatusInternalServerError)
+			return
+		}
+		// Redirect to success page
+		http.Redirect(w, r, fmt.Sprintf("%s/delete/success", c.AdminHomeUrl), http.StatusSeeOther)
+		return
+	}
+
+	data := GenerateDeleteRenderData(c.SchemaName, c.AdminHomeUrl, c.PluralSchemaName, stringParameter)
+
+	// Execute the template with data and write to response
+	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+func (c basicAdminController) BulkDelete(w http.ResponseWriter, r *http.Request) {
+	// Grab body of request
+	// Init
+	var listOfIds BulkDeleteRequest
+
+	// Prepare response
+	bulkResponse := models.BulkDeleteResponse{
+		// Set deleted records to length of selected items
+		DeletedRecords: len(listOfIds.SelectedItems),
+		Errors:         []error{},
+	}
+
+	// Decode request body as JSON and store
+	err := json.NewDecoder(r.Body).Decode(&listOfIds)
+	if err != nil {
+		fmt.Println("Decoding error: ", err)
+	}
+
+	// Convert string slice to int slice
+	intIdList, err := data.ConvertStringSliceToIntSlice(listOfIds.SelectedItems)
+	if err != nil {
+		bulkResponse.Errors = append(bulkResponse.Errors, err)
+		bulkResponse.Success = false
+		request.WriteAsJSON(w, bulkResponse)
+		return
+	}
+
+	// Bulk Delete
+	err = c.service.BulkDelete(intIdList)
+	// If error detected send error response
+	if err != nil {
+		bulkResponse.Errors = append(bulkResponse.Errors, err)
+		bulkResponse.Success = false
+		request.WriteAsJSON(w, bulkResponse)
+		return
+	}
+	// else if successful
+	bulkResponse.Success = true
+	request.WriteAsJSON(w, bulkResponse)
 }
