@@ -47,7 +47,6 @@ func ActionSelection() []FormFieldSelector {
 		{Value: "delete", Label: "Delete", Selected: false},
 	}
 }
-// Generic version
 func UserSelection() []FormFieldSelector {
 	var users []db.User
 	// Query all users
