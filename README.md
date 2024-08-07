@@ -56,13 +56,13 @@ go run ./cmd
 4. Service: Develop the service in ./internal/service.
 5. Controller: Implement the controller in ./internal/controller that accepts the request, performs data validation, then sends to the service to interact with database.
 6. Validation: Add validation using govalidator in DTO definitions. This is done by adding `valid:""` key-value pairs to struct DTO definitions (/internal/models) that are being passed into the ValidateStruct function (used in controllers).
-7. Routes: Update the modulesToSetup variable in the ./internal/modules/modules.go file with the created repo, service, and controller. This is used within the Routes function (./internal/routes/routes.go) automatically upon server run through the modules.SetupModules function where a modulemap is created and fed into API struct creation. 
+7. Routes: Update the modulesToSetup variable in the ./internal/modules/modules.go file with the created repo, service, and controller. This is used within the Routes function (./internal/routes/routes.go) automatically upon server run through the modules.SetupModules function where a modulemap is created and fed into API struct creation.
 8. RBAC Policy: Add routes to the RBAC policy file (./internal/auth/rbac_policy.go).
 
 ### ADMIN PANEL
 
-1. Admin Panel: Add admin panel file for created schema in ./internal/admin-panel folder as adminController<u>SchemaName</u>.go This file will contain all the controller handlers required for the admin panel functionality.
-2. Admin Route Preparation:  The db schema will need to fit the specs of the db.AdminPanelSchema, so add two receiver functions to your schema struct (in ./internal/db/<u>SchemaName</u>.go) as below.
+1. Admin Panel: Add admin panel file for created schema in ./internal/admin-panel folder as adminController<u>SchemaName</u>.go This file will contain the basicAdminController constructor with all the relevant details.
+2. Admin Route Preparation: The db schema will need to fit the specs of the db.AdminPanelSchema, so add two receiver functions to your schema struct (in ./internal/db/<u>SchemaName</u>.go) as below.
 
 - The first will be a function that returns the ID of the schema (GetId())
 - The second will be a function that returns the value of the field given a key (ObtainValue())
@@ -71,7 +71,7 @@ go run ./cmd
 3. Admin Route Creation: Update the modulesToSetup in ./internal/modules/modules.go to include the new Admin panel controller.
 4. Admin RBAC Policy: Add the admin routes to the RBAC authorization policy file (./internal/auth/rbac_policy.go)
 
-14. Tests: For e2e testing, you will need to update the controllers_test.go file in ./internal/controller. Updates are required in the controllerTestModule struct, TestApiSetup, & setupTestDatabase functions. You will need to create a new module to add to the Test Module struct. This module will contain the repository, service, and controller for the new feature. You will also need to add the new module to the controllerTestModule struct in the setupTestDatabase function.
+5. Tests: For e2e testing, you will need to update the controllers_test.go file in ./internal/controller. Updates are required in the controllerTestModule struct, TestApiSetup, & setupTestDatabase functions. You will need to create a new module to add to the Test Module struct. This module will contain the repository, service, and controller for the new feature. You will also need to add the new module to the controllerTestModule struct in the setupTestDatabase function.
 
 ---
 
@@ -101,7 +101,9 @@ Upon adding a new module:
 -Make sure to build a DB struct that contains the modules of: repo, service, & controller. This object should then be added to the testDbRepo which serves as the test connection that will be serving the requests for the DB and API.
 
 ---
+
 ## Caching
+
 Caching is handled by the cache package. It is stored in the app state and can be used from within services to store and retrieve details.
 
 The caching functions should be used in the service ideally in the below functions:
@@ -109,9 +111,9 @@ Find by ID: Cache store, Cache Load
 Update: Cache store
 Delete, Bulk Delete: Cache Delete
 
-
 Convention:
 To retrieve, use prefix of table struct
+
 ```Go
 // Define a key with a naming convention
 	cacheKey := fmt.Sprintf("user:%d", userId)
@@ -124,6 +126,7 @@ To retrieve, use prefix of table struct
 ```
 
 To store, use below convention
+
 ```Go
 // Cache the full user with a TTL before returning
 	// Assuming you have defined a duration for the TTL
@@ -132,7 +135,8 @@ To store, use below convention
 ```
 
 ## Job Queue
-The queue is handled by the Queue package. 
+
+The queue is handled by the Queue package.
 worker.go: Contains the job worker that will complete a job every 5 seconds
 email.go: Contains email associated job processing code
 queue.go: Contains code to init, add, process, and mark complete jobs.
@@ -142,6 +146,7 @@ The queue struct is within the db package in the job.go file.
 A new queue is init within the API creation and an async worker is initialized at this point as well to handle jobs.
 
 ---
+
 ## API documentation
 
 API documentation is auto generated using markdown within code. This is achieved using Swag.
