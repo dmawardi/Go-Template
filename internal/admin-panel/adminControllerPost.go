@@ -9,14 +9,6 @@ import (
 	moduleservices "github.com/dmawardi/Go-Template/internal/service/module"
 )
 
-//
-var postTableHeaders = []TableHeader{
-	{Label: "ID", ColumnSortLabel: "id", Pointer: false, DataType: "int", Sortable: true},
-	{Label: "Title", ColumnSortLabel: "title", Pointer: false, DataType: "string", Sortable: true},
-	{Label: "Body", ColumnSortLabel: "body", Pointer: false, DataType: "string", Sortable: true},
-	{Label: "User", ColumnSortLabel: "user", Pointer: false, DataType: "foreign", ForeignKeyRepKeyName: "Username"},
-}
-
 func NewAdminPostController(service moduleservices.PostService) models.BasicAdminController{
 	return &basicAdminController[db.Post, schemamodels.CreatePost, schemamodels.UpdatePost]{
 		Service: service,
@@ -24,7 +16,12 @@ func NewAdminPostController(service moduleservices.PostService) models.BasicAdmi
 		AdminHomeUrl:     "/admin/posts",
 		SchemaName:       "Post",
 		PluralSchemaName: "Posts",
-		tableHeaders:     postTableHeaders,
+		tableHeaders:     []TableHeader{
+			{Label: "ID", ColumnSortLabel: "id", Pointer: false, DataType: "int", Sortable: true},
+			{Label: "Title", ColumnSortLabel: "title", Pointer: false, DataType: "string", Sortable: true},
+			{Label: "Body", ColumnSortLabel: "body", Pointer: false, DataType: "string", Sortable: true},
+			{Label: "User", ColumnSortLabel: "user", Pointer: false, DataType: "foreign", ForeignKeyRepKeyName: "Username"},
+		},
 		generateCreateForm: func () []FormField  {
 			return []FormField{
 				{DbLabel: "Title", Label: "Title", Name: "title", Placeholder: "", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
