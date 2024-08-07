@@ -7,6 +7,7 @@ import (
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/dmawardi/Go-Template/internal/cache"
+	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/gorilla/sessions"
 	"gorm.io/gorm"
 )
@@ -24,6 +25,9 @@ type AppConfig struct {
 	BaseURL string
 	// Cache
 	Cache *cache.CacheMap
+	// Core modules
+	User models.ModuleSet
+	Policy models.ModuleSet
 }
 
 type AuthEnforcer struct {

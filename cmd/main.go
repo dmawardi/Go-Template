@@ -20,6 +20,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/email"
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/modules"
 	"github.com/dmawardi/Go-Template/internal/queue"
 	"github.com/dmawardi/Go-Template/internal/repository"
@@ -157,16 +158,16 @@ func ApiSetup(client *gorm.DB, connectEmail bool) routes.Api {
 	groupRepo := corerepositories.NewAuthPolicyRepository(client)
 	groupService := coreservices.NewAuthPolicyService(groupRepo)
 	groupController := core.NewAuthPolicyController(groupService)
+
 	// user
 	userRepo := corerepositories.NewUserRepository(client)
 	userService := coreservices.NewUserService(userRepo, groupRepo, jobQueue)
 	userController := core.NewUserController(userService)
 
-	// Build selector service is used for selector boxes in Admin panel
-	selectorService := adminpanel.NewSelectorService(client, groupService)
+
 
 	// Setup basic modules with new implementation (including admin controllers if available)
-	moduleMap := modules.SetupModules(modules.ModulesToSetup, client, selectorService)
+	moduleMap := modules.SetupModules(modules.ModulesToSetup, client)
 
 	// Admin panel
 	//
@@ -174,8 +175,8 @@ func ApiSetup(client *gorm.DB, connectEmail bool) routes.Api {
 	adminController := adminpanel.NewAdminPanelController(
 		// Basic ADMIN modules
 		adminpanel.NewAdminCoreController(userService),
-		adminpanel.NewAdminUserController(userService, selectorService),
-		adminpanel.NewAdminAuthPolicyController(groupService, selectorService),
+		adminpanel.NewAdminUserController(userService),
+		adminpanel.NewAdminAuthPolicyController(groupService),
 		// ADD ADDITIONAL MODULES HERE
 		moduleMap,
 	)
@@ -188,6 +189,22 @@ func ApiSetup(client *gorm.DB, connectEmail bool) routes.Api {
 		// Created modules contained in moduleMap
 		moduleMap,
 	)
+
+	// Before returning, add core modules to the module map
+	app.User = models.ModuleSet{
+		RouteName:       "user",
+		Repo:            userRepo,
+		Service:         userService,
+		Controller:      userController,
+	}
+	app.Policy = models.ModuleSet{
+		RouteName:       "policy",
+		Repo:            groupRepo,
+		Service:         groupService,
+		Controller:      groupController,
+	}
+
+	// Return API (controllers)
 	return api
 }
 

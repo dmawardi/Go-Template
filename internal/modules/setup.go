@@ -1,13 +1,13 @@
 package modules
 
 import (
-	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"gorm.io/gorm"
 )
 
+// Used to setup modules aside from core modules (User, Policy)
 // Returns module map that contains structs with modules (controller, service, & repo) using module name as key
-func SetupModules(modulesToSetup []EntityConfig, client *gorm.DB, selectorService adminpanel.SelectorService) models.ModuleMap {
+func SetupModules(modulesToSetup []EntityConfig, client *gorm.DB) models.ModuleMap {
 	// Init
 	moduleMap := make(map[string]models.ModuleSet)
 

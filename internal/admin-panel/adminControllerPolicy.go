@@ -34,7 +34,7 @@ var roleTableHeaders = []TableHeader{
 }
 
 // Constructor
-func NewAdminAuthPolicyController(service coreservices.AuthPolicyService, selectorService SelectorService) AdminAuthPolicyController {
+func NewAdminAuthPolicyController(service coreservices.AuthPolicyService) AdminAuthPolicyController {
 	return &adminAuthPolicyController{
 		service: service,
 		// Use values from above
@@ -44,7 +44,6 @@ func NewAdminAuthPolicyController(service coreservices.AuthPolicyService, select
 		tableHeaders:            authPolicyTableHeaders,
 		inheritanceTableHeaders: inheritanceTableHeaders,
 		roleTableheaders:        roleTableHeaders,
-		formSelectors:           selectorService,
 	}
 }
 
@@ -79,9 +78,6 @@ type adminAuthPolicyController struct {
 	tableHeaders            []TableHeader
 	inheritanceTableHeaders []TableHeader
 	roleTableheaders        []TableHeader
-
-	// Form selectors
-	formSelectors SelectorService
 }
 
 // POLICIES
@@ -191,7 +187,7 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 	policies := buildEditPolicyTable(found)
 
 	// Init new role selector values
-	rolesCurrentlyInPolicy := c.formSelectors.RoleSelection()
+	rolesCurrentlyInPolicy := RoleSelection()
 	// Remove roles that are already in the policy
 	rolesCurrentlyInPolicy = genRolesLeftOnlySelection(policies, rolesCurrentlyInPolicy)
 
@@ -305,7 +301,7 @@ func (c adminAuthPolicyController) CreateSuccess(w http.ResponseWriter, r *http.
 func (c adminAuthPolicyController) generateCreateForm() []FormField {
 	return []FormField{
 		{DbLabel: "Resource", Label: "Resource", Name: "resource", Placeholder: "eg. '/api/posts'", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Role", Label: "First Role", Name: "role", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.RoleSelection()},
+		{DbLabel: "Role", Label: "First Role", Name: "role", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: RoleSelection()},
 		{DbLabel: "Action", Label: "Action", Name: "action", Placeholder: "", Value: "", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: ActionSelection()},
 	}
 }
@@ -443,7 +439,7 @@ func (c adminAuthPolicyController) CreateRoleSuccess(w http.ResponseWriter, r *h
 func (c adminAuthPolicyController) generateCreateRoleForm() []FormField {
 	return []FormField{
 		{DbLabel: "Role", Label: "New Role Name", Name: "role", Placeholder: "eg. 'Moderator'", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "User", Label: "First Member", Name: "user", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.UserSelection()},
+		{DbLabel: "User", Label: "First Member", Name: "user", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: UserSelection()},
 	}
 }
 
@@ -635,8 +631,8 @@ func (c adminAuthPolicyController) DeleteInheritanceSuccess(w http.ResponseWrite
 // Form
 func (c adminAuthPolicyController) generateCreateInheritanceForm() []FormField {
 	return []FormField{
-		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.RoleSelection()},
-		{DbLabel: "InheritsFrom", Label: "Inherits from (role)", Name: "inherits_from", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.RoleSelection()},
+		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: RoleSelection()},
+		{DbLabel: "InheritsFrom", Label: "Inherits from (role)", Name: "inherits_from", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: RoleSelection()},
 	}
 }
 

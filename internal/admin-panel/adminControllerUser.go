@@ -25,7 +25,7 @@ var userTableHeaders = []TableHeader{
 	{Label: "Verified", ColumnSortLabel: "verified", Pointer: true, DataType: "bool", Sortable: true},
 }
 
-func NewAdminUserController(service coreservices.UserService, selectorService SelectorService) AdminUserController {
+func NewAdminUserController(service coreservices.UserService) AdminUserController {
 	return &adminUserController{
 		service: service,
 		// Use values from above
@@ -33,7 +33,6 @@ func NewAdminUserController(service coreservices.UserService, selectorService Se
 		schemaName:       "User",
 		pluralSchemaName: "Users",
 		tableHeaders:     userTableHeaders,
-		formSelectors:    selectorService,
 	}
 }
 
@@ -46,7 +45,6 @@ type adminUserController struct {
 	pluralSchemaName string
 	// Custom table headers
 	tableHeaders  []TableHeader
-	formSelectors SelectorService
 }
 
 type AdminUserController interface {
@@ -362,7 +360,7 @@ func (c adminUserController) generateCreateForm() []FormField {
 		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Email", Label: "Email", Name: "email", Placeholder: "Enter email", Value: "", Type: "email", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Password", Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: true, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.RoleSelection()},
+		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: RoleSelection()},
 		{DbLabel: "Verified", Label: "Verified", Name: "verified", Placeholder: "", Value: "true", Type: "checkbox", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 	}
 }
@@ -374,7 +372,7 @@ func (c adminUserController) generateEditForm() []FormField {
 		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Email", Label: "Email", Name: "email", Placeholder: "Enter email", Value: "", Type: "email", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Password", Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.RoleSelection()},
+		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: RoleSelection()},
 		{DbLabel: "Verified", Label: "Verified", Name: "verified", Placeholder: "", Value: "false", Type: "checkbox", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "VerificationCode", Label: "Verification Code", Name: "verification_code", Placeholder: "Enter verification code", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 		{DbLabel: "VerificationCodeExpiry", Label: "Verification Code Expiry", Name: "verification_code_expiry", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},

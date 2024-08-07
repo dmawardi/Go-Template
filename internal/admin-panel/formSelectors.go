@@ -6,22 +6,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers/utility"
 	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
-	"gorm.io/gorm"
 )
-
-type SelectorService interface {
-	RoleSelection() []FormFieldSelector
-	UserSelection() []FormFieldSelector
-}
-type selectorService struct {
-	DB   *gorm.DB
-	Auth coreservices.AuthPolicyService
-}
-
-// Constructor
-func NewSelectorService(db *gorm.DB, auth coreservices.AuthPolicyService) SelectorService {
-	return &selectorService{DB: db, Auth: auth}
-}
 
 // Form Selectors
 // For role selection in form
@@ -30,8 +15,10 @@ var recordsPerPage = []int{10, 25, 50, 100}
 
 var possibleActions = []string{"create", "read", "update", "delete"}
 
-func (c selectorService) RoleSelection() []FormFieldSelector {
-	roles, err := c.Auth.FindAllRoles()
+
+// Form Selectors
+func RoleSelection() []FormFieldSelector {
+	roles, err := app.Policy.Service.(coreservices.AuthPolicyService).FindAllRoles()
 	if err != nil {
 		// Return default selector
 		return []FormFieldSelector{
@@ -52,26 +39,6 @@ func (c selectorService) RoleSelection() []FormFieldSelector {
 
 	return roleSelector
 }
-
-func (c selectorService) UserSelection() []FormFieldSelector {
-	var users []db.User
-	// Query all users
-	result := c.DB.Select("id, username").Find(&users)
-	if result.Error != nil {
-		fmt.Printf("Error finding users: %v\n", result.Error)
-		return nil
-	}
-
-	// Init
-	var selector []FormFieldSelector
-	// Build []FormFieldSelector from []string DB output
-	for _, user := range users {
-		selector = append(selector, FormFieldSelector{Value: fmt.Sprint(user.ID), Label: utility.CapitalizeFirstLetter(user.Username)})
-	}
-
-	return selector
-}
-
 func ActionSelection() []FormFieldSelector {
 	return []FormFieldSelector{
 		{Value: "create", Label: "Create", Selected: true},
@@ -80,7 +47,6 @@ func ActionSelection() []FormFieldSelector {
 		{Value: "delete", Label: "Delete", Selected: false},
 	}
 }
-
 // Generic version
 func UserSelection() []FormFieldSelector {
 	var users []db.User
