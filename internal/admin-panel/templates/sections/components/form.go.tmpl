@@ -3,6 +3,7 @@
     <div>
       <h1>{{.SectionTitle}}</h1>
       <form
+        id="form"
         class="form admin-form"
         action="{{.FormData.FormDetails.FormAction}}"
         method="{{.FormData.FormDetails.FormMethod}}"
@@ -66,6 +67,10 @@
             {{if
             .Required}}required{{end}}
           ></textarea>
+
+          {{/* Rich Text Editor */}}
+          {{else if eq .Type "rich-text-editor"}}
+          {{ template "rich-text-editor" . }}
 
           {{/* Normal input */}}
           {{else}}

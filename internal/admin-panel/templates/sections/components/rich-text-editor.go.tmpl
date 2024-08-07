@@ -1,0 +1,20 @@
+{{define "rich-text-editor"}}
+    <div id="toolbar">
+            <button type="button" onclick="wrapText('b')">Bold</button>
+            <button type="button" onclick="wrapText('i')">Italic</button>
+            <button type="button" onclick="wrapText('u')">Underline</button>
+            <button type="button" onclick="addLink()">Add Link</button>
+            <button type="button" onclick="addCode()">Add Code</button>
+            <button type="button" onclick="addTable()">Add Table</button>
+        </div>
+        <textarea 
+        id="editor"
+        type="{{.Type}}"
+        class="form-control"
+        name="{{.Name}}"
+        placeholder="{{.Placeholder}}"
+        value="{{.Value}}"
+        {{if
+        .Required}}required{{end}}
+        ></textarea>
+{{end}}

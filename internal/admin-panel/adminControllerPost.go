@@ -25,14 +25,14 @@ func NewAdminPostController(service moduleservices.PostService) models.BasicAdmi
 		generateCreateForm: func () []FormField  {
 			return []FormField{
 				{DbLabel: "Title", Label: "Title", Name: "title", Placeholder: "", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
-				{DbLabel: "Body", Label: "Body", Name: "body", Placeholder: "", Value: "", Type: "textarea", Required: true, Disabled: false, Errors: []ErrorMessage{}},
+				{DbLabel: "Body", Label: "Body", Name: "body", Placeholder: "", Value: "", Type: "rich-text-editor", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 				{DbLabel: "User", Label: "User", Name: "user", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: UserSelection()},
 			}
 		},
 		generateEditForm: func () []FormField  {
 			return []FormField{
 				{DbLabel: "Title", Label: "Title", Name: "title", Placeholder: "", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-				{DbLabel: "Body", Label: "Body", Name: "body", Placeholder: "", Value: "", Type: "textarea", Required: false, Disabled: false, Errors: []ErrorMessage{}},
+				{DbLabel: "Body", Label: "Body", Name: "body", Placeholder: "", Value: "", Type: "rich-text-editor", Required: false, Disabled: false, Errors: []ErrorMessage{}},
 				{DbLabel: "User", Label: "User", Name: "user", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: UserSelection()},
 			}
 		},
