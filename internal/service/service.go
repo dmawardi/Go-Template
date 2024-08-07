@@ -20,12 +20,11 @@ func SetAppConfig(a *config.AppConfig) {
 	app = a
 }
 
-// Basic Module Service Interface
-type BasicModuleService interface {
-	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.BasicPaginatedResponse, error)
-	FindById(int) (*struct{}, error)
-	Create(entity *struct{}) (*struct{}, error)
-	Update(int, *struct{}) (*struct{}, error)
+type BasicModuleService[dbSchema, create, update any] interface {
+	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.BasicPaginatedResponse[dbSchema], error)
+	FindById(int) (*dbSchema, error)
+	Create(entity *create) (*dbSchema, error)
+	Update(int, *update) (*dbSchema, error)
 	Delete(int) error
 	BulkDelete([]int) error
 }

@@ -6,13 +6,12 @@ import (
 	"github.com/dmawardi/Go-Template/internal/db"
 	data "github.com/dmawardi/Go-Template/internal/helpers/data"
 	"github.com/dmawardi/Go-Template/internal/models"
-	schemamodels "github.com/dmawardi/Go-Template/internal/models/schemaModels"
 	"gorm.io/gorm"
 )
 
 type PostRepository interface {
 	// Find a list of all users in the Database
-	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*schemamodels.PaginatedPosts, error)
+	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.BasicPaginatedResponse[db.Post], error)
 	FindById(int) (*db.Post, error)
 	Create(post *db.Post) (*db.Post, error)
 	Update(int, *db.Post) (*db.Post, error)
@@ -40,7 +39,7 @@ func (r *postRepository) Create(post *db.Post) (*db.Post, error) {
 }
 
 // Find a list of posts in the database
-func (r *postRepository) FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*schemamodels.PaginatedPosts, error) {
+func (r *postRepository) FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.BasicPaginatedResponse[db.Post], error) {
 	// Build meta data for posts
 	metaData, err := data.BuildMetaData(r.DB, db.Post{}, limit, offset, order, conditions)
 	if err != nil {
@@ -56,7 +55,7 @@ func (r *postRepository) FindAll(limit int, offset int, order string, conditions
 		return nil, err
 	}
 
-	return &schemamodels.PaginatedPosts{
+	return &models.BasicPaginatedResponse[db.Post]{
 		Data: &posts,
 		Meta: *metaData,
 	}, nil

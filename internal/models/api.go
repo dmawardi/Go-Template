@@ -22,6 +22,8 @@ type BasicAdminController interface {
 	CreateSuccess(w http.ResponseWriter, r *http.Request)
 	EditSuccess(w http.ResponseWriter, r *http.Request)
 	DeleteSuccess(w http.ResponseWriter, r *http.Request)
+	// Obtain URL details for sidebar
+	ObtainUrlDetails() URLDetails
 }
 
 type BasicService interface {

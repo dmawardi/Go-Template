@@ -28,10 +28,10 @@ type BasicAdminController interface {
 	EditSuccess(w http.ResponseWriter, r *http.Request)
 	DeleteSuccess(w http.ResponseWriter, r *http.Request)
 	// Obtain URL details for sidebar
-	ObtainUrlDetails() URLDetails
+	ObtainUrlDetails() models.URLDetails
 }
-type basicAdminController struct {
-	service service.BasicModuleService
+type basicAdminController[dbSchema, create, update any] struct {
+	Service service.BasicModuleService[dbSchema, create, update]
 	// For links
 	AdminHomeUrl string
 	// For HTML text rendering
@@ -39,7 +39,6 @@ type basicAdminController struct {
 	PluralSchemaName string
 	// Custom table headers
 	tableHeaders  []TableHeader
-	formSelectors SelectorService
 	// Conditional query params
 	ConditionQueryParams map[string]string
 
@@ -48,12 +47,14 @@ type basicAdminController struct {
 	generateCreateForm func() []FormField 
 	generateEditForm   func() []FormField 
 	// Submission preparation
-	prepareSubmittedFormForCreation func(formFieldMap map[string]string) (struct{}, error)
+	prepareSubmittedFormForCreation func(formFieldMap map[string]string) (*create, error)
+	prepareSubmittedFormForUpdate func(formFieldMap map[string]string) (*update, error)
+
 }
 
 // Helper functions for sidebar url details
-func (c basicAdminController) ObtainUrlDetails() URLDetails {
-	return URLDetails{
+func (c basicAdminController[dbSchema, create, update]) ObtainUrlDetails() models.URLDetails {
+	return models.URLDetails{
 		AdminHomeUrl:     c.AdminHomeUrl,
 		SchemaName:       c.SchemaName,
 		PluralSchemaName: c.PluralSchemaName,
@@ -62,7 +63,7 @@ func (c basicAdminController) ObtainUrlDetails() URLDetails {
 
 // ADMIN SIDEBAR CREATION
 //
-func (c basicAdminController) FindAll(w http.ResponseWriter, r *http.Request) {
+func (c basicAdminController[dbSchema, create, update]) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab query parameters
 	searchQuery := r.URL.Query().Get("search")
 	// Grab basic query params
@@ -83,7 +84,7 @@ func (c basicAdminController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Find all with options from database
-	found, err := c.service.FindAll(baseQueryParams.Limit, baseQueryParams.Offset, baseQueryParams.Order, extractedConditionParams)
+	found, err := c.Service.FindAll(baseQueryParams.Limit, baseQueryParams.Offset, baseQueryParams.Order, extractedConditionParams)
 	if err != nil {
 		http.Error(w, "Error finding data", http.StatusInternalServerError)
 		return
@@ -93,8 +94,11 @@ func (c basicAdminController) FindAll(w http.ResponseWriter, r *http.Request) {
 	schemaSlice := *found.Data
 	var adminSchemaSlice []models.AdminPanelSchema
 	for _, schema := range schemaSlice {
-		// Append to schemaSlice
-		adminSchemaSlice = append(adminSchemaSlice, schema)
+		// If the schema is an AdminPanelSchema
+		if adminSchema, ok := any(schema).(models.AdminPanelSchema); ok {
+			// Append to schemaSlice
+			adminSchemaSlice = append(adminSchemaSlice, adminSchema)
+		}
 	}
 
 	// Build the table data
@@ -110,7 +114,7 @@ func (c basicAdminController) FindAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (c basicAdminController) Create(w http.ResponseWriter, r *http.Request) {
+func (c basicAdminController[dbSchema, create, update]) Create(w http.ResponseWriter, r *http.Request) {
 	// Init new Create form
 	createForm := c.generateCreateForm()
 
@@ -136,7 +140,7 @@ func (c basicAdminController) Create(w http.ResponseWriter, r *http.Request) {
 		// If validation passes
 		if pass {
 			// Create
-			_, err = c.service.Create(&toValidate)
+			_, err = c.Service.Create(toValidate)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Error creating %s", c.SchemaName), http.StatusInternalServerError)
 				return
@@ -168,7 +172,7 @@ func (c basicAdminController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (c basicAdminController) Edit(w http.ResponseWriter, r *http.Request) {
+func (c basicAdminController[dbSchema, create, update]) Edit(w http.ResponseWriter, r *http.Request) {
 	// Init new form
 	editForm := c.generateEditForm()
 
@@ -190,7 +194,7 @@ func (c basicAdminController) Edit(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Prepare submitted form for creation
-		toValidate, err := c.prepareSubmittedFormForCreation(formFieldMap)
+		toValidate, err := c.prepareSubmittedFormForUpdate(formFieldMap)
 		if err != nil {
 			http.Error(w, "Error parsing form", http.StatusBadRequest)
 			return
@@ -202,7 +206,7 @@ func (c basicAdminController) Edit(w http.ResponseWriter, r *http.Request) {
 		// If validation passes
 		if pass {
 			// Update
-			_, err = c.service.Update(idParameter, &toValidate)
+			_, err = c.Service.Update(idParameter, toValidate)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Error updating %s", c.SchemaName), http.StatusInternalServerError)
 				return
@@ -228,7 +232,7 @@ func (c basicAdminController) Edit(w http.ResponseWriter, r *http.Request) {
 	// If not POST, ie. GET
 	// Find current details to use as placeholder values
 	// Search for by ID and store in found
-	found, err := c.service.FindById(idParameter)
+	found, err := c.Service.FindById(idParameter)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("%s not found", c.SchemaName), http.StatusNotFound)
 		return
@@ -252,7 +256,7 @@ func (c basicAdminController) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (c basicAdminController) Delete(w http.ResponseWriter, r *http.Request) {
+func (c basicAdminController[dbSchema, create, update]) Delete(w http.ResponseWriter, r *http.Request) {
 	stringParameter := chi.URLParam(r, "id")
 	// Convert to int
 	idParameter, err := strconv.Atoi(stringParameter)
@@ -263,7 +267,7 @@ func (c basicAdminController) Delete(w http.ResponseWriter, r *http.Request) {
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Delete user
-		err = c.service.Delete(idParameter)
+		err = c.Service.Delete(idParameter)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error deleting %s", c.SchemaName), http.StatusInternalServerError)
 			return
@@ -282,7 +286,7 @@ func (c basicAdminController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (c basicAdminController) BulkDelete(w http.ResponseWriter, r *http.Request) {
+func (c basicAdminController[dbSchema, create, update]) BulkDelete(w http.ResponseWriter, r *http.Request) {
 	// Grab body of request
 	// Init
 	var listOfIds BulkDeleteRequest
@@ -310,7 +314,7 @@ func (c basicAdminController) BulkDelete(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Bulk Delete
-	err = c.service.BulkDelete(intIdList)
+	err = c.Service.BulkDelete(intIdList)
 	// If error detected send error response
 	if err != nil {
 		bulkResponse.Errors = append(bulkResponse.Errors, err)
@@ -324,15 +328,15 @@ func (c basicAdminController) BulkDelete(w http.ResponseWriter, r *http.Request)
 }
 
 // Success handlers
-func (c basicAdminController) CreateSuccess(w http.ResponseWriter, r *http.Request) {
+func (c basicAdminController[dbSchema, create, update]) CreateSuccess(w http.ResponseWriter, r *http.Request) {
 	// Serve admin success page
 	serveAdminSuccess(w, fmt.Sprintf("Create %s", c.SchemaName), fmt.Sprintf("%s Created Successfully!", c.SchemaName))
 }
-func (c basicAdminController) EditSuccess(w http.ResponseWriter, r *http.Request) {
+func (c basicAdminController[dbSchema, create, update]) EditSuccess(w http.ResponseWriter, r *http.Request) {
 	// Serve admin success page
 	serveAdminSuccess(w, fmt.Sprintf("Edit %s", c.SchemaName), fmt.Sprintf("%s Updated Successfully!", c.SchemaName))
 }
-func (c basicAdminController) DeleteSuccess(w http.ResponseWriter, r *http.Request) {
+func (c basicAdminController[dbSchema, create, update]) DeleteSuccess(w http.ResponseWriter, r *http.Request) {
 	// Serve admin success page
 	serveAdminSuccess(w, fmt.Sprintf("Delete %s", c.SchemaName), fmt.Sprintf("%s Deleted Successfully!", c.SchemaName))
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"html/template"
 
+	"github.com/dmawardi/Go-Template/internal/models"
 	"gorm.io/gorm"
 )
 
@@ -39,18 +40,14 @@ func NewController[T any, C any](controllerFunc func(T) C) func(interface{}) int
 	}
 }
 
-// Helper function to create a new admin controller. Takes an admin controller creation function and returns a function that takes an interface and returns an interface
-func NewAdminController[T any, S any, C any](controllerFunc func(T, S) C) func(interface{}, interface{}) interface{} {
-	return func(serviceInterface interface{}, selectorService interface{}) interface{} {
-		service, ok := serviceInterface.(T)
+// Helper function that takes an admin controller creation function and returns a function that takes an interface and returns a basic admin controller
+func NewAdminController[Serv any](controllerFunc func(Serv) models.BasicAdminController) func(interface{}) models.BasicAdminController {
+	return func(serviceInterface interface{}) models.BasicAdminController {
+		service, ok := serviceInterface.(Serv)
 		if !ok {
 			panic("Incorrect service type")
 		}
-		selector, ok := selectorService.(S)
-		if !ok {
-			panic("Incorrect selector service type")
-		}
-		return controllerFunc(service, selector)
+		return controllerFunc(service)
 	}
 }
 

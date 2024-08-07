@@ -62,7 +62,7 @@ type AdminUserController interface {
 	EditSuccess(w http.ResponseWriter, r *http.Request)
 	DeleteSuccess(w http.ResponseWriter, r *http.Request)
 	// For sidebar
-	ObtainUrlDetails() URLDetails
+	ObtainUrlDetails() models.URLDetails
 }
 
 func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
@@ -384,8 +384,8 @@ func (c adminUserController) generateEditForm() []FormField {
 }
 
 // Used to build standardize controller fields for admin panel sidebar generation
-func (c adminUserController) ObtainUrlDetails() URLDetails {
-	return URLDetails{
+func (c adminUserController) ObtainUrlDetails() models.URLDetails {
+	return models.URLDetails{
 		AdminHomeUrl:     c.adminHomeUrl,
 		SchemaName:       c.schemaName,
 		PluralSchemaName: c.pluralSchemaName,

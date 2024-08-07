@@ -7,3 +7,10 @@ type AdminPanelSchema interface {
 	// Returns value of schema field
 	ObtainValue(keyValue string) string
 }
+
+// Used to obtain sidebar details for any Basic Admin Controller type
+type URLDetails struct {
+	AdminHomeUrl string
+	SchemaName   string
+	PluralSchemaName string
+}

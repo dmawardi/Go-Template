@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+
+	"github.com/dmawardi/Go-Template/internal/models"
 )
 
 // PAGE RENDER DATA
@@ -317,13 +319,13 @@ func GenerateDeleteRenderData(SchemaName, PluralSchemaName, AdminHomeUrl, idPara
 
 // Sidebar helpers
 // Uses the ObtainUrlDetails method to get the sidebar details of any Basic Admin Controller type
-func ObtainUrlDetailsForBasicAdminController(input interface{}) URLDetails {
+func ObtainUrlDetailsForBasicAdminController(input interface{}) models.URLDetails {
 	// Use reflection to call ObtainUrlDetails method if it exists.
 	value := reflect.ValueOf(input)
 	// ObtainUrlDetails method
 	method := value.MethodByName("ObtainUrlDetails")
 	if !method.IsValid() {
-		return URLDetails{}
+		return models.URLDetails{}
 	}
 
 	// Call ObtainUrlDetails method
@@ -335,22 +337,18 @@ func ObtainUrlDetailsForBasicAdminController(input interface{}) URLDetails {
 		// Assign the result as an interface to resultFields
 		interfaceFields := result[0].Interface()
 		// Assign the fields of the resultFields to sidebarDetails
-		sidebarDetails := URLDetails{
-			AdminHomeUrl:     interfaceFields.(URLDetails).AdminHomeUrl,
-			SchemaName:       interfaceFields.(URLDetails).SchemaName,
-			PluralSchemaName: interfaceFields.(URLDetails).PluralSchemaName,
+		sidebarDetails := models.URLDetails{
+			AdminHomeUrl:     interfaceFields.(models.URLDetails).AdminHomeUrl,
+			SchemaName:       interfaceFields.(models.URLDetails).SchemaName,
+			PluralSchemaName: interfaceFields.(models.URLDetails).PluralSchemaName,
 		}
 		return sidebarDetails
 	}
 
-	return URLDetails{}
+	return models.URLDetails{}
 }
 
-type URLDetails struct {
-	AdminHomeUrl string
-	SchemaName   string
-	PluralSchemaName string
-}
+
 
 // Used for rendering admin sidebar
 type sidebarItem struct {

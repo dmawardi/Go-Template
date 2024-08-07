@@ -17,13 +17,13 @@ func SetupModules(modulesToSetup []EntityConfig, client *gorm.DB, selectorServic
 		service := module.NewService(repo)
 		controller := module.NewController(service)
 
-		// Assign admin controller
-		adminController := module.NewAdminController
-		// If admin controller is not nil, add it to the module map
-		if adminController != nil {
+		// Assign constructor function to newAdminController
+		newAdminController := module.NewAdminController
+		// If admin controller constructor is not nil, add it to the module map
+		if newAdminController != nil {
 
 			// Create admin controller using the service
-			adminController := adminController(service, selectorService)
+			adminController := newAdminController(service)
 
 			// Add module set including admin controller to the map
 			moduleMap[module.Name] = models.ModuleSet{
@@ -57,7 +57,7 @@ type EntityConfig struct {
 	NewRepo            func(*gorm.DB) interface{}
 	NewService         func(interface{}) interface{}
 	NewController      func(interface{}) interface{}
-	NewAdminController func(interface{}, interface{}) interface{}
+	NewAdminController func(interface{}) models.BasicAdminController
 	// PolicySet is used to setup the different policies for the module
 	// The policy set will set the policy for the non-admin CRUD portion of the API
 	PolicySet ModulePolicySet

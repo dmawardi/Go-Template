@@ -66,7 +66,7 @@ type AdminAuthPolicyController interface {
 	CreateInheritanceSuccess(w http.ResponseWriter, r *http.Request)
 	DeleteInheritanceSuccess(w http.ResponseWriter, r *http.Request)
 	// For sidebar
-	ObtainURLDetails() URLDetails
+	ObtainURLDetails() models.URLDetails
 }
 type adminAuthPolicyController struct {
 	service coreservices.AuthPolicyService
@@ -643,8 +643,8 @@ func (c adminAuthPolicyController) generateCreateInheritanceForm() []FormField {
 // Basic helper functions
 
 // Used to build standardize controller fields for admin panel sidebar generation
-func (c adminAuthPolicyController) ObtainURLDetails() URLDetails {
-	return URLDetails{
+func (c adminAuthPolicyController) ObtainURLDetails() models.URLDetails {
+	return models.URLDetails{
 		AdminHomeUrl:     c.adminHomeUrl,
 		SchemaName:       c.schemaName,
 		PluralSchemaName: c.pluralSchemaName,

@@ -10,7 +10,7 @@ import (
 )
 
 type PostService interface {
-	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*schemamodels.PaginatedPosts, error)
+	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.BasicPaginatedResponse[db.Post], error)
 	FindById(int) (*db.Post, error)
 	Create(post *schemamodels.CreatePost) (*db.Post, error)
 	Update(int, *schemamodels.UpdatePost) (*db.Post, error)
@@ -45,7 +45,7 @@ func (s *postService) Create(post *schemamodels.CreatePost) (*db.Post, error) {
 }
 
 // Find a list of posts in the database
-func (s *postService) FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*schemamodels.PaginatedPosts, error) {
+func (s *postService) FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.BasicPaginatedResponse[db.Post], error) {
 	posts, err := s.repo.FindAll(limit, offset, order, conditions)
 	if err != nil {
 		return nil, err

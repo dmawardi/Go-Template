@@ -82,6 +82,26 @@ func (c selectorService) ActionSelection() []FormFieldSelector {
 	}
 }
 
+// Generic version
+func UserSelection() []FormFieldSelector {
+	var users []db.User
+	// Query all users
+	result := app.DbClient.Select("id, username").Find(&users)
+	if result.Error != nil {
+		fmt.Printf("Error finding users: %v\n", result.Error)
+		return nil
+	}
+
+	// Init
+	var selector []FormFieldSelector
+	// Build []FormFieldSelector from []string DB output
+	for _, user := range users {
+		selector = append(selector, FormFieldSelector{Value: fmt.Sprint(user.ID), Label: utility.CapitalizeFirstLetter(user.Username)})
+	}
+
+	return selector
+}
+
 // Helpers
 // Takes a slice of FormFieldSelector and sets the Selected field to true for the value that matches valueToSelect
 func setDefaultSelected(selector []FormFieldSelector, valueToSelect string) {
