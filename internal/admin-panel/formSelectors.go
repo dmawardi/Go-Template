@@ -12,7 +12,6 @@ import (
 type SelectorService interface {
 	RoleSelection() []FormFieldSelector
 	UserSelection() []FormFieldSelector
-	ActionSelection() []FormFieldSelector
 }
 type selectorService struct {
 	DB   *gorm.DB
@@ -73,7 +72,7 @@ func (c selectorService) UserSelection() []FormFieldSelector {
 	return selector
 }
 
-func (c selectorService) ActionSelection() []FormFieldSelector {
+func ActionSelection() []FormFieldSelector {
 	return []FormFieldSelector{
 		{Value: "create", Label: "Create", Selected: true},
 		{Value: "read", Label: "Read", Selected: false},

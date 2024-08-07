@@ -212,7 +212,7 @@ func (c adminAuthPolicyController) Edit(w http.ResponseWriter, r *http.Request) 
 			PolicyResource:  policyUnslug,
 			Selectors: PolicyEditSelectors{
 				RoleSelection:   rolesCurrentlyInPolicy,
-				ActionSelection: c.formSelectors.ActionSelection()},
+				ActionSelection: ActionSelection()},
 		},
 		FormData: FormData{
 			FormDetails: FormDetails{},
@@ -306,7 +306,7 @@ func (c adminAuthPolicyController) generateCreateForm() []FormField {
 	return []FormField{
 		{DbLabel: "Resource", Label: "Resource", Name: "resource", Placeholder: "eg. '/api/posts'", Value: "", Type: "text", Required: true, Disabled: false, Errors: []ErrorMessage{}},
 		{DbLabel: "Role", Label: "First Role", Name: "role", Placeholder: "", Value: "", Type: "select", Required: true, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.RoleSelection()},
-		{DbLabel: "Action", Label: "Action", Name: "action", Placeholder: "", Value: "", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: c.formSelectors.ActionSelection()},
+		{DbLabel: "Action", Label: "Action", Name: "action", Placeholder: "", Value: "", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: ActionSelection()},
 	}
 }
 
