@@ -92,7 +92,7 @@ func (s *BasicServiceStruct[dbSchema, createDTO, updateDTO]) Delete(id int) erro
 	err := s.Repo.Delete(id)
 	// If error detected
 	if err != nil {
-		fmt.Println("error in deleting %s: ", s.schemaName, err)
+		fmt.Printf("error in deleting %s: %s", s.schemaName, err)
 		return err
 	}
 	// else
@@ -105,7 +105,7 @@ func (s *BasicServiceStruct[dbSchema, createDTO, updateDTO]) BulkDelete(ids []in
 	err := s.Repo.BulkDelete(ids)
 	// If error detected
 	if err != nil {
-		fmt.Println("error in bulk deleting %s: ", s.schemaName, err)
+		fmt.Printf("error in bulk deleting %s: %s", s.schemaName, err)
 		return err
 	}
 	// else

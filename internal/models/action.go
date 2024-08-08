@@ -6,6 +6,8 @@ type CreateAction struct {
 	EntityID    uint   `json:"entity_id,omitempty" valid:"required"`
 	Changes     string `json:"changes,omitempty" valid:""`
 	Description string `json:"description,omitempty" valid:""`
+	AdminID     uint   `json:"admin_id,omitempty" valid:"required"`
+	IPAddress   string `json:"ip_address,omitempty" valid:""`
 }
 
 type UpdateAction struct {
