@@ -20,7 +20,7 @@ func AuthenticateJWT(next http.Handler) http.Handler {
 		object := webapi.ExtractBasePath(r)
 
 		// Validate the token
-		tokenData, err := ValidateAndParseToken(w, r)
+		tokenData, err := ValidateAndParseToken(r)
 		// If error detected
 		if err != nil {
 			// Determine Redirect URL based on object

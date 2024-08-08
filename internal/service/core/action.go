@@ -3,7 +3,9 @@ package coreservices
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
+	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
@@ -40,6 +42,20 @@ func (s *actionService) RecordAction(r *http.Request, schemaName string, recordA
 		fmt.Println("Error generating change description: ", err)
 		return err
 	}
+
+	// Validate and parse token to obtain adminID
+	adminID, err := auth.ValidateAndParseToken(r)
+	if err != nil {
+		fmt.Println("Error validating token: ", err)
+		return err
+	}
+	// Convert adminID to int
+	intAdminID, err := strconv.ParseInt(adminID.ID, 10, 32)
+	if err != nil {
+		fmt.Println("Error converting adminID to uint: ", err)
+		return err
+	}
+
 	// Build action using record action
 	action := &models.CreateAction{
 		ActionType:  recordAction.ActionType,
@@ -47,11 +63,10 @@ func (s *actionService) RecordAction(r *http.Request, schemaName string, recordA
 		EntityID:    recordAction.EntityID,
 		Changes:     changes,
 		Description: changeDescription,
-		IPAddress:  r.RemoteAddr,
+		IPAddress:   r.RemoteAddr,
+		AdminID:     uint(intAdminID),
 	}
-
-	// adminID := auth.ValidateAndParseToken(r)
-	// action.AdminID = adminID
+		
 	_, err = s.Create(action)
 	if err != nil {
 		fmt.Println("Error recording action: ", err)

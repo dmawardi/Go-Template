@@ -101,7 +101,7 @@ func GenerateJWT(userID int, email, roleName string) (string, error) {
 }
 
 // Validates and parses signed token and checks if expired
-func ValidateAndParseToken(w http.ResponseWriter, r *http.Request) (tokenData *AuthToken, err error) {
+func ValidateAndParseToken(r *http.Request) (tokenData *AuthToken, err error) {
 	// Grab request header
 	header := r.Header
 	// Extract token string from Authorization header by removing prefix "Bearer "

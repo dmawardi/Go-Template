@@ -183,7 +183,7 @@ func (c adminCoreController) ChangePassword(w http.ResponseWriter, r *http.Reque
 			// Perform password check
 			// First, grab token from cookie
 			// Validate the token
-			tokenData, err := auth.ValidateAndParseToken(w, r)
+			tokenData, err := auth.ValidateAndParseToken(r)
 			// If error detected
 			if err != nil {
 				http.Error(w, "Error parsing authentication token", http.StatusForbidden)
@@ -262,7 +262,7 @@ func (c adminCoreController) ChangePasswordSuccess(w http.ResponseWriter, r *htt
 
 // Redirect
 func (c adminCoreController) AdminRedirectBasedOnLoginStatus(w http.ResponseWriter, r *http.Request) {
-	_, err := auth.ValidateAndParseToken(w, r)
+	_, err := auth.ValidateAndParseToken(r)
 	if err != nil {
 		http.Redirect(w, r, "/admin/login", http.StatusSeeOther)
 		return

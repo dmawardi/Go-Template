@@ -166,7 +166,7 @@ func (c userController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	// else, validation passes
 	// Check if token is present
-	token, err := auth.ValidateAndParseToken(w, r)
+	token, err := auth.ValidateAndParseToken(r)
 	// If not found or not admin
 	if err != nil || token.Role != "admin" {
 		// Disallow assignments to a user's role
@@ -307,7 +307,7 @@ func (c userController) UpdateMyProfile(w http.ResponseWriter, r *http.Request) 
 	// else, validation passes and allow through
 
 	// Extract the user's id from their authentication token
-	tokenData, err := auth.ValidateAndParseToken(w, r)
+	tokenData, err := auth.ValidateAndParseToken(r)
 	if err != nil {
 		http.Error(w, "Authentication Token not detected", http.StatusForbidden)
 		return
@@ -346,7 +346,7 @@ func (c userController) UpdateMyProfile(w http.ResponseWriter, r *http.Request) 
 func (c userController) GetMyUserDetails(w http.ResponseWriter, r *http.Request) {
 	// Grab ID from cookie
 	// Validate the token
-	tokenData, err := auth.ValidateAndParseToken(w, r)
+	tokenData, err := auth.ValidateAndParseToken(r)
 	// If error detected
 	if err != nil {
 		http.Error(w, "Error parsing authentication token", http.StatusForbidden)
@@ -519,7 +519,7 @@ func (c userController) EmailVerification(w http.ResponseWriter, r *http.Request
 // @Router       /users/send-verification-email [post]
 // @Security BearerToken
 func (c userController) ResendVerificationEmail(w http.ResponseWriter, r *http.Request) {
-	tokenData, err := auth.ValidateAndParseToken(w, r)
+	tokenData, err := auth.ValidateAndParseToken(r)
 	if err != nil {
 		http.Error(w, "Authentication Token not detected", http.StatusForbidden)
 		return
