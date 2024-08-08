@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/dmawardi/Go-Template/internal/controller/core"
+	"github.com/dmawardi/Go-Template/internal/helpers"
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	data "github.com/dmawardi/Go-Template/internal/helpers/data"
 	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
@@ -145,11 +146,18 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 		// If validation passes
 		if pass {
 			// Create user
-			_, err = c.service.Create(&toValidate)
+			createdUser, err := c.service.Create(&toValidate)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Error creating %s", c.schemaName), http.StatusInternalServerError)
 				return
 			}
+			// Record action
+			err = c.actionService.RecordAction(r, c.schemaName, &models.RecordedAction{
+				ActionType: "create",
+				EntityType: c.schemaName,
+				EntityID:   createdUser.ID,
+			}, helpers.ChangeLogInput{})
+
 			// Redirect or render a success message
 			http.Redirect(w, r, fmt.Sprintf("%s/create/success", c.adminHomeUrl), http.StatusSeeOther)
 			return
@@ -176,6 +184,7 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
 func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 	// Init new User Edit form
 	editForm := c.generateEditForm()

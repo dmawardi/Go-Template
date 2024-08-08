@@ -2,8 +2,10 @@ package coreservices
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/dmawardi/Go-Template/internal/db"
+	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
 )
@@ -11,6 +13,7 @@ import (
 type ActionService interface {
 	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.BasicPaginatedResponse[db.Action], error)
 	FindById(int) (*db.Action, error)
+	RecordAction(r *http.Request, schemaName string, recordAction *models.RecordedAction, changeObjects helpers.ChangeLogInput) error
 	Create(action *models.CreateAction) (*db.Action, error)
 	Update(int, *models.UpdateAction) (*db.Action, error)
 	Delete(int) error
@@ -24,7 +27,38 @@ type actionService struct {
 func NewActionService(repo corerepositories.ActionRepository) ActionService {
 	return &actionService{repo: repo}
 }
+// Record action in database
+func (s *actionService) RecordAction(r *http.Request, schemaName string, recordAction *models.RecordedAction, changeObjects helpers.ChangeLogInput) error {
+	changes, err := helpers.GenerateChangeLog(changeObjects)
+	if err != nil {
+		fmt.Println("Error generating change log: ", err)
+		return err
+	}
+	// Generate change description
+	changeDescription, err := helpers.GenerateChangeDescription(changes, schemaName, recordAction.ActionType)
+	if err != nil {
+		fmt.Println("Error generating change description: ", err)
+		return err
+	}
+	// Build action using record action
+	action := &models.CreateAction{
+		ActionType:  recordAction.ActionType,
+		EntityType:  recordAction.EntityType,
+		EntityID:    recordAction.EntityID,
+		Changes:     changes,
+		Description: changeDescription,
+		IPAddress:  r.RemoteAddr,
+	}
 
+	// adminID := auth.ValidateAndParseToken(r)
+	// action.AdminID = adminID
+	_, err = s.Create(action)
+	if err != nil {
+		fmt.Println("Error recording action: ", err)
+		return err
+	}
+	return nil
+}
 // Creates a action in the database
 func (s *actionService) Create(action *models.CreateAction) (*db.Action, error) {
 	// Map incoming DTO to db schema
