@@ -8,7 +8,6 @@ import (
 
 type Action struct {
 	ID          uint           `gorm:"primaryKey" json:"id"`
-    AdminID     uint           `gorm:"not null" json:"admin_id"`  // Foreign key to the admin user
     ActionType  string         `gorm:"not null" json:"action_type"`  // Type of action (create, update, delete)
     EntityType  string         `gorm:"not null" json:"entity_type"`  // Type of entity affected (user, product, order, etc.)
     EntityID    uint           `gorm:"not null" json:"entity_id"`  // ID of the affected entity
@@ -19,4 +18,7 @@ type Action struct {
     CreatedAt   time.Time      `json:"created_at"`
     UpdatedAt   time.Time      `json:"updated_at"`
     DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+    // Relationships
+    AdminID     uint           `gorm:"not null" json:"admin_id"`  // Foreign key to the admin user
+    Admin       User           `json:"admin,omitempty" gorm:"foreignKey:AdminID"`
 }
