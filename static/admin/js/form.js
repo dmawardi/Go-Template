@@ -45,6 +45,15 @@ function addNumberedList() {
   wrapTextWithCustomTag("<ol><li>", "</li></ol>");
 }
 
+// Keydown (To handle return key)
+function handleKeyDown(event) {
+  const editor = document.getElementById("editor");
+  if (document.activeElement === editor && event.key === "Enter") {
+    event.preventDefault();
+    insertTextAtCursor("\n<br>\n");
+  }
+}
+
 // Preview window
 function updatePreview() {
   const editorContent = document.getElementById("editor").value;
