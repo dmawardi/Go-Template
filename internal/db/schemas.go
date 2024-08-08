@@ -7,9 +7,10 @@ import (
 )
 
 var Models = []interface{}{
-	// Base Schemas
-	&Job{},  // Used for job queuing
+	// Core Schemas
 	&User{}, // Used for user management
+	&Job{},  // Used for job queuing
+	&Action{}, // Used for logging actions
 	// Additional Schemas
 	&Post{},
 }
