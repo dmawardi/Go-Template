@@ -25,9 +25,10 @@ var userTableHeaders = []TableHeader{
 	{Label: "Verified", ColumnSortLabel: "verified", Pointer: true, DataType: "bool", Sortable: true},
 }
 
-func NewAdminUserController(service coreservices.UserService) AdminUserController {
+func NewAdminUserController(service coreservices.UserService, action coreservices.ActionService) AdminUserController {
 	return &adminUserController{
 		service: service,
+		actionService: action,
 		// Use values from above
 		adminHomeUrl:     "/admin/users",
 		schemaName:       "User",
@@ -38,6 +39,7 @@ func NewAdminUserController(service coreservices.UserService) AdminUserControlle
 
 type adminUserController struct {
 	service coreservices.UserService
+	actionService coreservices.ActionService
 	// For links
 	adminHomeUrl string
 	// For HTML text rendering
