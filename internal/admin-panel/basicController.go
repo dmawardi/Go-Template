@@ -241,7 +241,7 @@ func (c basicAdminController[dbSchema, create, update]) Edit(w http.ResponseWrit
 	// Populate form field placeholders with data from database
 	currentData := getValuesUsingFieldMap(*found)
 	// Populate form field placeholders with data from database
-	err = populatePlaceholdersWithDBData(&editForm, currentData)
+	err = populateValuessWithDBData(&editForm, currentData)
 	if err != nil {
 		http.Error(w, "Error generating form", http.StatusInternalServerError)
 		return

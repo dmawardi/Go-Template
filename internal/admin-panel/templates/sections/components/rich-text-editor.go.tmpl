@@ -17,12 +17,11 @@
             class="form-control"
             name="{{.Name}}"
             placeholder="{{.Placeholder}}"
-            value="{{.Value}}"
             {{if
             .Required}}required{{end}}
             oninput="updatePreview()"
             onkeydown="handleKeyDown(event)"
-            ></textarea>
+            >{{.Value}}</textarea>
 
             {{/* Preview area */}}
             <div id="preview"></div>

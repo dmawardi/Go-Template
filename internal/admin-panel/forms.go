@@ -130,6 +130,29 @@ func populatePlaceholdersWithDBData(form *[]FormField, fieldMap map[string]strin
 	return nil
 }
 
+func populateValuessWithDBData(form *[]FormField, fieldMap map[string]string) error {
+	// Loop through fields and populate placeholders
+	for i := range *form {
+		// Get pointer to field
+		field := &(*form)[i]
+		if field.Type == "select" {
+			// Update selectors with current value selected
+			setDefaultSelected(field.Selectors, fieldMap[field.DbLabel])
+			// Else treat as ordinary input
+		} else {
+			// If the field exists in the map, populate the placeholder
+			if val, ok := fieldMap[field.DbLabel]; ok {
+				// Populate placeholder as value from field map
+				field.Value = val
+			} else {
+				field.Placeholder = ""
+			}
+		}
+	}
+
+	return nil
+}
+
 // getValuesUsingFieldMap returns a map of field names to string representations of their values for a given struct
 func getValuesUsingFieldMap(entity interface{}) map[string]string {
 	fieldMap := make(map[string]string) // Initialize the map to store field names and their string values
