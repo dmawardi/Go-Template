@@ -6,6 +6,9 @@ function wrapText(tag) {
   const selectedText = editor.value.substring(start, end);
   const wrappedText = `<${tag}>${selectedText}</${tag}>`;
   editor.setRangeText(wrappedText, start, end, "end");
+
+  //   Update preview
+  updatePreview();
 }
 function addLink() {
   const url = prompt("Enter the URL", "https://example.com");
@@ -30,6 +33,9 @@ function addTable() {
     }
     table += "</table>\n";
     insertTextAtCursor(table);
+
+    //  Update preview
+    updatePreview();
   }
 }
 function addBulletList() {
@@ -37,6 +43,13 @@ function addBulletList() {
 }
 function addNumberedList() {
   wrapTextWithCustomTag("<ol><li>", "</li></ol>");
+}
+
+// Preview window
+function updatePreview() {
+  const editorContent = document.getElementById("editor").value;
+  const preview = document.getElementById("preview");
+  preview.innerHTML = editorContent;
 }
 
 // Helper functions
@@ -47,9 +60,15 @@ function wrapTextWithCustomTag(openTag, closeTag) {
   const selectedText = editor.value.substring(start, end);
   const wrappedText = `${openTag}${selectedText}${closeTag}`;
   editor.setRangeText(wrappedText, start, end, "end");
+
+  //   Update preview
+  updatePreview();
 }
 function insertTextAtCursor(text) {
   const editor = document.getElementById("editor");
   const start = editor.selectionStart;
   editor.setRangeText(text, start, start, "end");
+
+  //   Update preview
+  updatePreview();
 }

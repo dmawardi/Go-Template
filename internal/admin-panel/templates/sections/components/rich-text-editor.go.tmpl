@@ -9,14 +9,21 @@
             <button type="button" onclick="addBulletList()">• Bullet List</button>
             <button type="button" onclick="addNumberedList()">1. Numbered List</button>
         </div>
-        <textarea 
-        id="editor"
-        type="{{.Type}}"
-        class="form-control"
-        name="{{.Name}}"
-        placeholder="{{.Placeholder}}"
-        value="{{.Value}}"
-        {{if
-        .Required}}required{{end}}
-        ></textarea>
+        <div id="editor-container">
+            {{/* Text input area */}}
+            <textarea 
+            id="editor"
+            type="{{.Type}}"
+            class="form-control"
+            name="{{.Name}}"
+            placeholder="{{.Placeholder}}"
+            value="{{.Value}}"
+            {{if
+            .Required}}required{{end}}
+            oninput="updatePreview()"
+            ></textarea>
+
+            {{/* Preview area */}}
+            <div id="preview"></div>
+        </div>
 {{end}}
