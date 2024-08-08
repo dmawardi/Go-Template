@@ -1,11 +1,13 @@
 {{define "rich-text-editor"}}
     <div id="toolbar">
-            <button type="button" onclick="wrapText('b')">Bold</button>
-            <button type="button" onclick="wrapText('i')">Italic</button>
-            <button type="button" onclick="wrapText('u')">Underline</button>
-            <button type="button" onclick="addLink()">Add Link</button>
-            <button type="button" onclick="addCode()">Add Code</button>
-            <button type="button" onclick="addTable()">Add Table</button>
+            <button type="button" onclick="wrapText('b')"><strong>B</strong></button>
+            <button type="button" onclick="wrapText('i')"><em>I</em></button>
+            <button type="button" onclick="wrapText('u')"><u>U</u></button>
+            <button type="button" onclick="addLink()">🔗 Link</button>
+            <button type="button" onclick="addCode()">📄 Code</button>
+            <button type="button" onclick="addTable()">📊 Table</button>
+            <button type="button" onclick="addBulletList()">• Bullet List</button>
+            <button type="button" onclick="addNumberedList()">1. Numbered List</button>
         </div>
         <textarea 
         id="editor"

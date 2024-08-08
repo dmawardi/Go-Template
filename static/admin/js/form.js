@@ -1,3 +1,4 @@
+// Toolbar functions for the rich text editor
 function wrapText(tag) {
   const editor = document.getElementById("editor");
   const start = editor.selectionStart;
@@ -6,18 +7,15 @@ function wrapText(tag) {
   const wrappedText = `<${tag}>${selectedText}</${tag}>`;
   editor.setRangeText(wrappedText, start, end, "end");
 }
-
 function addLink() {
   const url = prompt("Enter the URL", "https://example.com");
   if (url) {
     wrapTextWithCustomTag(`<a href="${url}">`, "</a>");
   }
 }
-
 function addCode() {
   wrapTextWithCustomTag("<pre><code>", "</code></pre>");
 }
-
 function addTable() {
   const rows = prompt("Enter the number of rows", "2");
   const cols = prompt("Enter the number of columns", "2");
@@ -34,7 +32,14 @@ function addTable() {
     insertTextAtCursor(table);
   }
 }
+function addBulletList() {
+  wrapTextWithCustomTag("<ul><li>", "</li></ul>");
+}
+function addNumberedList() {
+  wrapTextWithCustomTag("<ol><li>", "</li></ol>");
+}
 
+// Helper functions
 function wrapTextWithCustomTag(openTag, closeTag) {
   const editor = document.getElementById("editor");
   const start = editor.selectionStart;
@@ -43,7 +48,6 @@ function wrapTextWithCustomTag(openTag, closeTag) {
   const wrappedText = `${openTag}${selectedText}${closeTag}`;
   editor.setRangeText(wrappedText, start, end, "end");
 }
-
 function insertTextAtCursor(text) {
   const editor = document.getElementById("editor");
   const start = editor.selectionStart;
