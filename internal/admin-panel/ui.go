@@ -167,7 +167,7 @@ func GenerateAndSetAdminSidebar(adminCont AdminPanelController) {
 		fieldValue := valueOfCont.Field(i).Interface()
 
 		// If not base controller, add to sidebar list
-		if fieldName != "Base" && fieldName != "Auth" && fieldName != "ModuleMap" {
+		if fieldName != "Base" && fieldName != "Auth" && fieldName != "ModuleMap" && fieldName != "Action" {
 			currentController := ObtainUrlDetailsForBasicAdminController(fieldValue)
 			// Create sidebar item
 			item := sidebarItem{

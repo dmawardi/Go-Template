@@ -3,9 +3,9 @@ package moduleservices
 import (
 	"fmt"
 
-	repository "github.com/dmawardi/Go-Template/internal/Repository"
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/models"
+	"github.com/dmawardi/Go-Template/internal/repository"
 )
 
 var app *config.AppConfig

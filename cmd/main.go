@@ -11,7 +11,6 @@ import (
 
 	_ "github.com/swaggo/http-swagger/example/go-chi/docs"
 
-	repository "github.com/dmawardi/Go-Template/internal/Repository"
 	adminpanel "github.com/dmawardi/Go-Template/internal/admin-panel"
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/cache"
@@ -24,6 +23,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/modules"
 	"github.com/dmawardi/Go-Template/internal/queue"
+	repository "github.com/dmawardi/Go-Template/internal/repository"
 	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
 
 	"github.com/dmawardi/Go-Template/internal/routes"
@@ -165,7 +165,9 @@ func ApiSetup(client *gorm.DB, connectEmail bool) routes.Api {
 	userService := coreservices.NewUserService(userRepo, groupRepo, jobQueue)
 	userController := core.NewUserController(userService)
 
-
+	// Action
+	actionRepo := corerepositories.NewActionRepository(client)
+	actionService := coreservices.NewActionService(actionRepo)
 
 	// Setup basic modules with new implementation (including admin controllers if available)
 	moduleMap := modules.SetupModules(modules.ModulesToSetup, client)
@@ -174,6 +176,8 @@ func ApiSetup(client *gorm.DB, connectEmail bool) routes.Api {
 	//
 	// Create admin controller
 	adminController := adminpanel.NewAdminPanelController(
+		// Action service for recording admin actions
+		actionService,
 		// Basic ADMIN modules
 		adminpanel.NewAdminCoreController(userService),
 		adminpanel.NewAdminUserController(userService),

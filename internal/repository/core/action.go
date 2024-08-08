@@ -24,7 +24,7 @@ type actionRepository struct {
 	DB *gorm.DB
 }
 
-func NewPostRepository(db *gorm.DB) ActionRepository {
+func NewActionRepository(db *gorm.DB) ActionRepository {
 	return &actionRepository{db}
 }
 

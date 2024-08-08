@@ -15,13 +15,13 @@ import (
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/modules"
 	"github.com/dmawardi/Go-Template/internal/queue"
+	"github.com/dmawardi/Go-Template/internal/repository"
 	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
 	"github.com/dmawardi/Go-Template/internal/routes"
 	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
 
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/controller"
-	"github.com/dmawardi/Go-Template/internal/repository"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"gorm.io/gorm"
 )
@@ -129,11 +129,16 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 	t.users.serv = coreservices.NewUserService(t.users.repo, t.auth.repo, jobQueue)
 	t.users.cont = core.NewUserController(t.users.serv)
 
+	// Action
+	actionRepo := corerepositories.NewActionRepository(client)
+	actionService := coreservices.NewActionService(actionRepo)
+
 	// Setup basic modules with new implementation
 	moduleMap := modules.SetupModules(modules.ModulesToSetup, client)
 
 	// Admin panel
 	t.admin = adminpanel.NewAdminPanelController(
+		actionService,
 		adminpanel.NewAdminCoreController(t.users.serv),
 		adminpanel.NewAdminUserController(t.users.serv),
 		adminpanel.NewAdminAuthPolicyController(t.auth.serv),

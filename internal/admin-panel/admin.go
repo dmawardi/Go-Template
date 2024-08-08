@@ -5,6 +5,7 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/models"
+	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
 )
 
 // init state for db access
@@ -30,6 +31,8 @@ func SetStateInAdminPanel(a *config.AppConfig) {
 
 // Admin controller (used in API)
 type AdminPanelController struct {
+	// Action service for recording admin actions
+	Action coreservices.ActionService
 	// Basic modules
 	Base AdminCoreController
 	User AdminUserController
@@ -39,8 +42,12 @@ type AdminPanelController struct {
 }
 
 // Constructor
-func NewAdminPanelController(base AdminCoreController, users AdminUserController, authPolicies AdminAuthPolicyController, moduleMap models.ModuleMap) AdminPanelController {
-	return AdminPanelController{base, users, authPolicies, moduleMap}
+func NewAdminPanelController(action coreservices.ActionService, 
+							base AdminCoreController, 
+							users AdminUserController, 
+							authPolicies AdminAuthPolicyController, 
+							moduleMap models.ModuleMap) AdminPanelController {
+	return AdminPanelController{action, base, users, authPolicies, moduleMap}
 }
 
 
