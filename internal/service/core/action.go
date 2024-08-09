@@ -15,7 +15,7 @@ import (
 type ActionService interface {
 	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.BasicPaginatedResponse[db.Action], error)
 	FindById(int) (*db.Action, error)
-	RecordAction(r *http.Request, schemaName string, recordAction *models.RecordedAction, changeObjects helpers.ChangeLogInput) error
+	RecordAction(r *http.Request, schemaName string, schemaID uint, recordAction *models.RecordedAction, changeObjects helpers.ChangeLogInput) error
 	Create(action *models.CreateAction) (*db.Action, error)
 	Update(int, *models.UpdateAction) (*db.Action, error)
 	Delete(int) error
@@ -30,27 +30,28 @@ func NewActionService(repo corerepositories.ActionRepository) ActionService {
 	return &actionService{repo: repo}
 }
 // Record action in database
-func (s *actionService) RecordAction(r *http.Request, schemaName string, recordAction *models.RecordedAction, changeObjects helpers.ChangeLogInput) error {
-	changes, err := helpers.GenerateChangeLog(changeObjects)
+func (s *actionService) RecordAction(r *http.Request, schemaName string, schemaID uint, recordAction *models.RecordedAction, changeObjects helpers.ChangeLogInput) error {
+	// Generate change log
+	changes, err := helpers.GenerateChangeLog(recordAction.ActionType, changeObjects)
 	if err != nil {
 		fmt.Println("Error generating change log: ", err)
 		return err
 	}
 	// Generate change description
-	changeDescription, err := helpers.GenerateChangeDescription(changes, schemaName, recordAction.ActionType)
+	changeDescription, err := helpers.GenerateChangeDescription(changes, schemaName, recordAction.ActionType, schemaID)
 	if err != nil {
 		fmt.Println("Error generating change description: ", err)
 		return err
 	}
 
 	// Validate and parse token to obtain adminID
-	adminID, err := auth.ValidateAndParseToken(r)
+	admin, err := auth.ValidateAndParseToken(r)
 	if err != nil {
 		fmt.Println("Error validating token: ", err)
 		return err
 	}
 	// Convert adminID to int
-	intAdminID, err := strconv.ParseInt(adminID.ID, 10, 32)
+	intAdminID, err := strconv.ParseInt(admin.UserID, 10, 64)
 	if err != nil {
 		fmt.Println("Error converting adminID to uint: ", err)
 		return err
@@ -66,7 +67,7 @@ func (s *actionService) RecordAction(r *http.Request, schemaName string, recordA
 		IPAddress:   r.RemoteAddr,
 		AdminID:     uint(intAdminID),
 	}
-		
+
 	_, err = s.Create(action)
 	if err != nil {
 		fmt.Println("Error recording action: ", err)

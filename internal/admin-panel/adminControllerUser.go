@@ -152,11 +152,14 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			// Record action
-			err = c.actionService.RecordAction(r, c.schemaName, &models.RecordedAction{
+			err = c.actionService.RecordAction(r, c.schemaName, createdUser.ID, &models.RecordedAction{
 				ActionType: "create",
 				EntityType: c.schemaName,
 				EntityID:   createdUser.ID,
-			}, helpers.ChangeLogInput{})
+			}, helpers.ChangeLogInput{OldObj: &models.UserWithRole{}, NewObj: createdUser})
+			if err != nil {
+				fmt.Printf("Error recording action: %s", err)
+			}
 
 			// Redirect or render a success message
 			http.Redirect(w, r, fmt.Sprintf("%s/create/success", c.adminHomeUrl), http.StatusSeeOther)
