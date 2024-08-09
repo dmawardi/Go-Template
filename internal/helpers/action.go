@@ -130,7 +130,7 @@ func GetStructValue(input interface{}) (interface{}, error) {
 func GenerateChangeDescription(changeLogJSON string, entityType string, actionType string, entityID uint) (string, error) {
 	// If the entity was deleted, return a deletion description
 	if actionType == "delete" {
-		return fmt.Sprintf("Deleted the %s with ID: %v.", entityType, entityID), nil
+		return fmt.Sprintf("Deleted the %s with ID: %v", entityType, entityID), nil
 	}
 	if actionType == "create" {
 		return fmt.Sprintf("Created a new %s with ID: %v", entityType, entityID), nil

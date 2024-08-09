@@ -297,12 +297,23 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("Error deleting %s", c.schemaName), http.StatusInternalServerError)
 			return
 		}
+
+		// Record action
+		err = c.actionService.RecordAction(r, c.schemaName, uint(idParameter), &models.RecordedAction{
+			ActionType: "delete",
+			EntityType: c.schemaName,
+			EntityID:   uint(idParameter),
+		}, helpers.ChangeLogInput{OldObj: &models.UserWithRole{ID: uint(idParameter)}, NewObj: &models.UserWithRole{}})
+		if err != nil {
+			fmt.Printf("Error recording action: %s", err)
+		}
+
 		// Redirect to success page
 		http.Redirect(w, r, fmt.Sprintf("%s/delete/success", c.adminHomeUrl), http.StatusSeeOther)
 		return
 	}
 
-	data := GenerateDeleteRenderData(c.schemaName, c.adminHomeUrl, c.pluralSchemaName, stringParameter)
+	data := GenerateDeleteRenderData(c.schemaName, c.pluralSchemaName, c.adminHomeUrl,  stringParameter)
 
 	// Execute the template with data and write to response
 	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
