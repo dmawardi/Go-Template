@@ -75,6 +75,38 @@ func (s *actionService) RecordAction(r *http.Request, schemaName string, schemaI
 	}
 	return nil
 }
+// func (s *actionService) RecordBulkDelete(r *http.Request, schemaName, pluralSchemaName string,  schemaIDs []uint, recordAction *models.RecordedAction) error {
+// 	// Validate and parse token to obtain adminID
+// 	admin, err := auth.ValidateAndParseToken(r)
+// 	if err != nil {
+// 		fmt.Println("Error validating token: ", err)
+// 		return err
+// 	}
+// 	// Convert adminID to int
+// 	intAdminID, err := strconv.ParseInt(admin.UserID, 10, 64)
+// 	if err != nil {
+// 		fmt.Println("Error converting adminID to uint: ", err)
+// 		return err
+// 	}
+
+// 	// Build action using record action
+// 	action := &models.CreateAction{
+// 		ActionType:  recordAction.ActionType,
+// 		EntityType:  schemaName,
+// 		EntityID:    fmt.Sprint(schemaIDs),
+// 		Changes:     "",
+// 		Description: fmt.Sprintf("Bulk Deleted %d %s: %s", len(schemaIDs), pluralSchemaName, fmt.Sprint(schemaIDs)),
+// 		IPAddress:   r.RemoteAddr,
+// 		AdminID:     uint(intAdminID),
+// 	}
+
+// 	_, err = s.Create(action)
+// 	if err != nil {
+// 		fmt.Println("Error recording action: ", err)
+// 		return err
+// 	}
+// 	return nil
+// }
 // Creates a action in the database
 func (s *actionService) Create(action *models.CreateAction) (*db.Action, error) {
 	// Map incoming DTO to db schema
