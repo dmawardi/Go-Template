@@ -201,6 +201,15 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Find Current record
+	found := &models.UserWithRole{}
+	// Search for by ID and store in found
+	found, err = c.service.FindById(idParameter)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("%s not found", c.schemaName), http.StatusNotFound)
+		return
+	}
+
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Extract user form submission
@@ -228,11 +237,23 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		// If validation passes
 		if pass {
 			// Update user
-			_, err = c.service.Update(idParameter, &toValidate)
+			updated, err := c.service.Update(idParameter, &toValidate)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Error updating %s", c.schemaName), http.StatusInternalServerError)
 				return
 			}
+			updated.Password = ""
+
+			// Record action
+			err = c.actionService.RecordAction(r, c.schemaName, uint(idParameter), &models.RecordedAction{
+				ActionType: "update",
+				EntityType: c.schemaName,
+				EntityID:   stringParameter,
+			}, helpers.ChangeLogInput{OldObj: found, NewObj: updated})
+			if err != nil {
+				fmt.Printf("Error recording action: %s", err)
+			}
+
 			// Redirect or render a success message
 			http.Redirect(w, r, fmt.Sprintf("%s/edit/success", c.adminHomeUrl), http.StatusSeeOther)
 			return
@@ -251,15 +272,6 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If not POST, ie. GET
-	// Find current details to use as placeholder values
-	// Init
-	found := &models.UserWithRole{}
-	// Search for by ID and store in found
-	found, err = c.service.FindById(idParameter)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("%s not found", c.schemaName), http.StatusNotFound)
-		return
-	}
 	// Remove password from struct for field population (Usually, this is done during JSON marshalling)
 	found.Password = ""
 
