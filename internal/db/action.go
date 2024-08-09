@@ -11,7 +11,7 @@ type Action struct {
     // Editable fields
     ActionType  string         `gorm:"not null" json:"action_type"`  // Type of action (create, update, delete)
     EntityType  string         `gorm:"not null" json:"entity_type"`  // Type of entity affected (user, product, order, etc.)
-    EntityID    uint           `gorm:"not null" json:"entity_id"`  // ID of the affected entity
+    EntityID    string           `gorm:"not null" json:"entity_id"`  // ID of the affected entity
     Changes     string         `gorm:"type:json" json:"changes"` // JSON field to record the changes made
     Description string         `gorm:"type:text" json:"description"` // Description of the action performed
     // Non-editable fields

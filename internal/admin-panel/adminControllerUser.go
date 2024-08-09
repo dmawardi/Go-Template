@@ -155,7 +155,7 @@ func (c adminUserController) Create(w http.ResponseWriter, r *http.Request) {
 			err = c.actionService.RecordAction(r, c.schemaName, createdUser.ID, &models.RecordedAction{
 				ActionType: "create",
 				EntityType: c.schemaName,
-				EntityID:   createdUser.ID,
+				EntityID:   fmt.Sprint(createdUser.ID),
 			}, helpers.ChangeLogInput{OldObj: &models.UserWithRole{}, NewObj: createdUser})
 			if err != nil {
 				fmt.Printf("Error recording action: %s", err)
@@ -302,7 +302,7 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 		err = c.actionService.RecordAction(r, c.schemaName, uint(idParameter), &models.RecordedAction{
 			ActionType: "delete",
 			EntityType: c.schemaName,
-			EntityID:   uint(idParameter),
+			EntityID:   stringParameter,
 		}, helpers.ChangeLogInput{OldObj: &models.UserWithRole{ID: uint(idParameter)}, NewObj: &models.UserWithRole{}})
 		if err != nil {
 			fmt.Printf("Error recording action: %s", err)
@@ -358,6 +358,16 @@ func (c adminUserController) BulkDelete(w http.ResponseWriter, r *http.Request) 
 		request.WriteAsJSON(w, bulkResponse)
 		return
 	}
+	// Record Bulk delete
+	err = c.actionService.RecordBulkDelete(r, c.schemaName, c.pluralSchemaName, intIdList, &models.RecordedAction{
+		ActionType: "bulk-delete",
+		EntityType: c.schemaName,
+		EntityID:   fmt.Sprint(intIdList),
+	})
+	if err != nil {
+		fmt.Printf("Error recording action: %s", err)
+	}
+
 	// else if successful
 	bulkResponse.Success = true
 	request.WriteAsJSON(w, bulkResponse)
