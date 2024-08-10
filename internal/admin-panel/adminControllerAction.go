@@ -130,7 +130,7 @@ func (c adminActionController) View(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := GenerateEditRenderData(editForm, c.schemaName, c.pluralSchemaName, c.adminHomeUrl, stringParameter)	
+	data := GenerateEditRenderData(editForm, c.schemaName, c.pluralSchemaName, c.adminHomeUrl, stringParameter, false)	
 
 	// Execute the template with data and write to response
 	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)

@@ -281,7 +281,7 @@ func (c basicAdminController[dbSchema, create, update]) Edit(w http.ResponseWrit
 		return
 	}
 
-	data := GenerateEditRenderData(editForm, c.SchemaName, c.PluralSchemaName, c.AdminHomeUrl, stringParameter)	
+	data := GenerateEditRenderData(editForm, c.SchemaName, c.PluralSchemaName, c.AdminHomeUrl, stringParameter, true)	
 
 	// Execute the template with data and write to response
 	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)

@@ -4,7 +4,7 @@
 {{template "home" .}}
 
 {{/* Find / Edit */}}
-{{else if .PageType.EditPage}}
+{{else if or .PageType.EditPage .PageType.ViewPage }}
 {{template "form" .}}
 
 {{/* Find All */}}

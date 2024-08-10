@@ -54,6 +54,7 @@ type PolicySection struct {
 type PageType struct {
 	HomePage    bool
 	EditPage    bool
+	ViewPage 	bool
 	ReadPage    bool
 	CreatePage  bool
 	DeletePage  bool
@@ -272,7 +273,14 @@ func GenerateCreateRenderData(formFields []FormField, SchemaName, PluralSchemaNa
 }
 
 // Generate the render data for the Edit page
-func GenerateEditRenderData(formFields []FormField, SchemaName, PluralSchemaName, AdminHomeUrl, idParameter string,) PageRenderData {
+func GenerateEditRenderData(formFields []FormField, SchemaName, PluralSchemaName, AdminHomeUrl, idParameter string, canEdit bool) PageRenderData {
+	// Determine which page to show (Edit/View)
+	pageTypeToShow := PageType{}
+	if canEdit {
+		pageTypeToShow.EditPage = true
+	} else {
+		pageTypeToShow.ViewPage = true
+	}
 	return PageRenderData{
 		// Input data
 		FormData: FormData{
@@ -288,9 +296,7 @@ func GenerateEditRenderData(formFields []FormField, SchemaName, PluralSchemaName
 		// Admin panel standard variables
 		HeaderSection: header,
 		SidebarList:   sidebar,
-		PageType: PageType{
-			EditPage: true,
-		},
+		PageType: pageTypeToShow,
 	}
 }
 

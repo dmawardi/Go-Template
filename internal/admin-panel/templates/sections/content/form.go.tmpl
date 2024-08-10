@@ -100,9 +100,11 @@
         {{ end }}
 
         {{/* Submission buttons */}}
+        {{if .PageType.EditPage }}
         <div class="button-container">
           <button type="submit" class="button-primary">Submit</button>
         </div>
+        {{end}}
       </form>
     </div>
 </div>
