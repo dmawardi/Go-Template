@@ -209,6 +209,14 @@ func (c basicAdminController[dbSchema, create, update]) Edit(w http.ResponseWrit
 		return
 	}
 
+	// Find current details to use as placeholder values
+	// Search for by ID and store in found
+	found, err := c.Service.FindById(idParameter)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("%s not found", c.SchemaName), http.StatusNotFound)
+		return
+	}
+
 	// If form is being submitted (method = POST)
 	if r.Method == "POST" {
 		// Extract form submission
@@ -230,20 +238,29 @@ func (c basicAdminController[dbSchema, create, update]) Edit(w http.ResponseWrit
 		// If validation passes
 		if pass {
 			// Update
-			_, err = c.Service.Update(idParameter, toValidate)
+			updated, err := c.Service.Update(idParameter, toValidate)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Error updating %s", c.SchemaName), http.StatusInternalServerError)
 				return
+			}
+
+			// Record action
+			err = c.ActionService.RecordAction(r, c.SchemaName, uint(idParameter), &models.RecordedAction{
+				ActionType: "update",
+				EntityType: c.SchemaName,
+				EntityID:   stringParameter,
+			}, helpers.ChangeLogInput{OldObj: found, NewObj: updated})
+			if err != nil {
+				fmt.Printf("Error recording action: %s", err)
 			}
 			// Redirect or render a success message
 			http.Redirect(w, r, fmt.Sprintf("%s/edit/success", c.AdminHomeUrl), http.StatusSeeOther)
 			return
 		}
-
 		// If validation fails
 		// Populate form field errors
 		SetValidationErrorsInForm(editForm, *valErrors)
-
+		
 		// Populate previously entered values (Avoids password)
 		err = populateFormValuesWithSubmittedFormMap(&editForm, formFieldMap)
 		if err != nil {
@@ -252,16 +269,9 @@ func (c basicAdminController[dbSchema, create, update]) Edit(w http.ResponseWrit
 			return
 		}
 	}
-
+	
 	// If not POST, ie. GET
-	// Find current details to use as placeholder values
-	// Search for by ID and store in found
-	found, err := c.Service.FindById(idParameter)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("%s not found", c.SchemaName), http.StatusNotFound)
-		return
-	}
-
+	
 	// Populate form field placeholders with data from database
 	currentData := getValuesUsingFieldMap(*found)
 	// Populate form field placeholders with data from database
