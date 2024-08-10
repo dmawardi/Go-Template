@@ -41,13 +41,17 @@ func NewController[T any, C any](controllerFunc func(T) C) func(interface{}) int
 }
 
 // Helper function that takes an admin controller creation function and returns a function that takes an interface and returns a basic admin controller
-func NewAdminController[Serv any](controllerFunc func(Serv) models.BasicAdminController) func(interface{}) models.BasicAdminController {
-	return func(serviceInterface interface{}) models.BasicAdminController {
+func NewAdminController[Serv any, AS ActionService](controllerFunc func(Serv, AS) models.BasicAdminController) func(interface{}, ActionService) models.BasicAdminController {
+	return func(serviceInterface interface{}, actionserviceInterface ActionService) models.BasicAdminController {
 		service, ok := serviceInterface.(Serv)
 		if !ok {
 			panic("Incorrect service type")
 		}
-		return controllerFunc(service)
+		actionServ, ok := actionserviceInterface.(AS)
+		if !ok {
+			panic("Incorrect action service type")
+		}
+		return controllerFunc(service, actionServ)
 	}
 }
 

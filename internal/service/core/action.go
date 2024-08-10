@@ -8,28 +8,18 @@ import (
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
+	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
 	corerepositories "github.com/dmawardi/Go-Template/internal/repository/core"
 )
 
-type ActionService interface {
-	// Record action in database
-	RecordAction(r *http.Request, schemaName string, schemaID uint, recordAction *models.RecordedAction, changeObjects helpers.ChangeLogInput) error
-	RecordBulkDelete(r *http.Request, schemaName, pluralSchemaName string, schemaIDs []int, recordAction *models.RecordedAction) error
-	// CRUD operations
-	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.BasicPaginatedResponse[db.Action], error)
-	FindById(int) (*db.Action, error)
-	Create(action *models.CreateAction) (*db.Action, error)
-	Update(int, *models.UpdateAction) (*db.Action, error)
-	Delete(int) error
-	BulkDelete([]int) error
-}
+
 
 type actionService struct {
 	repo corerepositories.ActionRepository
 }
 
-func NewActionService(repo corerepositories.ActionRepository) ActionService {
+func NewActionService(repo corerepositories.ActionRepository) webapi.ActionService {
 	return &actionService{repo: repo}
 }
 // Record action in database
@@ -46,7 +36,6 @@ func (s *actionService) RecordAction(r *http.Request, schemaName string, schemaI
 		fmt.Println("Error generating change description: ", err)
 		return err
 	}
-
 	// Validate and parse token to obtain adminID
 	admin, err := auth.ValidateAndParseToken(r)
 	if err != nil {

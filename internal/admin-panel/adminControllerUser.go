@@ -10,6 +10,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	data "github.com/dmawardi/Go-Template/internal/helpers/data"
+	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
 
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
@@ -26,7 +27,7 @@ var userTableHeaders = []TableHeader{
 	{Label: "Verified", ColumnSortLabel: "verified", Pointer: true, DataType: "bool", Sortable: true},
 }
 
-func NewAdminUserController(service coreservices.UserService, action coreservices.ActionService) AdminUserController {
+func NewAdminUserController(service coreservices.UserService, action webapi.ActionService) AdminUserController {
 	return &adminUserController{
 		service: service,
 		actionService: action,
@@ -40,7 +41,7 @@ func NewAdminUserController(service coreservices.UserService, action coreservice
 
 type adminUserController struct {
 	service coreservices.UserService
-	actionService coreservices.ActionService
+	actionService webapi.ActionService
 	// For links
 	adminHomeUrl string
 	// For HTML text rendering

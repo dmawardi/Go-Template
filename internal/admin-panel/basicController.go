@@ -6,16 +6,18 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/dmawardi/Go-Template/internal/helpers"
 	adminpanel "github.com/dmawardi/Go-Template/internal/helpers/adminPanel"
 	"github.com/dmawardi/Go-Template/internal/helpers/data"
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
+	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
 	"github.com/go-chi/chi"
 )
 
 // Interface for all basic admin controllers (used for Admin panel to dynamically generate sidebar)
-type BasicAdminController interface {
+type BasicAdminController[dbSchema any] interface {
 	FindAll(w http.ResponseWriter, r *http.Request)
 	Create(w http.ResponseWriter, r *http.Request)
 	// Edit is also used to view the record details
@@ -32,6 +34,8 @@ type BasicAdminController interface {
 }
 type basicAdminController[dbSchema, create, update any] struct {
 	Service service.BasicModuleService[dbSchema, create, update]
+	// Action service
+	ActionService webapi.ActionService
 	// For links
 	AdminHomeUrl string
 	// For HTML text rendering
@@ -49,7 +53,11 @@ type basicAdminController[dbSchema, create, update any] struct {
 	// Submission preparation
 	prepareSubmittedFormForCreation func(formFieldMap map[string]string) (*create, error)
 	prepareSubmittedFormForUpdate func(formFieldMap map[string]string) (*update, error)
-
+	// Helpers for Action service
+	// 
+	// Get ID from schema
+	getIDFromSchema func(schema *dbSchema) uint
+	newEmptySchema func(id ...uint) *dbSchema
 }
 
 // Helper functions for sidebar url details
@@ -140,11 +148,27 @@ func (c basicAdminController[dbSchema, create, update]) Create(w http.ResponseWr
 		// If validation passes
 		if pass {
 			// Create
-			_, err = c.Service.Create(toValidate)
+			created, err := c.Service.Create(toValidate)
 			if err != nil {
 				http.Error(w, fmt.Sprintf("Error creating %s", c.SchemaName), http.StatusInternalServerError)
 				return
 			}
+			fmt.Printf("Created: %v\n", created)
+			// Get ID from schema
+			entityID := c.getIDFromSchema(created)
+			fmt.Printf("Entity ID: %v\n", entityID)
+			emptySchema := c.newEmptySchema()
+			fmt.Printf("Empty Schema: %v\n", emptySchema)
+			// Record action
+			err = c.ActionService.RecordAction(r, c.SchemaName, uint(entityID), &models.RecordedAction{
+				ActionType: "create",
+				EntityType: c.SchemaName,
+				EntityID:   fmt.Sprint(entityID),
+			}, helpers.ChangeLogInput{OldObj: c.newEmptySchema(), NewObj: created})
+			if err != nil {
+				fmt.Printf("Error recording action: %s", err)
+			}
+
 			// Redirect or render a success message
 			http.Redirect(w, r, fmt.Sprintf("%s/create/success", c.AdminHomeUrl), http.StatusSeeOther)
 			return
@@ -272,12 +296,23 @@ func (c basicAdminController[dbSchema, create, update]) Delete(w http.ResponseWr
 			http.Error(w, fmt.Sprintf("Error deleting %s", c.SchemaName), http.StatusInternalServerError)
 			return
 		}
+
+		// Record action
+		err = c.ActionService.RecordAction(r, c.SchemaName, uint(idParameter), &models.RecordedAction{
+			ActionType: "delete",
+			EntityType: c.SchemaName,
+			EntityID:   fmt.Sprint(idParameter),
+		}, helpers.ChangeLogInput{OldObj: c.newEmptySchema(uint(idParameter)), NewObj: c.newEmptySchema()})
+		if err != nil {
+			fmt.Printf("Error recording action: %s", err)
+		}
+
 		// Redirect to success page
 		http.Redirect(w, r, fmt.Sprintf("%s/delete/success", c.AdminHomeUrl), http.StatusSeeOther)
 		return
 	}
 
-	data := GenerateDeleteRenderData(c.SchemaName, c.AdminHomeUrl, c.PluralSchemaName, stringParameter)
+	data := GenerateDeleteRenderData(c.SchemaName, c.PluralSchemaName, c.AdminHomeUrl, stringParameter)
 
 	// Execute the template with data and write to response
 	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
@@ -321,6 +356,16 @@ func (c basicAdminController[dbSchema, create, update]) BulkDelete(w http.Respon
 		bulkResponse.Success = false
 		request.WriteAsJSON(w, bulkResponse)
 		return
+	}
+
+	// Record Bulk delete
+	err = c.ActionService.RecordBulkDelete(r, c.SchemaName, c.PluralSchemaName, intIdList, &models.RecordedAction{
+		ActionType: "bulk-delete",
+		EntityType: c.SchemaName,
+		EntityID:   fmt.Sprint(intIdList),
+	})
+	if err != nil {
+		fmt.Printf("Error recording action: %s", err)
 	}
 	// else if successful
 	bulkResponse.Success = true

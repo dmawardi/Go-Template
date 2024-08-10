@@ -170,7 +170,7 @@ func ApiSetup(client *gorm.DB, connectEmail bool) routes.Api {
 	actionService := coreservices.NewActionService(actionRepo)
 
 	// Setup basic modules with new implementation (including admin controllers if available)
-	moduleMap := modules.SetupModules(modules.ModulesToSetup, client)
+	moduleMap := modules.SetupModules(modules.ModulesToSetup, client, actionService)
 
 	// Admin panel
 	//

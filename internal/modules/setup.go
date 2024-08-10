@@ -1,13 +1,14 @@
 package modules
 
 import (
+	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"gorm.io/gorm"
 )
 
 // Used to setup modules aside from core modules (User, Policy)
 // Returns module map that contains structs with modules (controller, service, & repo) using module name as key
-func SetupModules(modulesToSetup []EntityConfig, client *gorm.DB) models.ModuleMap {
+func SetupModules(modulesToSetup []EntityConfig, client *gorm.DB, actionService webapi.ActionService) models.ModuleMap {
 	// Init
 	moduleMap := make(map[string]models.ModuleSet)
 
@@ -23,7 +24,7 @@ func SetupModules(modulesToSetup []EntityConfig, client *gorm.DB) models.ModuleM
 		if newAdminController != nil {
 
 			// Create admin controller using the service
-			adminController := newAdminController(service)
+			adminController := newAdminController(service, actionService)
 
 			// Add module set including admin controller to the map
 			moduleMap[module.Name] = models.ModuleSet{
@@ -57,7 +58,7 @@ type EntityConfig struct {
 	NewRepo            func(*gorm.DB) interface{}
 	NewService         func(interface{}) interface{}
 	NewController      func(interface{}) interface{}
-	NewAdminController func(interface{}) models.BasicAdminController
+	NewAdminController func(interface{}, webapi.ActionService) models.BasicAdminController
 	// PolicySet is used to setup the different policies for the module
 	// The policy set will set the policy for the non-admin CRUD portion of the API
 	PolicySet ModulePolicySet

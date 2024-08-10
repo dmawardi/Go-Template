@@ -4,14 +4,16 @@ import (
 	"strconv"
 
 	"github.com/dmawardi/Go-Template/internal/db"
+	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
 	schemamodels "github.com/dmawardi/Go-Template/internal/models/schemaModels"
 	moduleservices "github.com/dmawardi/Go-Template/internal/service/module"
 )
 
-func NewAdminPostController(service moduleservices.PostService) models.BasicAdminController{
+func NewAdminPostController(service moduleservices.PostService, actionService webapi.ActionService) models.BasicAdminController{
 	return &basicAdminController[db.Post, schemamodels.CreatePost, schemamodels.UpdatePost]{
 		Service: service,
+		ActionService: actionService,
 		// Use values from above
 		AdminHomeUrl:     "/admin/posts",
 		SchemaName:       "Post",
@@ -64,5 +66,19 @@ func NewAdminPostController(service moduleservices.PostService) models.BasicAdmi
 			}
 			return &toValidate, nil
 		},
+		newEmptySchema: func(params ...uint) *db.Post {
+			// If there is a parameter
+			if len(params) > 0 {
+				// Grab paramter and add to struct as ID for return
+				id := params[0]
+				return &db.Post{ID: id}
+			} else {
+				return &db.Post{}
+			}
+		},
+		getIDFromSchema: func(schema *db.Post) uint {
+			return schema.ID
+		},
+		
 	}
 }
