@@ -110,7 +110,7 @@ func (c basicAdminController[dbSchema, create, update]) FindAll(w http.ResponseW
 	}
 
 	// Build the table data
-	tableData := BuildTableData(adminSchemaSlice, found.Meta, c.AdminHomeUrl, c.tableHeaders)
+	tableData := BuildTableData(adminSchemaSlice, found.Meta, c.AdminHomeUrl, c.tableHeaders, true)
 
 	// Generate Find All render data using input data
 	data := GenerateFindAllRenderData(tableData, c.SchemaName, c.PluralSchemaName, c.AdminHomeUrl, searchQuery)

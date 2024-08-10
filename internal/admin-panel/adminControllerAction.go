@@ -84,12 +84,8 @@ func (c adminActionController) FindAll(w http.ResponseWriter, r *http.Request) {
 		adminSchemaSlice = append(adminSchemaSlice, item)
 	}
 
-	// fmt.Printf("Found: %v\n", *found.Data)
-	fmt.Printf("SchemaSlice: %+v\n\n", schemaSlice)
-	fmt.Printf("AdminSchemaSlice: %+v\n\n", adminSchemaSlice)
-	fmt.Printf("TableHeaders: %v\n", c.tableHeaders)
 	// Build the table data
-	tableData := BuildTableData(adminSchemaSlice, found.Meta, c.adminHomeUrl, c.tableHeaders)
+	tableData := BuildTableData(adminSchemaSlice, found.Meta, c.adminHomeUrl, c.tableHeaders, false)
 
 	// Generate Find All page render data
 	data := GenerateFindAllRenderData(tableData, c.schemaName, c.pluralSchemaName, c.adminHomeUrl, searchQuery)

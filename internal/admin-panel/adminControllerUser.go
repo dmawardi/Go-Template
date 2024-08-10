@@ -102,7 +102,7 @@ func (c adminUserController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Build the table data
-	tableData := BuildTableData(adminSchemaSlice, found.Meta, c.adminHomeUrl, c.tableHeaders)
+	tableData := BuildTableData(adminSchemaSlice, found.Meta, c.adminHomeUrl, c.tableHeaders, true)
 
 	// Generate Find All page render data
 	data := GenerateFindAllRenderData(tableData, c.schemaName, c.pluralSchemaName, c.adminHomeUrl, searchQuery)

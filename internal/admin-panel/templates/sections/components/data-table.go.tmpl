@@ -70,8 +70,15 @@
               end
             }}
             <td>
+             {{/* Edit Section */}}
+            {{if .Edit.EditAllowed}}
               <a href="{{.Edit.EditUrl}}">Edit</a>
               <a href="{{.Edit.DeleteUrl}}">Delete</a>
+             {{/* View Section */}}
+            {{else}}
+              <a href="{{.Edit.EditUrl}}">View</a>
+            {{end}}
+
             </td>
           </tr>
           {{

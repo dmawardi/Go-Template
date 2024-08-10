@@ -49,6 +49,7 @@ type TableCell struct {
 
 // Edit info for the Edit column in the table
 type EditInfo struct {
+	EditAllowed bool
 	EditUrl   string // eg. admin/users/1
 	DeleteUrl string // eg. admin/users/delete/1
 }
@@ -59,7 +60,7 @@ type BulkDeleteRequest struct {
 }
 
 // Function to build table data from slice of adminpanel schema objects, admin schema url (eg. /admin/users) and table headers
-func BuildTableData(listOfSchemaObjects []models.AdminPanelSchema, metaData models.SchemaMetaData, adminSchemaBaseUrl string, tableHeaders []TableHeader) TableData {
+func BuildTableData(listOfSchemaObjects []models.AdminPanelSchema, metaData models.SchemaMetaData, adminSchemaBaseUrl string, tableHeaders []TableHeader, allowEdit bool) TableData {
 	// Calculate currently showing records and total pages
 	currentlyShowing := metaData.CalculateCurrentlyShowingRecords()
 	// Init table data
@@ -78,6 +79,7 @@ func BuildTableData(listOfSchemaObjects []models.AdminPanelSchema, metaData mode
 			Data: []TableCell{},
 			// Fill in edit info
 			Edit: EditInfo{
+				EditAllowed: allowEdit,
 				EditUrl:   fmt.Sprintf("%s/%s", adminSchemaBaseUrl, object.GetID()),
 				DeleteUrl: fmt.Sprintf("%s/delete/%s", adminSchemaBaseUrl, object.GetID()),
 			},
