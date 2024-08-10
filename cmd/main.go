@@ -168,6 +168,7 @@ func ApiSetup(client *gorm.DB, connectEmail bool) routes.Api {
 	// Action
 	actionRepo := corerepositories.NewActionRepository(client)
 	actionService := coreservices.NewActionService(actionRepo)
+	adminActionController := adminpanel.NewAdminActionController(actionService)
 
 	// Setup basic modules with new implementation (including admin controllers if available)
 	moduleMap := modules.SetupModules(modules.ModulesToSetup, client, actionService)
@@ -180,6 +181,7 @@ func ApiSetup(client *gorm.DB, connectEmail bool) routes.Api {
 		adminpanel.NewAdminCoreController(userService),
 		adminpanel.NewAdminUserController(userService, actionService),
 		adminpanel.NewAdminAuthPolicyController(groupService),
+		adminActionController,
 		// ADD ADDITIONAL MODULES HERE
 		moduleMap,
 	)

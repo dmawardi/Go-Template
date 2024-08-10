@@ -50,7 +50,7 @@ func (r *actionRepository) FindAll(limit int, offset int, order string, conditio
 
 	// Query all actions based on the received parameters
 	var actions []db.Action
-	err = data.QueryAll(r.DB, &actions, limit, offset, order, conditions, []string{"User"})
+	err = data.QueryAll(r.DB, &actions, limit, offset, order, conditions, []string{"Admin"})
 	if err != nil {
 		fmt.Printf("Error querying db for list of actions: %s", err)
 		return nil, err

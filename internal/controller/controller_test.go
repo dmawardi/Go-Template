@@ -132,6 +132,7 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 	// Action
 	actionRepo := corerepositories.NewActionRepository(client)
 	actionService := coreservices.NewActionService(actionRepo)
+	adminActionController := adminpanel.NewAdminActionController(actionService)
 
 	// Setup basic modules with new implementation
 	moduleMap := modules.SetupModules(modules.ModulesToSetup, client, actionService)
@@ -141,6 +142,7 @@ func (t *controllerTestModule) TestApiSetup(client *gorm.DB) routes.Api {
 		adminpanel.NewAdminCoreController(t.users.serv),
 		adminpanel.NewAdminUserController(t.users.serv, actionService),
 		adminpanel.NewAdminAuthPolicyController(t.auth.serv),
+		adminActionController,
 		// Additional modules
 		moduleMap,
 	)

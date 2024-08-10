@@ -33,6 +33,9 @@ func (a api) Routes() http.Handler {
 	mux = AddAdminRouteSet(mux, true, "users", a.Admin.User)
 	// Add admin policy routes
 	mux = AddAdminPolicySet(mux, true, "policy", a.Admin.Auth)
+	// Add admin action routes
+	mux = AddAdminActionRouteSet(mux, true, "actions", a.Admin.Action)
+
 
 	// Other schemas
 	for _, module := range a.ModuleMap {

@@ -39,6 +39,23 @@ func AddAdminRouteSet(router *chi.Mux, protected bool, urlExtension string, cont
 	return router
 }
 
+func AddAdminActionRouteSet(router *chi.Mux, protected bool, urlExtension string, controller adminpanel.AdminActionController) *chi.Mux {
+	// Reassign for consistency
+	r := router
+	r.Group(func(mux chi.Router) {
+		// Set to use JWT authentication if protected
+		if protected {
+			mux.Use(auth.AuthenticateJWT)
+		}
+		// Read All
+		mux.Get(fmt.Sprintf("/admin/%s", urlExtension), controller.FindAll)
+
+		// View One
+		mux.Get(fmt.Sprintf("/admin/%s/{id}", urlExtension), controller.View)
+	})
+	return router
+}
+
 // Adds routess for editing and creating admin auth policies for the admin panel
 func AddAdminPolicySet(router *chi.Mux, protected bool, urlExtension string, controller adminpanel.AdminAuthPolicyController) *chi.Mux {
 	// Reassign for consistency

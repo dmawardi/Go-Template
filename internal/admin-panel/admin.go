@@ -34,6 +34,7 @@ type AdminPanelController struct {
 	Base AdminCoreController
 	User AdminUserController
 	Auth AdminAuthPolicyController
+	Action AdminActionController
 	// Additional modules contained in module map
 	ModuleMap models.ModuleMap
 }
@@ -43,8 +44,9 @@ func NewAdminPanelController(
 							base AdminCoreController, 
 							users AdminUserController, 
 							authPolicies AdminAuthPolicyController, 
+							action AdminActionController,
 							moduleMap models.ModuleMap) AdminPanelController {
-	return AdminPanelController{base, users, authPolicies, moduleMap}
+	return AdminPanelController{base, users, authPolicies, action, moduleMap}
 }
 
 
