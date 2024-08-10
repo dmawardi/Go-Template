@@ -146,14 +146,14 @@ func (c adminActionController) View(w http.ResponseWriter, r *http.Request) {
 // Used to build Edit form
 func (c adminActionController) generateEditForm() []FormField {
 	return []FormField{
-		{DbLabel: "Name", Label: "Name", Name: "name", Placeholder: "Enter name", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Username", Label: "Username", Name: "username", Placeholder: "Enter username", Value: "", Type: "text", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Email", Label: "Email", Name: "email", Placeholder: "Enter email", Value: "", Type: "email", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Password", Label: "Password", Name: "password", Placeholder: "Enter password", Value: "", Type: "password", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "Role", Label: "Role", Name: "role", Placeholder: "Enter role", Value: "user", Type: "select", Required: false, Disabled: false, Errors: []ErrorMessage{}, Selectors: RoleSelection()},
-		{DbLabel: "Verified", Label: "Verified", Name: "verified", Placeholder: "", Value: "false", Type: "checkbox", Required: false, Disabled: false, Errors: []ErrorMessage{}},
-		{DbLabel: "VerificationCode", Label: "Verification Code", Name: "verification_code", Placeholder: "Enter verification code", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
-		{DbLabel: "VerificationCodeExpiry", Label: "Verification Code Expiry", Name: "verification_code_expiry", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+		{DbLabel: "AdminID", Label: "Admin ID", Name: "admin", Placeholder: "Enter admin", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+		{DbLabel: "ActionType", Label: "Action Type", Name: "action_type", Placeholder: "Enter action type", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+		{DbLabel: "EntityType", Label: "Entity Type", Name: "entity_type", Placeholder: "Enter entity type", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+		{DbLabel: "EntityID", Label: "Entity ID", Name: "entity_id", Placeholder: "Enter entity id", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+		{DbLabel: "IPAddress", Label: "IP Address", Name: "ip_address", Placeholder: "Enter ip address", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+		{DbLabel: "Changes", Label: "Changes", Name: "changes", Placeholder: "Enter changes", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+		{DbLabel: "Description", Label: "Description", Name: "description", Placeholder: "Enter description", Value: "", Type: "text", Required: false, Disabled: true, Errors: []ErrorMessage{}},
+
 		{DbLabel: "CreatedAt", Label: "Created At", Name: "created_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 		{DbLabel: "UpdatedAt", Label: "Updated At", Name: "updated_at", Placeholder: "", Value: "", Type: "datetime-local", Required: false, Disabled: true, Errors: []ErrorMessage{}},
 	}
