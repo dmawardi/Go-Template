@@ -20,7 +20,7 @@ import (
 )
 
 type UserService interface {
-	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.PaginatedUsersWithRole, error)
+	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.BasicPaginatedResponse[models.UserWithRole], error)
 	FindById(int) (*models.UserWithRole, error)
 	FindByEmail(string) (*models.UserWithRole, error)
 	Create(user *models.CreateUser) (*models.UserWithRole, error)
@@ -103,7 +103,7 @@ func (s *userService) Create(user *models.CreateUser) (*models.UserWithRole, err
 }
 
 // Find a list of users in the database
-func (s *userService) FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.PaginatedUsersWithRole, error) {
+func (s *userService) FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.BasicPaginatedResponse[models.UserWithRole], error) {
 	// Query all users based on the received parameters
 	users, err := s.repo.FindAll(limit, offset, order, conditions)
 	if err != nil {
@@ -123,7 +123,7 @@ func (s *userService) FindAll(limit int, offset int, order string, conditions []
 		fullUsers = append(fullUsers, *fullUser)
 	}
 
-	return &models.PaginatedUsersWithRole{Data: &fullUsers, Meta: users.Meta}, nil
+	return &models.BasicPaginatedResponse[models.UserWithRole]{Data: &fullUsers, Meta: users.Meta}, nil
 }
 
 // Find user in database by ID

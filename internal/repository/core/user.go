@@ -11,7 +11,7 @@ import (
 
 type UserRepository interface {
 	// Find a list of all users in the Database
-	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.PaginatedUsers, error)
+	FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.BasicPaginatedResponse[db.User], error)
 	Create(user *db.User) (*db.User, error)
 	Update(int, *db.User) (*db.User, error)
 	Delete(int) error
@@ -43,7 +43,7 @@ func (r *userRepository) Create(user *db.User) (*db.User, error) {
 }
 
 // Find a list of users in the database
-func (r *userRepository) FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.PaginatedUsers, error) {
+func (r *userRepository) FindAll(limit int, offset int, order string, conditions []models.QueryConditionParameters) (*models.BasicPaginatedResponse[db.User], error) {
 	// Build meta data for users
 	metaData, err := data.BuildMetaData(r.DB, db.User{}, limit, offset, order, conditions)
 	if err != nil {
@@ -59,7 +59,7 @@ func (r *userRepository) FindAll(limit int, offset int, order string, conditions
 		return nil, err
 	}
 
-	return &models.PaginatedUsers{
+	return &models.BasicPaginatedResponse[db.User]{
 		Data: &users,
 		Meta: *metaData,
 	}, nil

@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers"
 	"github.com/dmawardi/Go-Template/internal/models"
 )
@@ -75,7 +76,7 @@ func TestUserController_FindAll(t *testing.T) {
 	}
 
 	// Convert response JSON to struct
-	var body *models.PaginatedUsers
+	var body *models.BasicPaginatedResponse[db.User]
 	json.Unmarshal(rr.Body.Bytes(), &body)
 
 	// Check length of user array
