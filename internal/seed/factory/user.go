@@ -1,10 +1,10 @@
 package factory
 
 import (
-	"github.com/bxcodec/faker/v3"
 	"github.com/dmawardi/Go-Template/internal/db"
 	"github.com/dmawardi/Go-Template/internal/helpers/data"
 	"github.com/dmawardi/Go-Template/internal/seed/schemas"
+	"github.com/go-faker/faker/v4"
 	"gorm.io/gorm"
 )
 

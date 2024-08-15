@@ -1,6 +1,8 @@
 package seed
 
 import (
+	"fmt"
+
 	"github.com/dmawardi/Go-Template/internal/seed/schemas"
 )
 
@@ -11,6 +13,6 @@ func seed(seed map[string]schemas.BasicFactory) {
 	// Using the Name given in the factory registration, you can access the factory from the map
 	//
 	//
-	// seed["User"].Factory(10)
-	// fmt.Printf("Database seeded\n")
+	seed["User"].Factory(10)
+	fmt.Printf("Database seeded\n")
 }
