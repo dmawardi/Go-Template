@@ -11,7 +11,7 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 )
 
 // Table headers to show on find all page
@@ -42,7 +42,7 @@ type adminActionController struct {
 	schemaName       string
 	pluralSchemaName string
 	// Custom table headers
-	tableHeaders  []TableHeader
+	tableHeaders []TableHeader
 }
 
 type AdminActionController interface {
@@ -98,7 +98,6 @@ func (c adminActionController) FindAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
 func (c adminActionController) View(w http.ResponseWriter, r *http.Request) {
 	// Init new User Edit form
 	editForm := c.generateEditForm()
@@ -130,7 +129,7 @@ func (c adminActionController) View(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := GenerateEditRenderData(editForm, c.schemaName, c.pluralSchemaName, c.adminHomeUrl, stringParameter, false)	
+	data := GenerateEditRenderData(editForm, c.schemaName, c.pluralSchemaName, c.adminHomeUrl, stringParameter, false)
 
 	// Execute the template with data and write to response
 	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
@@ -139,8 +138,6 @@ func (c adminActionController) View(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
-
 
 // Form generation
 // Used to build Edit form

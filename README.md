@@ -5,7 +5,7 @@
 This repository will serve as a base web application in Go.
 
 - Built in Go version 1.19
-- Uses the [chi](https://github.com/go-chi/chi/v5) router
+- Uses the [chi](https://github.com/go-chi/chi/v5/v5) router
 - Uses [godotenv](https://github.com/joho/godotenv) for environmental variables
 - Uses [Swaggo](https://github.com/swaggo/swag) to generate API documentation
 - Uses [Go-Validator](https://github.com/asaskevich/govalidator) for validating incoming data

@@ -6,8 +6,8 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/config"
 	"github.com/dmawardi/Go-Template/internal/models"
-	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
 	httpSwagger "github.com/swaggo/http-swagger"
 	_ "github.com/swaggo/http-swagger/example/go-chi/docs"
 )
@@ -35,7 +35,6 @@ func (a api) Routes() http.Handler {
 	mux = AddAdminPolicySet(mux, true, "policy", a.Admin.Auth)
 	// Add admin action routes
 	mux = AddAdminActionRouteSet(mux, true, "actions", a.Admin.Action)
-
 
 	// Other schemas
 	for _, module := range a.ModuleMap {

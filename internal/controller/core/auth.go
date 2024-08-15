@@ -9,7 +9,7 @@ import (
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
 	coreservices "github.com/dmawardi/Go-Template/internal/service/core"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 )
 
 type AuthPolicyController interface {

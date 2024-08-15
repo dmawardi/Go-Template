@@ -5,7 +5,7 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/auth"
 	"github.com/dmawardi/Go-Template/internal/models"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 )
 
 // Adds a basic fully authorized CRUD route set to a Chi mux router

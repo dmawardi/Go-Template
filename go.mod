@@ -8,6 +8,7 @@ require (
 	github.com/casbin/gorm-adapter/v3 v3.27.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/go-chi/chi v4.1.2+incompatible
+	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-faker/faker/v4 v4.4.2
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/gorilla/sessions v1.3.0

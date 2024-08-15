@@ -9,7 +9,7 @@ import (
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	schemamodels "github.com/dmawardi/Go-Template/internal/models/schemaModels"
 	moduleservices "github.com/dmawardi/Go-Template/internal/service/module"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 )
 
 type PostController interface {

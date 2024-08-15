@@ -15,7 +15,7 @@ import (
 
 	"github.com/dmawardi/Go-Template/internal/helpers/request"
 	"github.com/dmawardi/Go-Template/internal/models"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 )
 
 // Table headers to show on find all page
@@ -29,7 +29,7 @@ var userTableHeaders = []TableHeader{
 
 func NewAdminUserController(service coreservices.UserService, action webapi.ActionService) AdminUserController {
 	return &adminUserController{
-		service: service,
+		service:       service,
 		actionService: action,
 		// Use values from above
 		adminHomeUrl:     "/admin/users",
@@ -40,7 +40,7 @@ func NewAdminUserController(service coreservices.UserService, action webapi.Acti
 }
 
 type adminUserController struct {
-	service coreservices.UserService
+	service       coreservices.UserService
 	actionService webapi.ActionService
 	// For links
 	adminHomeUrl string
@@ -48,7 +48,7 @@ type adminUserController struct {
 	schemaName       string
 	pluralSchemaName string
 	// Custom table headers
-	tableHeaders  []TableHeader
+	tableHeaders []TableHeader
 }
 
 type AdminUserController interface {
@@ -285,7 +285,7 @@ func (c adminUserController) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := GenerateEditRenderData(editForm, c.schemaName, c.pluralSchemaName, c.adminHomeUrl, stringParameter, true)	
+	data := GenerateEditRenderData(editForm, c.schemaName, c.pluralSchemaName, c.adminHomeUrl, stringParameter, true)
 
 	// Execute the template with data and write to response
 	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
@@ -326,7 +326,7 @@ func (c adminUserController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := GenerateDeleteRenderData(c.schemaName, c.pluralSchemaName, c.adminHomeUrl,  stringParameter)
+	data := GenerateDeleteRenderData(c.schemaName, c.pluralSchemaName, c.adminHomeUrl, stringParameter)
 
 	// Execute the template with data and write to response
 	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)

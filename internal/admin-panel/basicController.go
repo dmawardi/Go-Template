@@ -13,7 +13,7 @@ import (
 	webapi "github.com/dmawardi/Go-Template/internal/helpers/webApi"
 	"github.com/dmawardi/Go-Template/internal/models"
 	"github.com/dmawardi/Go-Template/internal/service"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 )
 
 // Interface for all basic admin controllers (used for Admin panel to dynamically generate sidebar)
@@ -42,22 +42,22 @@ type basicAdminController[dbSchema, create, update any] struct {
 	SchemaName       string
 	PluralSchemaName string
 	// Custom table headers
-	tableHeaders  []TableHeader
+	tableHeaders []TableHeader
 	// Conditional query params
 	ConditionQueryParams map[string]string
 
 	// Input functions for forms
 	// Form creators
-	generateCreateForm func() []FormField 
-	generateEditForm   func() []FormField 
+	generateCreateForm func() []FormField
+	generateEditForm   func() []FormField
 	// Submission preparation
 	prepareSubmittedFormForCreation func(formFieldMap map[string]string) (*create, error)
-	prepareSubmittedFormForUpdate func(formFieldMap map[string]string) (*update, error)
+	prepareSubmittedFormForUpdate   func(formFieldMap map[string]string) (*update, error)
 	// Helpers for Action service
-	// 
+	//
 	// Get ID from schema
 	getIDFromSchema func(schema *dbSchema) uint
-	newEmptySchema func(id ...uint) *dbSchema
+	newEmptySchema  func(id ...uint) *dbSchema
 }
 
 // Helper functions for sidebar url details
@@ -70,7 +70,6 @@ func (c basicAdminController[dbSchema, create, update]) ObtainUrlDetails() model
 }
 
 // ADMIN SIDEBAR CREATION
-//
 func (c basicAdminController[dbSchema, create, update]) FindAll(w http.ResponseWriter, r *http.Request) {
 	// Grab query parameters
 	searchQuery := r.URL.Query().Get("search")
@@ -260,7 +259,7 @@ func (c basicAdminController[dbSchema, create, update]) Edit(w http.ResponseWrit
 		// If validation fails
 		// Populate form field errors
 		SetValidationErrorsInForm(editForm, *valErrors)
-		
+
 		// Populate previously entered values (Avoids password)
 		err = populateFormValuesWithSubmittedFormMap(&editForm, formFieldMap)
 		if err != nil {
@@ -269,9 +268,9 @@ func (c basicAdminController[dbSchema, create, update]) Edit(w http.ResponseWrit
 			return
 		}
 	}
-	
+
 	// If not POST, ie. GET
-	
+
 	// Populate form field placeholders with data from database
 	currentData := getValuesUsingFieldMap(*found)
 	// Populate form field placeholders with data from database
@@ -281,7 +280,7 @@ func (c basicAdminController[dbSchema, create, update]) Edit(w http.ResponseWrit
 		return
 	}
 
-	data := GenerateEditRenderData(editForm, c.SchemaName, c.PluralSchemaName, c.AdminHomeUrl, stringParameter, true)	
+	data := GenerateEditRenderData(editForm, c.SchemaName, c.PluralSchemaName, c.AdminHomeUrl, stringParameter, true)
 
 	// Execute the template with data and write to response
 	err = app.AdminTemplates.ExecuteTemplate(w, "layout.go.tmpl", data)
