@@ -246,7 +246,10 @@ func TestAuthRoleRepository_DeleteRolesForUser(t *testing.T) {
 	}
 
 	// Check that role has been deleted
-	gRecords := app.Auth.Enforcer.GetGroupingPolicy()
+	gRecords, err := app.Auth.Enforcer.GetGroupingPolicy()
+	if err != nil {
+		t.Errorf("Error getting roles from enforcer: %v", err)
+	}
 	if len(gRecords) != 2 {
 		t.Errorf("Expected to have only default 2, found %v", len(gRecords))
 	}
@@ -285,7 +288,10 @@ func TestAuthPolicyRepository_CreateInheritance(t *testing.T) {
 	}
 
 	// Check that role has been created
-	rolesAndAssignments := app.Auth.Enforcer.GetNamedGroupingPolicy("g")
+	rolesAndAssignments, err := app.Auth.Enforcer.GetNamedGroupingPolicy("g")
+	if err != nil {
+		t.Errorf("Error getting roles from enforcer: %v", err)
+	}
 	// Filter out only inheritance records
 	inheritances, err := helpers.FilterOnlyInheritanceToGRecords(rolesAndAssignments)
 	if err != nil {
@@ -360,7 +366,10 @@ func TestAuthPolicyRepository_DeleteInheritance(t *testing.T) {
 	}
 
 	// Check that role has been deleted (Should only be 2 (users with roles) left)
-	inheritance := app.Auth.Enforcer.GetNamedGroupingPolicy("g")
+	inheritance, err := app.Auth.Enforcer.GetNamedGroupingPolicy("g")
+	if err != nil {
+		t.Errorf("Error getting roles from enforcer: %v", err)
+	}
 
 	if len(inheritance) != 3 {
 		t.Errorf("Expected 3, found %v.\nInheritance: %v", len(inheritance), inheritance)

@@ -216,7 +216,11 @@ func SetupDefaultCasbinPolicy(enforcer *casbin.Enforcer) {
 			}
 
 			// Check if the policy already exists
-			hasPolicy := enforcer.HasPolicy(policy.Subject, policy.Object, policy.Action)
+			hasPolicy, err := enforcer.HasPolicy(policy.Subject, policy.Object, policy.Action)
+			if err != nil {
+				log.Printf("Error checking policy: %v", err)
+				continue
+			}
 
 			// If the policy does not exist, add it
 			if !hasPolicy {
@@ -241,7 +245,11 @@ func SetupDefaultCasbinPolicy(enforcer *casbin.Enforcer) {
 			}
 
 			// Check if the grouping policy already exists
-			hasGroupingPolicy := enforcer.HasGroupingPolicy(groupingPolicy.User, groupingPolicy.Role)
+			hasGroupingPolicy, err := enforcer.HasGroupingPolicy(groupingPolicy.User, groupingPolicy.Role)
+			if err != nil {
+				log.Printf("Error checking grouping policy: %v", err)
+				continue
+			}
 
 			// If the grouping policy does not exist, add it
 			if !hasGroupingPolicy {
@@ -265,7 +273,11 @@ func SetupDefaultCasbinPolicy(enforcer *casbin.Enforcer) {
 			}
 
 			// Check if the grouping policy already exists
-			hasGroupingPolicy := enforcer.HasNamedGroupingPolicy(record[0], namedGroupingPolicy.User, namedGroupingPolicy.Role)
+			hasGroupingPolicy, err := enforcer.HasNamedGroupingPolicy(record[0], namedGroupingPolicy.User, namedGroupingPolicy.Role)
+			if err != nil {
+				log.Printf("Error checking named grouping policy: %v", err)
+				continue
+			}
 
 			// If the grouping policy does not exist, add it
 			if !hasGroupingPolicy {
